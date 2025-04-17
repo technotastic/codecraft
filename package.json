@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "node-pty": "^1.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-monaco-editor": "^0.58.0",
@@ -27,6 +28,7 @@
     "@vitejs/plugin-react": "^4.3.0",
     "electron": "^30.0.9",
     "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9",
     "typescript": "^5.4.5",
     "vite": "^5.2.11",
     "vite-plugin-monaco-editor": "^1.1.0"

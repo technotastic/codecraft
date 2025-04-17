@@ -2,19 +2,12 @@
 /// <reference types="vite/client" />
 
 // Import the interface shape from the preload script
-import type { ElectronAPI } from '@preload/index'; // Adjust path if needed, but '@preload/index' should work with TS paths config
+import type { ElectronAPI } from '@preload/index'; // Path alias should work
 
 // Extend the global Window interface
 declare global {
   interface Window {
-    electronAPI: ElectronAPI; // Declare the property and its type
+    // Ensure this declaration EXACTLY matches the exported interface from preload
+    electronAPI: ElectronAPI;
   }
 }
-
-// Optional: Keep this if you need process access in renderer (usually not recommended)
-// declare const process: {
-//     env: {
-//         NODE_ENV: 'development' | 'production';
-//         // Add other env variables if needed
-//     };
-// };

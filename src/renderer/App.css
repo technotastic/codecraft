@@ -30,35 +30,38 @@
   }
   
   .main-panel {
-    flex-grow: 1;
+    flex-grow: 1; /* Take remaining width */
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Stack editor and terminal */
     height: 100%;
-    overflow: hidden;
+    overflow: hidden; /* Prevent scrollbars here */
   }
   
   .editor-panel {
-    flex-grow: 1;
+    flex-grow: 1; /* Take available vertical space */
     background-color: var(--color-bg-main); /* Use variable */
-    padding: var(--spacing-sm); /* Use variable */
-    overflow: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--color-text-secondary); /* Use variable */
-    font-size: var(--font-size-md); /* Use variable */
+    /* REMOVED padding to allow editor edge-to-edge */
+    overflow: hidden; /* Editor manages its own scrolling */
+    display: flex; /* Using flex helps the direct child (MonacoEditor wrapper) fill */
+    /* REMOVED centering, editor should fill space */
+    color: var(--color-text-secondary); /* Fallback color if needed */
+    font-size: var(--font-size-md); /* Fallback font size */
+    /* The direct child of .editor-panel (the wrapper div created by react-monaco-editor)
+       needs to fill this container. If MonacoEditor isn't filling the space,
+       you might need to inspect the DOM and add styles targeting that specific
+       wrapper div, or set explicit width/height on the MonacoEditor component itself. */
   }
   
   .terminal-panel {
     height: 200px; /* Keep fixed height for now */
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent shrinking */
     background-color: var(--color-bg-terminal); /* Use variable */
     color: var(--color-text-terminal); /* Use variable */
     border-top: 1px solid var(--color-border-accent); /* Use variable */
     padding: var(--spacing-sm); /* Use variable */
-    overflow-y: auto;
+    overflow-y: auto; /* Allow terminal content to scroll */
     font-family: var(--font-family-mono); /* Use variable */
-    font-size: var(--font-size-base); /* Match base font size, or make specific */
+    font-size: var(--font-size-base); /* Use variable */
   }
   
   .terminal-panel p {

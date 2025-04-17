@@ -4,7 +4,7 @@
   "description": "A custom IDE built with Electron, React, and TypeScript",
   "main": "dist-electron/main/index.js",
   "scripts": {
-    "dev": "vite --config vite.config.ts --debug",
+    "dev": "vite --config vite.config.mjs --debug",
     "build": "npm run build:main && vite build && electron-builder",
     "build:main": "tsc --project tsconfig.node.json",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -15,17 +15,18 @@
   "license": "ISC",
   "dependencies": {
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-monaco-editor": "^0.58.0"
   },
   "devDependencies": {
+    "@types/node": "^20.12.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@types/node": "^20.12.12",
     "@vitejs/plugin-react": "^4.3.0",
     "electron": "^30.0.9",
     "electron-builder": "^24.13.3",
     "typescript": "^5.4.5",
     "vite": "^5.2.11",
-    "vite-plugin-electron-renderer": "^0.14.6"
+    "vite-plugin-monaco-editor": "^1.1.0"
   }
 }

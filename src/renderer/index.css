@@ -1,0 +1,54 @@
+/* src/renderer/index.css */
+
+/* Define CSS Variables for the default theme (Light) */
+:root {
+    /* Font */
+    --font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-family-mono: 'Courier New', Courier, monospace; /* Placeholder monospace */
+    --font-size-base: 14px; /* Base font size - adjust as needed */
+    --font-size-sm: 0.875rem; /* 14px if base is 16px */
+    --font-size-md: 1rem; /* 16px if base is 16px */
+    --font-size-lg: 1.125rem; /* 18px if base is 16px */
+  
+    /* Colors - Light Theme */
+    --color-bg-app: #f0f0f0;        /* Overall app background */
+    --color-bg-sidebar: #e8e8e8;   /* Sidebar background */
+    --color-bg-main: #ffffff;      /* Main panel (editor area) background */
+    --color-bg-terminal: #1e1e1e;  /* Terminal background (often dark even in light themes) */
+  
+    --color-text-primary: #1f1f1f;   /* Primary text (e.g., sidebar items, editor) */
+    --color-text-secondary: #555555; /* Secondary text (e.g., placeholders, less important info) */
+    --color-text-terminal: #cccccc; /* Terminal text */
+    --color-text-heading: #000000;  /* Headings */
+  
+    --color-border: #cccccc;        /* Borders between panels */
+    --color-border-accent: #aaaaaa; /* Slightly darker border */
+  
+    /* Spacing (optional but good practice) */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+  }
+  
+  /* Basic Reset */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Apply base font settings */
+  html, body {
+    font-family: var(--font-family-ui);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-app); /* Set base background */
+  }
+  
+  /* Ensure html, body, and root take full height */
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent body scrollbars */
+  }

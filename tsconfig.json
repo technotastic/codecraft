@@ -1,0 +1,48 @@
+// tsconfig.json (Base config - Ensure it looks like this)
+{
+    "compilerOptions": {
+      "target": "ESNext",
+      "lib": ["DOM", "DOM.Iterable", "ESNext"],
+      "module": "ESNext",
+      "skipLibCheck": true,
+
+      /* Bundler mode */
+      "moduleResolution": "bundler",
+      "allowImportingTsExtensions": true,
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "noEmit": true,
+      "jsx": "react-jsx",
+
+      /* Interop Constraints */
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+
+      /* Linting */
+      "strict": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noFallthroughCasesInSwitch": true,
+
+      /* Aliases - CRITICAL PART */
+      "baseUrl": ".", // Should be "."
+      "paths": {
+        // Make sure these paths are correct relative to the project root
+        "@renderer/*": ["src/renderer/*"],
+        "@main/*": ["src/main/*"],
+        "@preload/*": ["src/preload/*"], // This mapping is essential
+        //"@shared/*": ["src/shared/*"]
+      }
+      // --- END CRITICAL PART ---
+    },
+    // Include files relevant to the Renderer/Vite context
+    "include": [
+      "src/renderer/**/*.ts",
+      "src/renderer/**/*.tsx",
+      "src/vite-env.d.ts",
+      "src/shared.types.ts" // If it exists and is used by renderer
+     // Optional: Explicitly including preload might help IDE, but paths should be enough
+     // "src/preload/**/*.ts"
+    ],
+    "references": [{ "path": "./tsconfig.node.json" }]
+  }

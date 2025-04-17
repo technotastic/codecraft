@@ -1,0 +1,46 @@
+// tsconfig.node.json
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "composite": true,
+      "module": "CommonJS", // Keep CommonJS for reliable preload loading
+      "moduleResolution": "Node",
+      "target": "ESNext",
+      // --- CHANGE THIS LINE ---
+      "lib": ["ESNext", "DOM"], // Add "DOM" to make TS aware of browser types used by electron.d.ts
+      // --- END CHANGE ---
+      "noEmit": false,
+      "outDir": "dist-electron",
+      "rootDir": "src",
+
+      /* Overrides */
+      "allowImportingTsExtensions": false,
+      "isolatedModules": false,
+
+      /* Strict Checks */
+      "strict": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+
+      /* Aliases */
+      "paths": {
+        "@renderer/*": ["./src/renderer/*"],
+        "@main/*": ["./src/main/*"],
+        "@preload/*": ["./src/preload/*"]
+        //"@shared/*": ["./src/shared/*"]
+      }
+    },
+    // Includes
+    "include": [
+      "src/main/**/*.ts",
+      "src/preload/**/*.ts",
+      "src/shared.types.ts"
+      // "src/main/env.d.ts"
+    ],
+    // Excludes
+    "exclude": [
+      "node_modules",
+      "dist",
+      "src/renderer"
+    ]
+  }

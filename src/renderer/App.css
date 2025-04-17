@@ -4,29 +4,29 @@
     display: flex;
     height: 100%;
     width: 100%;
-    background-color: var(--color-bg-app); /* Use variable */
+    background-color: var(--color-bg-app);
   }
   
   .sidebar {
     width: 250px;
     flex-shrink: 0;
-    background-color: var(--color-bg-sidebar); /* Use variable */
-    border-right: 1px solid var(--color-border); /* Use variable */
-    padding: var(--spacing-md); /* Use variable */
+    background-color: var(--color-bg-sidebar);
+    border-right: 1px solid var(--color-border);
+    padding: var(--spacing-md);
     height: 100%;
     overflow-y: auto;
-    color: var(--color-text-primary); /* Use variable */
+    color: var(--color-text-primary);
   }
   
   .sidebar h2 {
-    margin-bottom: var(--spacing-sm); /* Use variable */
-    font-size: var(--font-size-lg); /* Use variable */
-    color: var(--color-text-heading); /* Use variable */
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-lg);
+    color: var(--color-text-heading);
   }
   
   .sidebar p {
-      color: var(--color-text-secondary); /* Use variable */
-      font-size: var(--font-size-sm); /* Use variable */
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
   }
   
   .main-panel {
@@ -39,31 +39,55 @@
   
   .editor-panel {
     flex-grow: 1; /* Take available vertical space */
-    background-color: var(--color-bg-main); /* Use variable */
-    /* REMOVED padding to allow editor edge-to-edge */
+    background-color: var(--color-bg-main);
+    /* No padding */
     overflow: hidden; /* Editor manages its own scrolling */
-    display: flex; /* Using flex helps the direct child (MonacoEditor wrapper) fill */
-    /* REMOVED centering, editor should fill space */
-    color: var(--color-text-secondary); /* Fallback color if needed */
-    font-size: var(--font-size-md); /* Fallback font size */
-    /* The direct child of .editor-panel (the wrapper div created by react-monaco-editor)
-       needs to fill this container. If MonacoEditor isn't filling the space,
-       you might need to inspect the DOM and add styles targeting that specific
-       wrapper div, or set explicit width/height on the MonacoEditor component itself. */
+    display: flex; /* Helps child fill space */
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-md);
+    /* Ensure editor fills this container. If MonacoEditor has issues, inspect its wrapper div */
+    position: relative; /* Needed if Monaco uses absolute positioning internally */
+    min-height: 50px; /* Add minimum height to prevent complete collapse */
   }
   
   .terminal-panel {
-    height: 200px; /* Keep fixed height for now */
+    height: 200px; /* Fixed height for terminal */
     flex-shrink: 0; /* Prevent shrinking */
-    background-color: var(--color-bg-terminal); /* Use variable */
-    color: var(--color-text-terminal); /* Use variable */
-    border-top: 1px solid var(--color-border-accent); /* Use variable */
-    padding: var(--spacing-sm); /* Use variable */
-    overflow-y: auto; /* Allow terminal content to scroll */
-    font-family: var(--font-family-mono); /* Use variable */
-    font-size: var(--font-size-base); /* Use variable */
+    background-color: var(--color-bg-terminal);
+    color: var(--color-text-terminal);
+    border-top: 1px solid var(--color-border-accent);
+    /* No padding on container */
+    overflow: hidden; /* Xterm manages its own scrolling */
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-base);
+    position: relative; /* For potential internal positioning */
+    width: 100%;
+    display: flex; /* Use flexbox to help child elements fill */
   }
   
+  /* Target the direct child wrapper of the terminal panel (usually a div) */
+  /* Or target the XTerm component's root if identifiable */
+  .terminal-panel > div {
+       width: 100%;
+       height: 100%;
+  }
+  
+  
+  /* Target the main xterm element for padding */
+  .terminal-panel .terminal.xterm {
+      height: 100% !important; /* Fill container */
+      width: 100% !important; /* Fill container */
+      padding: 5px; /* Add padding inside the terminal viewport */
+  }
+  
+  /* Ensure the internal screen fills the terminal element */
+   .terminal-panel .xterm-screen {
+       width: 100% !important;
+       height: 100% !important;
+   }
+  
+  
+  /* Hide placeholder text if it exists */
   .terminal-panel p {
-      color: #888; /* Keep specific placeholder color or use a variable */
+     display: none;
   }

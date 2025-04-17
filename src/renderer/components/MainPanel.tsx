@@ -5,9 +5,9 @@ import TerminalPanel from './TerminalPanel';
 
 const MainPanel: React.FC = () => {
   return (
-    <div className="main-panel">
-      <EditorPanel />
-      <TerminalPanel />
+    <div className="main-panel"> {/* Container with flex-direction: column */}
+      <EditorPanel />   {/* Child 1: Flexible height */}
+      <TerminalPanel /> {/* Child 2: Fixed height */}
     </div>
   );
 };

@@ -1,49 +1,60 @@
 // src/renderer/components/TerminalPanel.tsx
 import React, { useRef, useEffect } from 'react';
-import { Terminal, ITerminalOptions, ITheme } from 'xterm'; // Import ITheme
+import { Terminal, ITerminalOptions, ITheme } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
-import { useTheme } from '../contexts/ThemeContext'; // Import useTheme
+import { useTheme, ThemeName } from '../contexts/ThemeContext'; // Import ThemeName
 
-// Define base terminal options that don't depend on the theme
 const baseTerminalOptions: Omit<ITerminalOptions, 'theme'> = {
     cursorBlink: true,
-    fontFamily: 'var(--font-family-mono)', // Use CSS variable
-    fontSize: 13, // Adjust as needed, or use CSS variable if preferred
+    fontFamily: 'var(--font-family-mono)',
+    fontSize: 13, // This might need adjustment based on theme via useEffect later
     scrollback: 1000,
-    // Rows/Cols are determined by FitAddon + container size
 };
 
 // Define theme configurations for XTerm
-const terminalThemes: Record<string, ITheme> = {
+const terminalThemes: Record<ThemeName, ITheme> = { // Use ThemeName as key type
     light: {
-        background: '#ffffff',
-        foreground: '#333333',
+        background: '#ffffff', // Corresponds to --color-bg-terminal in :root
+        foreground: '#333333', // Corresponds to --color-text-terminal in :root
         cursor: '#333333',
-        selectionBackground: '#d5e5f6', // Match CSS var if possible
+        selectionBackground: '#d5e5f6', // Corresponds to --color-bg-selected in :root
         selectionForeground: '#000000',
-        // Add other ANSI colors if needed
     },
     dark: {
-        background: '#1e1e1e',
-        foreground: '#cccccc',
+        background: '#1e1e1e', // Corresponds to --color-bg-terminal in .theme-dark
+        foreground: '#cccccc', // Corresponds to --color-text-terminal in .theme-dark
         cursor: '#cccccc',
-        selectionBackground: '#094771', // Match CSS var if possible
+        selectionBackground: '#094771', // Corresponds to --color-bg-selected in .theme-dark
         selectionForeground: '#ffffff',
-        // Add other ANSI colors if needed
     },
-    'win95-placeholder': { // Example for Win95
-        background: '#000080', // Classic blue
-        foreground: '#c0c0c0', // Light grey/silver
+    win95: { // Corresponds to .theme-win95 variables
+        background: '#000080',
+        foreground: '#c0c0c0',
         cursor: '#c0c0c0',
-        selectionBackground: '#c0c0c0', // Often inverse
+        selectionBackground: '#c0c0c0',
         selectionForeground: '#000080',
-        // Add other ANSI colors if needed
+        // ANSI colors could be added for more accuracy
+    },
+    pipboy: { // Corresponds to .theme-pipboy variables
+        background: '#0a1a0f', // --pipboy-bg
+        foreground: '#15ff60', // --pipboy-green
+        cursor: '#15ff60',
+        cursorAccent: '#0a1a0f',
+        selectionBackground: '#10b445', // --pipboy-green-dark
+        selectionForeground: '#0a1a0f', // --pipboy-bg
+    },
+    mirc: { // Corresponds to .theme-mirc variables
+        background: '#000000', // Usually black background
+        foreground: '#00ff00', // Green text
+        cursor: '#00ff00',
+        selectionBackground: '#008000', // Dark green selection
+        selectionForeground: '#ffffff',
     }
 };
 
 const TerminalPanel: React.FC = () => {
-    const { theme } = useTheme(); // Get the current theme
+    const { theme } = useTheme();
     const terminalContainerRef = useRef<HTMLDivElement | null>(null);
     const terminalInstanceRef = useRef<Terminal | null>(null);
     const fitAddon = useRef(new FitAddon());
@@ -51,15 +62,18 @@ const TerminalPanel: React.FC = () => {
 
     // Effect 1: Create Terminal Instance & Request Backend PTY
     useEffect(() => {
+        // ... (keep logic inside the same, it already uses the theme variable) ...
         if (terminalInstanceRef.current === null && terminalContainerRef.current) {
             console.log("Effect 1: Creating Frontend Terminal instance.");
             const container = terminalContainerRef.current;
-            container.innerHTML = ''; // Clear previous content if any
+            container.innerHTML = '';
 
-            // Combine base options with the current theme's configuration
-            const currentTerminalTheme = terminalThemes[theme] || terminalThemes['dark']; // Fallback to dark
+            // Theme is selected here based on initial state
+            const currentTerminalTheme = terminalThemes[theme] || terminalThemes['dark'];
             const termOptions: ITerminalOptions = {
                 ...baseTerminalOptions,
+                // Use font size variable from CSS maybe? Requires access or another approach
+                // fontSize: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size-terminal').trim()) || 13,
                 theme: currentTerminalTheme,
             };
 
@@ -69,13 +83,11 @@ const TerminalPanel: React.FC = () => {
             term.open(container);
             console.log("Effect 1: Frontend Terminal instance created and attached.");
 
-            // --- Load FitAddon ---
             try {
                 term.loadAddon(fitAddon.current);
                 console.log("Effect 1: FitAddon loaded.");
             } catch (e) { console.warn("FitAddon load failed:", e); }
 
-            // --- Initial Fit and PTY Creation ---
             let initialCols = 80;
             let initialRows = 24;
             setTimeout(() => {
@@ -88,13 +100,18 @@ const TerminalPanel: React.FC = () => {
                     console.log("Effect 1: Requesting backend PTY creation...");
                     term.writeln("Connecting to backend shell...");
                     window.electronAPI.term_create({ cols: initialCols, rows: initialRows })
-                        .then(() => {
-                            console.log("Effect 1: Backend PTY creation request successful.");
-                            term.focus();
+                        .then((result) => { // Check result from preload
+                            if (result?.success) {
+                                console.log("Effect 1: Backend PTY creation request successful.");
+                                term.focus();
+                            } else {
+                                console.error("Effect 1: Backend PTY creation request failed:", result?.error);
+                                term.writeln(`\nFailed to create backend shell: ${result?.error || 'Unknown error'}`);
+                            }
                         })
                         .catch(err => {
-                            console.error("Effect 1: Backend PTY creation request failed:", err);
-                            term.writeln(`\nFailed to create backend shell: ${err.message || err}`);
+                            console.error("Effect 1: IPC Backend PTY creation request failed:", err);
+                            term.writeln(`\nIPC Error creating backend shell: ${err.message || err}`);
                         });
 
                 } catch (e) { console.warn("Initial fit failed:", e); }
@@ -106,12 +123,12 @@ const TerminalPanel: React.FC = () => {
             terminalInstanceRef.current?.dispose();
             terminalInstanceRef.current = null;
         };
-    // Run only on mount, theme changes handled by separate effect
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, []); // Run only on mount
 
-     // Effect 2: Setup IPC Listeners, Input Forwarding, and Resizing
-     useEffect(() => {
+    // Effect 2: Setup IPC Listeners, Input Forwarding, and Resizing
+    // ... (keep effect 2 logic the same) ...
+    useEffect(() => {
         const term = terminalInstanceRef.current;
         const container = terminalContainerRef.current;
 
@@ -126,15 +143,20 @@ const TerminalPanel: React.FC = () => {
             const unsubscribeOnExit = window.electronAPI.term_onExit((code) => term.writeln(`\n\n[Process exited with code ${code ?? 'N/A'}]`));
             effect2Cleanupables.current.push(unsubscribeOnExit);
 
+            // Add error listener
+            const unsubscribeOnError = window.electronAPI.term_onError((errorMessage) => term.writeln(`\n\n[PTY Error: ${errorMessage}]`));
+            effect2Cleanupables.current.push(unsubscribeOnError);
+
+
             const dataListener = term.onData((data: string) => window.electronAPI.term_write(data));
-            // No need to add dataListener to cleanupables if terminal dispose handles it
 
             let resizeObserver: ResizeObserver | null = new ResizeObserver(() => {
-                console.log("Resize Observer triggered.");
+                // Debounce or throttle this if it fires too rapidly
                 try {
-                    if (!terminalInstanceRef.current) return;
-                    fitAddon.current.fit();
-                    console.log(`Resized Frontend. Sending dimensions to backend: ${term.cols}x${term.rows}`);
+                    if (!terminalInstanceRef.current || !fitAddon.current) return;
+                     fitAddon.current.fit(); // Use fit addon ref
+                     // Only send if cols/rows actually changed?
+                    // console.log(`Resized Frontend. Sending dimensions to backend: ${term.cols}x${term.rows}`);
                     window.electronAPI.term_resize({ cols: term.cols, rows: term.rows });
                 } catch (e) { console.error("Resize handling error:", e); }
             });
@@ -150,23 +172,32 @@ const TerminalPanel: React.FC = () => {
         } else {
              console.log("Effect 2: Waiting for terminal instance and container...");
         }
-    // Rerun effect if the terminal instance becomes available
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [terminalInstanceRef.current]); // Dependency only on terminal instance ref's presence
+    }, [terminalInstanceRef.current]);
 
     // Effect 3: Handle Theme Changes for Existing Terminal
+    // ... (keep effect 3 logic the same) ...
     useEffect(() => {
         const term = terminalInstanceRef.current;
         if (term) {
             console.log(`Effect 3: Applying theme '${theme}' to terminal.`);
-            const currentTerminalTheme = terminalThemes[theme] || terminalThemes['dark']; // Fallback needed
+            const currentTerminalTheme = terminalThemes[theme] || terminalThemes['dark'];
             term.options.theme = currentTerminalTheme;
-            // Optionally force a refresh if theme change doesn't apply automatically
-            // term.refresh(0, term.rows - 1);
+
+            // Also update font size if desired, maybe based on CSS vars
+             const newFontSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size-terminal').replace('px','').trim()) || 13;
+             if (term.options.fontSize !== newFontSize) {
+                 term.options.fontSize = newFontSize;
+                 // Need to refit after font size change
+                 setTimeout(() => fitAddon.current?.fit(), 0);
+             }
+
         }
     }, [theme]); // Rerun whenever the theme changes
 
-    // Effect 4: Final Unmount Cleanup (no change needed here)
+
+    // Effect 4: Final Unmount Cleanup
+    // ... (keep effect 4 logic the same) ...
     useEffect(() => {
         return () => {
             console.log("Effect 4: Component unmounting. Disposing terminal from ref.");
@@ -176,6 +207,9 @@ const TerminalPanel: React.FC = () => {
                 terminalInstanceRef.current = null;
                 console.log("Effect 4: Terminal instance from ref disposed and ref cleared.");
             }
+             // Clean up any remaining listeners just in case
+            effect2Cleanupables.current.forEach(cleanup => cleanup());
+            effect2Cleanupables.current = [];
         };
     }, []);
 

@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useMemo } from 'react';
 
 // Define the possible theme names
-export type ThemeName = 'light' | 'dark' | 'win95-placeholder'; // Add more as needed
+export type ThemeName = 'light' | 'dark' | 'win95' | 'pipboy' | 'mirc'; // Added new themes
 
 // Define the shape of the context value
 interface ThemeContextProps {
@@ -10,18 +10,17 @@ interface ThemeContextProps {
   setTheme: (theme: ThemeName) => void;
 }
 
-// Create the context with a default value (can be null or a sensible default)
-// Using undefined initially and checking in the hook is safer to ensure Provider exists.
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
-// Define the props for the provider component
 interface ThemeProviderProps {
   children: ReactNode;
   defaultTheme?: ThemeName;
 }
 
-// Create the provider component
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultTheme = 'light' }) => {
+// List of all possible theme classes to manage cleanup
+const ALL_THEME_CLASSES = ['theme-light', 'theme-dark', 'theme-win95', 'theme-pipboy', 'theme-mirc'];
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultTheme = 'dark' }) => {
   const [theme, setTheme] = useState<ThemeName>(() => {
     // Optional: Load saved theme from localStorage or use default
     // const savedTheme = localStorage.getItem('app-theme') as ThemeName | null;
@@ -31,18 +30,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultT
 
   // Effect to apply the theme class to the root element (#root)
   useEffect(() => {
-    const rootElement = document.getElementById('root'); // Target the main div
+    const rootElement = document.getElementById('root');
     if (rootElement) {
-        // Remove existing theme classes before adding the new one
-        rootElement.classList.remove('theme-light', 'theme-dark', 'theme-win95-placeholder'); // Add all possible theme classes here
+        // Remove all known theme classes first
+        rootElement.classList.remove(...ALL_THEME_CLASSES);
+        // Add the current theme class
         rootElement.classList.add(`theme-${theme}`);
-        // Optional: Save theme choice to localStorage
-        // localStorage.setItem('app-theme', theme);
+
+        // Also apply to body if needed for global effects like overlays
+        document.body.classList.remove(...ALL_THEME_CLASSES);
+        document.body.classList.add(`theme-${theme}`);
+
+
         console.log(`Theme applied: theme-${theme}`);
     }
   }, [theme]);
 
-  // Memoize the context value to prevent unnecessary re-renders of consumers
   const contextValue = useMemo(() => ({ theme, setTheme }), [theme]);
 
   return (
@@ -52,7 +55,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultT
   );
 };
 
-// Create a custom hook for easy access to the context
 export const useTheme = (): ThemeContextProps => {
   const context = useContext(ThemeContext);
   if (context === undefined) {

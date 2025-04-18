@@ -1,65 +1,143 @@
 // src/renderer/components/EditorPanel.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MonacoEditor from 'react-monaco-editor';
-import { useTheme } from '../contexts/ThemeContext'; // Import useTheme
+import type * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+
+import { useTheme, ThemeName } from '../contexts/ThemeContext';
+
+// Helper function to safely get and parse font size from CSS variable
+const getEditorFontSize = (): number => {
+    const fontSizeValue = getComputedStyle(document.documentElement).getPropertyValue('--font-size-editor');
+    // Provide default if variable is missing or invalid
+    return parseInt(fontSizeValue?.replace('px', '').trim() || '13', 10);
+};
+
 
 const EditorPanel: React.FC = () => {
-  const { theme } = useTheme(); // Get the current theme
-  const [code, setCode] = useState<string>(
-    // Default content
-    '// Welcome to CodeCraft IDE!\n' +
-    '// Use the dropdown in the sidebar to change themes.\n' +
-    'function hello() {\n' +
-    '\tconsole.log("Hello from Monaco Editor!");\n' +
-    '}'
-  );
+    const { theme } = useTheme();
+    const [code, setCode] = useState<string>(
+        '// Welcome to CodeCraft IDE!\n' +
+        '// Use the dropdown in the sidebar to change themes.\n' +
+        'function hello() {\n' +
+        '\tconsole.log("Hello from Monaco Editor!");\n' +
+        '}'
+    );
+    const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+    const monacoRef = useRef<typeof monaco | null>(null);
 
-  // Map our theme names to Monaco theme names
-  // Note: Monaco doesn't have a built-in Win95 theme. We'll need to define one later.
-  // For now, 'win95-placeholder' will map to 'vs' (light).
-  const monacoTheme = theme === 'dark' ? 'vs-dark' : 'vs'; // 'vs' is the default light
+    const getMonacoThemeName = (currentTheme: ThemeName): string => {
+        switch (currentTheme) {
+            case 'light': return 'vs';
+            case 'dark': return 'vs-dark';
+            case 'win95': return 'win95-monaco-theme';
+            case 'pipboy': return 'pipboy-monaco-theme';
+            case 'mirc': return 'mirc-monaco-theme';
+            default: return 'vs-dark';
+        }
+    };
 
-  // Options for the Monaco Editor instance
-  const editorOptions = {
-    selectOnLineNumbers: true,
-    automaticLayout: true, // Recommended for flexible layouts
-    fontSize: 13, // Example: Set a base font size for the editor
-    fontFamily: 'var(--font-family-mono)', // Use CSS variable for consistency
-    // Add other Monaco options here if needed
-    // minimap: { enabled: false },
-    // wordWrap: 'on',
-  };
+    // --- Corrected initial font size retrieval ---
+    const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
+        selectOnLineNumbers: true,
+        automaticLayout: true,
+        fontFamily: 'var(--font-family-mono)',
+        fontSize: getEditorFontSize(), // Use helper function
+    };
 
-  const handleEditorChange = (newValue: string) => {
-    setCode(newValue);
-    // Placeholder for future file saving logic & dirty state indication
-  };
+    const handleEditorChange = (newValue: string) => {
+        setCode(newValue);
+    };
 
-  // The MonacoEditor component should fill the container div.
-  // The container div (.editor-panel) is styled via App.css to be flexible.
-  return (
-    <div className="editor-panel">
-      <MonacoEditor
-        width="100%" // Explicitly set width/height to fill container
-        height="100%"
-        language="javascript" // Default language (will be dynamic later)
-        theme={monacoTheme} // Apply the theme dynamically
-        value={code} // Controlled component: value displayed is from state
-        options={editorOptions} // Pass editor configuration options
-        onChange={handleEditorChange} // Function called when content changes
-        // Optional: Callback when editor is mounted for direct API access
-        // editorDidMount={(editor, monaco) => {
-        //   console.log('Editor mounted!', editor, monaco);
-        //   // Example: Use the monaco instance to define custom themes later
-        //   // if (theme === 'win95-placeholder') {
-        //   //    monaco.editor.defineTheme('win95-theme', { base: 'vs', inherit: true, rules: [], colors: {} });
-        //   //    monaco.editor.setTheme('win95-theme');
-        //   // }
-        //   editor.focus();
-        // }}
-      />
-    </div>
-  );
+    const editorDidMount = (
+        editor: monaco.editor.IStandaloneCodeEditor,
+        monacoInstance: typeof monaco
+    ) => {
+        console.log('Editor mounted!');
+        editorRef.current = editor;
+        monacoRef.current = monacoInstance;
+
+        // --- Define Custom Monaco Themes ---
+        const defineTheme = (name: string, base: 'vs' | 'vs-dark', colors: monaco.editor.IStandaloneThemeData['colors']) => {
+            monacoInstance.editor.defineTheme(name, { base, inherit: true, rules: [], colors });
+        }
+
+        // Pipboy
+        defineTheme('pipboy-monaco-theme', 'vs-dark', {
+            'editor.background': getComputedStyle(document.documentElement).getPropertyValue('--pipboy-bg')?.trim() || '#0a1a0f',
+            'editor.foreground': getComputedStyle(document.documentElement).getPropertyValue('--pipboy-green')?.trim() || '#15ff60',
+            'editorCursor.foreground': getComputedStyle(document.documentElement).getPropertyValue('--pipboy-green')?.trim() || '#15ff60',
+            'editorLineNumber.foreground': getComputedStyle(document.documentElement).getPropertyValue('--color-text-tertiary')?.trim() || '#6c6c6c',
+            'editor.selectionBackground': getComputedStyle(document.documentElement).getPropertyValue('--pipboy-green-dark')?.trim() || '#10b445',
+            'editorWidget.background': getComputedStyle(document.documentElement).getPropertyValue('--pipboy-bg-lighter')?.trim() || '#102a18',
+            'editorWidget.border': getComputedStyle(document.documentElement).getPropertyValue('--pipboy-green-dark')?.trim() || '#10b445',
+        });
+        // Win95
+        defineTheme('win95-monaco-theme', 'vs', {
+            'editor.background': getComputedStyle(document.documentElement).getPropertyValue('--color-bg-editor')?.trim() || '#ffffff',
+            'editor.foreground': getComputedStyle(document.documentElement).getPropertyValue('--color-text-primary')?.trim() || '#000000',
+            'editorCursor.foreground': '#000000',
+            'editorLineNumber.foreground': getComputedStyle(document.documentElement).getPropertyValue('--color-text-tertiary')?.trim() || '#808080',
+            'editor.selectionBackground': getComputedStyle(document.documentElement).getPropertyValue('--color-bg-selected')?.trim() || '#000080',
+            'editor.selectionForeground': getComputedStyle(document.documentElement).getPropertyValue('--color-text-inverse')?.trim() || '#ffffff',
+        });
+        // mIRC
+        defineTheme('mirc-monaco-theme', 'vs', {
+            'editor.background': getComputedStyle(document.documentElement).getPropertyValue('--color-bg-editor')?.trim() || '#ffffff',
+            'editor.foreground': getComputedStyle(document.documentElement).getPropertyValue('--color-text-primary')?.trim() || '#000000',
+            'editorCursor.foreground': '#000000',
+            'editorLineNumber.foreground': getComputedStyle(document.documentElement).getPropertyValue('--color-text-tertiary')?.trim() || '#808080',
+            'editor.selectionBackground': getComputedStyle(document.documentElement).getPropertyValue('--color-bg-selected')?.trim() || '#000080',
+            'editor.selectionForeground': getComputedStyle(document.documentElement).getPropertyValue('--color-text-inverse')?.trim() || '#ffffff',
+        });
+
+        // Apply the initial theme after defining custom ones
+        const initialThemeName = getMonacoThemeName(theme);
+        monacoInstance.editor.setTheme(initialThemeName);
+        console.log("Initial Monaco theme set to:", initialThemeName);
+
+        // Apply initial font size (already set in options, but good to ensure consistency)
+        // --- Corrected font size retrieval ---
+        editor.updateOptions({
+            fontSize: getEditorFontSize(), // Use helper function
+        });
+
+        editor.focus();
+    };
+
+    // Effect to update theme and font size when context changes
+    useEffect(() => {
+        if (editorRef.current && monacoRef.current) {
+            const editor = editorRef.current;
+            const monacoInstance = monacoRef.current;
+
+            // Update theme
+            const newThemeName = getMonacoThemeName(theme);
+            monacoInstance.editor.setTheme(newThemeName);
+            console.log("Monaco theme updated to:", newThemeName);
+
+            // Update font size
+            // --- Corrected font size retrieval ---
+            const newFontSize = getEditorFontSize(); // Use helper function
+            editor.updateOptions({ fontSize: newFontSize });
+            console.log("Monaco font size updated to:", newFontSize);
+        }
+    }, [theme]);
+
+
+    return (
+        <div className="editor-panel">
+            <MonacoEditor
+                width="100%"
+                height="100%"
+                language="javascript"
+                // theme prop removed - rely on setTheme
+                value={code}
+                options={editorOptions}
+                onChange={handleEditorChange}
+                editorDidMount={editorDidMount}
+            />
+        </div>
+    );
 };
 
 export default EditorPanel;

@@ -8,15 +8,17 @@ import React, {
     useMemo,
 } from 'react';
 
-import type { ReadFileResponse } from '../../shared.types'; // Import shared type
+import type { ReadFileResponse, SaveFileResponse } from '../../shared.types';
 
 interface EditorContextProps {
     currentFilePath: string | null;
     currentFileContent: string | null;
-    openFile: (filePath: string) => Promise<void>; // Async function to handle loading
+    openFile: (filePath: string) => Promise<void>;
     isLoading: boolean;
     error: string | null;
-    // Later: add isDirty, saveFile, etc.
+    isDirty: boolean; // NEW: Track unsaved changes
+    markAsDirty: (dirty: boolean) => void; // NEW: Function to set dirty state
+    saveCurrentFile: (content: string) => Promise<void>; // NEW: Function to save
 }
 
 const EditorContext = createContext<EditorContextProps | undefined>(undefined);
@@ -30,24 +32,29 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
     const [currentFileContent, setCurrentFileContent] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [isDirty, setIsDirty] = useState<boolean>(false); // Initialize dirty state
 
     const openFile = useCallback(async (filePath: string) => {
         console.log(`EditorContext: Request to open file - ${filePath}`);
         setIsLoading(true);
         setError(null);
-        setCurrentFilePath(filePath); // Set path immediately for feedback
-        setCurrentFileContent(''); // Clear previous content
+        setIsDirty(false); // Reset dirty state on open
+        setCurrentFilePath(filePath);
+        setCurrentFileContent('');
 
         try {
             const response: ReadFileResponse = await window.electronAPI.fs_readFile(filePath);
             if (response.success) {
                 console.log(`EditorContext: File loaded successfully - ${filePath}`);
                 setCurrentFileContent(response.content);
+                // Reset dirty again after successful load, in case of race conditions
+                setIsDirty(false);
             } else {
                 console.error(`EditorContext: Failed to read file ${filePath}:`, response.error);
                 setError(`Error loading file: ${response.error}`);
-                setCurrentFileContent(`// Error loading file: ${response.error}`); // Show error in editor
-                 setCurrentFilePath(null); // Clear path on error? Or keep it to show which file failed? Let's clear it for now.
+                setCurrentFileContent(`// Error loading file: ${response.error}`);
+                setCurrentFilePath(null);
+                setIsDirty(false); // Not dirty if load failed
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
@@ -55,10 +62,61 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
             setError(`IPC Error: ${errorMsg}`);
             setCurrentFileContent(`// IPC Error loading file: ${errorMsg}`);
             setCurrentFilePath(null);
+            setIsDirty(false); // Not dirty if IPC failed
         } finally {
             setIsLoading(false);
         }
-    }, []); // No dependencies needed for useCallback here
+    }, []); // Dependencies are empty
+
+    // --- NEW: Function to explicitly set dirty state ---
+    const markAsDirty = useCallback((dirty: boolean) => {
+        // Only mark as dirty if not already dirty, to avoid unnecessary re-renders
+        // Or always update if caller explicitly sets to false (e.g., after save)
+         if (dirty !== isDirty) {
+            console.log(`EditorContext: Setting dirty state to ${dirty}`);
+            setIsDirty(dirty);
+         }
+
+    }, [isDirty]); // Dependency on isDirty
+
+    // --- NEW: Function to save the current file ---
+    const saveCurrentFile = useCallback(async (content: string) => {
+        if (!currentFilePath) {
+            console.warn("EditorContext: Cannot save, no file path specified.");
+            // TODO: Implement "Save As..." functionality later
+            setError("Cannot save: No file is currently open.");
+            return;
+        }
+        if (!isDirty) {
+            console.log("EditorContext: No changes to save.");
+            return; // Nothing to save
+        }
+
+        console.log(`EditorContext: Request to save file - ${currentFilePath}`);
+        setIsLoading(true); // Show loading state during save
+        setError(null);
+
+        try {
+            const response: SaveFileResponse = await window.electronAPI.fs_saveFile(currentFilePath, content);
+            if (response.success) {
+                console.log(`EditorContext: File saved successfully - ${currentFilePath}`);
+                setCurrentFileContent(content); // Update context content to match saved state
+                setIsDirty(false); // Mark as not dirty after successful save
+            } else {
+                console.error(`EditorContext: Failed to save file ${currentFilePath}:`, response.error);
+                setError(`Error saving file: ${response.error || 'Unknown error'}`);
+                // Keep isDirty true because save failed
+            }
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            console.error(`EditorContext: IPC Error saving file ${currentFilePath}:`, errorMsg);
+            setError(`IPC Error saving file: ${errorMsg}`);
+            // Keep isDirty true because save failed
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentFilePath, isDirty]); // Dependencies for save function
+
 
     const contextValue = useMemo(() => ({
         currentFilePath,
@@ -66,7 +124,13 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         openFile,
         isLoading,
         error,
-    }), [currentFilePath, currentFileContent, openFile, isLoading, error]); // Dependencies for useMemo
+        isDirty,        // Expose isDirty state
+        markAsDirty,    // Expose function to set dirty state
+        saveCurrentFile // Expose save function
+    }), [
+        currentFilePath, currentFileContent, openFile, isLoading, error,
+        isDirty, markAsDirty, saveCurrentFile // Include new values in dependencies
+    ]);
 
     return (
         <EditorContext.Provider value={contextValue}>

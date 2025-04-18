@@ -1,90 +1,81 @@
 // --- START FILE: src/renderer/components/EditorPanel.tsx ---
-import React, { useState, useEffect, useRef } from 'react';
-import MonacoEditor from 'react-monaco-editor';
-import type * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
-
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'; // Import useMemoimport MonacoEditor from 'react-monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
-import { useEditor } from '../contexts/EditorContext'; // Import useEditor hook
+import { useEditor } from '../contexts/EditorContext';
+import MonacoEditor from 'react-monaco-editor';
 
 // Helper function to safely get and parse font size from CSS variable
 const getEditorFontSize = (): number => {
-    if (typeof document === 'undefined') return 13;
-    const fontSizeValue = getComputedStyle(document.documentElement).getPropertyValue('--font-size-editor');
-    return parseInt(fontSizeValue?.replace('px', '').trim() || '13', 10);
+    if (typeof document === 'undefined') return 13; // Default if SSR or other env
+    try {
+        const fontSizeValue = getComputedStyle(document.documentElement).getPropertyValue('--font-size-editor');
+        return parseInt(fontSizeValue?.replace('px', '').trim() || '13', 10);
+    } catch (e) {
+        console.warn("Could not get computed style for font size, using default.", e);
+        return 13;
+    }
 };
 
 // Helper to get computed CSS variable value
 const getCssVar = (varName: string, fallback: string): string => {
     if (typeof document !== 'undefined') {
-        return getComputedStyle(document.documentElement).getPropertyValue(varName)?.trim() || fallback;
+         try {
+             return getComputedStyle(document.documentElement).getPropertyValue(varName)?.trim() || fallback;
+         } catch(e) {
+              console.warn(`Could not get computed style for CSS var ${varName}, using fallback.`, e);
+              return fallback;
+         }
     }
-    return fallback;
+    return fallback; // Return fallback if not in browser
 };
 
-// --- NEW: Language Mapping Utility ---
+// Language Mapping Utility
 const getLanguageFromPath = (filePath: string | null): string => {
     if (!filePath) return 'plaintext';
     const extension = filePath.split('.').pop()?.toLowerCase();
     switch (extension) {
-        case 'js':
-        case 'jsx':
-            return 'javascript';
-        case 'ts':
-        case 'tsx':
-            return 'typescript';
-        case 'json':
-            return 'json';
-        case 'css':
-            return 'css';
-        case 'html':
-        case 'htm':
-            return 'html';
-        case 'md':
-        case 'markdown':
-            return 'markdown';
-        case 'py':
-            return 'python';
-        case 'java':
-            return 'java';
-        case 'c':
-        case 'h':
-            return 'c';
-        case 'cpp':
-        case 'hpp':
-            return 'cpp';
-        case 'cs':
-            return 'csharp';
-        case 'sh':
-            return 'shell';
-        case 'xml':
-            return 'xml';
-        case 'yaml':
-        case 'yml':
-            return 'yaml';
-        case 'sql':
-            return 'sql';
-        // Add more mappings as needed
-        default:
-            return 'plaintext'; // Fallback
+        case 'js': case 'jsx': return 'javascript';
+        case 'ts': case 'tsx': return 'typescript';
+        case 'json': return 'json';
+        case 'css': return 'css';
+        case 'html': case 'htm': return 'html';
+        case 'md': case 'markdown': return 'markdown';
+        case 'py': return 'python';
+        case 'java': return 'java';
+        case 'c': case 'h': return 'c';
+        case 'cpp': case 'hpp': return 'cpp';
+        case 'cs': return 'csharp';
+        case 'sh': return 'shell';
+        case 'xml': return 'xml';
+        case 'yaml': case 'yml': return 'yaml';
+        case 'sql': return 'sql';
+        default: return 'plaintext';
     }
 };
 
 
 const EditorPanel: React.FC = () => {
     const { theme } = useTheme();
-    // Use EditorContext to get file info
-    const { currentFilePath, currentFileContent, isLoading, error: editorError } = useEditor();
-    // Local state for editor value (initially from context or default)
+    const {
+        currentFilePath,
+        currentFileContent,
+        isLoading,
+        error: editorContextError, // Renamed to avoid conflict
+        isDirty,
+        markAsDirty,
+        saveCurrentFile,
+    } = useEditor();
+
     const [editorValue, setEditorValue] = useState<string>(
-        '// Welcome to CodeCraft IDE!\n' +
-        '// Click "Open..." in the sidebar to browse files.\n' +
-        '// Click a file to open it here.'
+        '// Welcome to CodeCraft IDE!\n// Click "Open..." or a file in the sidebar.'
     );
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoRef = useRef<typeof monaco | null>(null);
+    const initialContentLoadedRef = useRef<boolean>(false);
 
-    const getMonacoThemeName = (currentTheme: ThemeName): string => {
-        // (Keep existing theme mapping logic)
+    // Map app theme names to Monaco theme names
+     const getMonacoThemeName = useCallback((currentTheme: ThemeName): string => {
         switch (currentTheme) {
             case 'light': return 'vs';
             case 'dark': return 'vs-dark';
@@ -99,55 +90,69 @@ const EditorPanel: React.FC = () => {
             case 'bw_tv': return 'bw-tv-monaco-theme';
             default: return 'vs-dark';
         }
-    };
+    }, []); // No dependencies needed
 
-    const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
+    const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
         selectOnLineNumbers: true,
-        automaticLayout: true,
+        automaticLayout: true, // Recalculates layout on container resize
         fontFamily: 'var(--font-family-mono)',
-        fontSize: getEditorFontSize(),
+        fontSize: getEditorFontSize(), // Recalculate on theme change potentially
         minimap: { enabled: true },
         wordWrap: 'on',
         scrollBeyondLastLine: false,
-        readOnly: isLoading, // Make editor read-only while loading
-    };
+        readOnly: isLoading, // Update readOnly state based on loading
+        // Theme is set dynamically in useEffect
+    }), [isLoading]); // fontSize could be added if needed, but CSS var change triggers redraw anyway
 
-    const handleEditorChange = (newValue: string) => {
-        setEditorValue(newValue); // Update local state on change
-        // Later: Add logic to track unsaved changes (isDirty state)
-    };
 
-    const editorDidMount = (
+    const handleEditorChange = useCallback((newValue: string) => {
+        setEditorValue(newValue);
+        // Check ref *before* comparing content to avoid marking dirty during initial load
+        if (initialContentLoadedRef.current && newValue !== currentFileContent) {
+             markAsDirty(true);
+        }
+    }, [currentFileContent, markAsDirty]);
+
+
+    const editorDidMount = useCallback((
         editor: monaco.editor.IStandaloneCodeEditor,
         monacoInstance: typeof monaco
     ) => {
         console.log('Editor mounted!');
         editorRef.current = editor;
         monacoRef.current = monacoInstance;
+        initialContentLoadedRef.current = false;
 
-        // (Keep existing theme definition logic)
+        // Helper to define Monaco themes using CSS variables (ensure getCssVar is used)
         const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
-           try {
-                monacoInstance.editor.defineTheme(name, {
-                    base: base, inherit: true, rules: [],
-                    colors: {
-                        'editor.background': getCssVar(`--${cssVarPrefix}-bg`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
-                        'editor.foreground': getCssVar(`--${cssVarPrefix}-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
-                        'editorCursor.foreground': getCssVar(`--${cssVarPrefix}-accent`, base === 'vs' ? '#000000' : '#aeafad'),
-                        'editorLineNumber.foreground': getCssVar(`--${cssVarPrefix}-tertiary`, '#858585'),
-                        'editorLineNumber.activeForeground': getCssVar(`--${cssVarPrefix}-secondary`, '#c6c6c6'),
-                        'editor.selectionBackground': getCssVar(`--${cssVarPrefix}-selected-bg`, '#add6ff'),
-                        'editor.selectionForeground': getCssVar(`--${cssVarPrefix}-selected-text`, '#000000'),
-                        'editorWidget.background': getCssVar(`--${cssVarPrefix}-widget-bg`, base === 'vs' ? '#f3f3f3' : '#252526'),
-                        'editorWidget.border': getCssVar(`--${cssVarPrefix}-border`, '#c8c8c8'),
-                        'input.background': getCssVar(`--${cssVarPrefix}-input-bg`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
-                        'input.foreground': getCssVar(`--${cssVarPrefix}-input-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
-                        'input.border': getCssVar(`--${cssVarPrefix}-input-border`, '#bebebe'),
-                        ...colorsOverride
-                    }
-                });
-            } catch (error) { console.error(`Failed to define Monaco theme '${name}':`, error); }
-        };
+             try {
+                 monacoInstance.editor.defineTheme(name, {
+                     base: base,
+                     inherit: true,
+                     rules: [], // Keep rules empty for simplicity, inherit from base
+                     colors: { // Use getCssVar for colors
+                         'editor.background': getCssVar(`--${cssVarPrefix}-bg`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
+                         'editor.foreground': getCssVar(`--${cssVarPrefix}-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                         'editorCursor.foreground': getCssVar(`--${cssVarPrefix}-accent`, base === 'vs' ? '#000000' : '#aeafad'),
+                         'editorLineNumber.foreground': getCssVar(`--${cssVarPrefix}-tertiary`, '#858585'),
+                         'editorLineNumber.activeForeground': getCssVar(`--${cssVarPrefix}-secondary`, '#c6c6c6'),
+                         'editor.selectionBackground': getCssVar(`--${cssVarPrefix}-selected-bg`, '#add6ff'),
+                         'editor.selectionForeground': getCssVar(`--${cssVarPrefix}-selected-text`, '#000000'),
+                         'editorWidget.background': getCssVar(`--${cssVarPrefix}-widget-bg`, base === 'vs' ? '#f3f3f3' : '#252526'),
+                         'editorWidget.border': getCssVar(`--${cssVarPrefix}-border`, '#c8c8c8'),
+                         'input.background': getCssVar(`--${cssVarPrefix}-input-bg`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
+                         'input.foreground': getCssVar(`--${cssVarPrefix}-input-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                         'input.border': getCssVar(`--${cssVarPrefix}-input-border`, '#bebebe'),
+                         ...colorsOverride
+                     }
+                 });
+                 console.log(`Defined Monaco theme: ${name}`);
+             } catch (error) {
+                 console.error(`Failed to define Monaco theme '${name}':`, error);
+             }
+         };
+
+        // --- Define Custom Monaco Themes (using getCssVar via defineTheme) ---
         defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f'), 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
         defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff'), });
         defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff'), });
@@ -159,98 +164,123 @@ const EditorPanel: React.FC = () => {
         defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv', { 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), 'editor.selectionForeground': getCssVar('--bw-black', '#000000'), });
 
 
-        // Apply the initial theme after defining custom ones
+        // Apply the initial theme
         const initialThemeName = getMonacoThemeName(theme);
         monacoInstance.editor.setTheme(initialThemeName);
         console.log("Initial Monaco theme set to:", initialThemeName);
 
-        // Apply initial font size and scroll option
-        editor.updateOptions({
-             fontSize: getEditorFontSize(),
-             scrollBeyondLastLine: false
+        // Apply initial font size
+        editor.updateOptions({ fontSize: getEditorFontSize() });
+
+        // Set initial content carefully
+        if (currentFileContent !== null) {
+             editor.setValue(currentFileContent);
+             setEditorValue(currentFileContent); // Sync local state
+             initialContentLoadedRef.current = true;
+             const initialLanguage = getLanguageFromPath(currentFilePath);
+             monacoInstance.editor.setModelLanguage(editor.getModel()!, initialLanguage);
+             markAsDirty(false);
+        } else {
+             editor.setValue(editorValue); // Use placeholder from state
+             initialContentLoadedRef.current = false;
+             markAsDirty(false);
+        }
+
+         // Add keyboard shortcut for saving
+         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+             console.log('Save shortcut pressed (Ctrl/Cmd + S)');
+             // Use editorValue (local state) which reflects current unsaved content
+             const contentToSave = editor.getValue();
+             if (currentFilePath && (isDirty || contentToSave !== currentFileContent)) { // Save if dirty or if local differs from context (edge case)
+                 saveCurrentFile(contentToSave)
+                     .catch(err => console.error("Error during save operation:", err));
+             } else if (!isDirty) {
+                 console.log("Save shortcut ignored: No changes detected.");
+             } else {
+                  console.log("Save shortcut ignored: No file path.");
+             }
          });
 
-        // Set initial content if available from context (e.g., if loaded before mount)
-        if (currentFileContent !== null) {
-            editor.setValue(currentFileContent);
-            const initialLanguage = getLanguageFromPath(currentFilePath);
-            monacoInstance.editor.setModelLanguage(editor.getModel()!, initialLanguage);
-        } else {
-             editor.setValue(editorValue); // Use default placeholder
-        }
-
         editor.focus();
-    };
+    // Add theme dependency for theme name calculation, markAsDirty for setting initial state
+    }, [theme, currentFileContent, currentFilePath, markAsDirty, getMonacoThemeName, saveCurrentFile, editorValue, isDirty]);
 
-    // --- NEW: Effect to update editor when file content/path changes in context ---
+
+    // Effect to update editor when file content/path changes in context (external load)
     useEffect(() => {
-        if (editorRef.current && monacoRef.current) {
-            const editor = editorRef.current;
-            const monaco = monacoRef.current;
+        const editor = editorRef.current;
+        const monaco = monacoRef.current;
 
-            // Update editor content only if it differs from context
-            // Prevents resetting editor if user typed something while loading
-            if (currentFileContent !== null && editor.getValue() !== currentFileContent) {
-                console.log("EditorContext changed, updating editor value and language.");
-                editor.setValue(currentFileContent);
+        if (editor && monaco && currentFileContent !== null && currentFileContent !== editor.getValue()) {
+            console.log("EditorContext changed (external load/save), updating editor value and language.");
+            editor.setValue(currentFileContent);
+            setEditorValue(currentFileContent); // Sync local state
+            initialContentLoadedRef.current = true; // Mark content loaded
 
-                // Update language based on the new file path
-                const newLanguage = getLanguageFromPath(currentFilePath);
-                const model = editor.getModel();
-                if (model) {
-                    monaco.editor.setModelLanguage(model, newLanguage);
-                    console.log(`Editor language set to: ${newLanguage}`);
-                }
-                 // Reset undo stack for the new file
-                 // NOTE: This clears the history. Consider if this is desired.
-                 // You might want to manage models per file later.
-                 editor.getModel()?.pushStackElement();
-            } else if (currentFileContent === null && currentFilePath === null) {
-                 // If context cleared (e.g., error, no file open), show placeholder
-                 // editor.setValue( "// No file opened or error loading file." );
-                 // monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
-                 // Let's keep the local editorValue state instead for now
-                 // as clearing might be disruptive if the user was editing the placeholder.
+            const newLanguage = getLanguageFromPath(currentFilePath);
+            const model = editor.getModel();
+            if (model) {
+                monaco.editor.setModelLanguage(model, newLanguage);
+                console.log(`Editor language set to: ${newLanguage}`);
             }
-
-            // Update readOnly state based on loading status
-            editor.updateOptions({ readOnly: isLoading });
-
+            // Reset undo stack for the new file (or after save)
+            editor.getModel()?.pushStackElement();
+            markAsDirty(false); // Explicitly mark as not dirty after external load/save
+        } else if (editor && monaco && currentFileContent === null && currentFilePath === null && initialContentLoadedRef.current) {
+             // Context cleared after a file was loaded
+             const placeholder = "// No file open or error occurred.";
+             editor.setValue(placeholder);
+             setEditorValue(placeholder);
+             monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
+             initialContentLoadedRef.current = false;
+             markAsDirty(false);
         }
-    }, [currentFilePath, currentFileContent, isLoading]); // Rerun when these context values change
+
+        // Update readOnly state (handled in editorOptions and re-evaluated via useMemo)
+        if (editor) {
+            editor.updateOptions({ readOnly: isLoading });
+        }
+
+    }, [currentFilePath, currentFileContent, isLoading, markAsDirty]);
+
 
     // Effect to update theme and font size when theme context changes
     useEffect(() => {
-        if (editorRef.current && monacoRef.current) {
-            const editor = editorRef.current;
-            const monacoInstance = monacoRef.current;
-
+        const editor = editorRef.current;
+        const monaco = monacoRef.current;
+        if (editor && monaco) {
             const newThemeName = getMonacoThemeName(theme);
-            monacoInstance.editor.setTheme(newThemeName);
-
-            const newFontSize = getEditorFontSize();
-            editor.updateOptions({
-                fontSize: newFontSize,
-                scrollBeyondLastLine: false
-            });
+            monaco.editor.setTheme(newThemeName);
+            editor.updateOptions({ fontSize: getEditorFontSize() }); // Update font size too
         }
-    }, [theme]);
+    }, [theme, getMonacoThemeName]); // Add getMonacoThemeName dependency
+
+
+    // Effect for logging dirty state (no changes needed here)
+    useEffect(() => {
+        if (isDirty) {
+            console.log("Editor state: Dirty (unsaved changes)");
+        } else {
+             console.log("Editor state: Clean (no unsaved changes)");
+        }
+    }, [isDirty]);
 
 
     return (
         <div className="editor-panel">
-             {/* Show loading overlay maybe? */}
-             {/* {isLoading && <div className="loading-overlay">Loading...</div>} */}
+            {/* Simple error display from context */}
+            {editorContextError && <div style={{ position: 'absolute', top: '25px', left:'10px', color: 'var(--color-text-error)', background: 'var(--color-bg-main)', padding: '2px 5px', zIndex: 1, border: '1px solid var(--color-text-error)', borderRadius: '3px', fontSize: '11px'}}>Error: {editorContextError}</div>}
+            {isDirty && <span style={{ position: 'absolute', top: '5px', right: '10px', color: 'var(--color-text-accent)', fontSize: '10px', zIndex: 1 }}>● Unsaved</span>}
             <MonacoEditor
-                // Key prop can help force re-render if needed, e.g., on file change
-                // key={currentFilePath || 'no-file'}
                 width="100%"
                 height="100%"
-                language={getLanguageFromPath(currentFilePath)} // Set language dynamically
-                value={editorValue} // Bind to local state
-                options={editorOptions}
-                onChange={handleEditorChange}
-                editorDidMount={editorDidMount}
+                // Determine language based on currentFilePath from context
+                language={getLanguageFromPath(currentFilePath)}
+                // Use local editorValue state for the editor's content
+                value={editorValue}
+                options={editorOptions} // Use memoized options
+                onChange={handleEditorChange} // Use callback version
+                editorDidMount={editorDidMount} // Use callback version
             />
         </div>
     );

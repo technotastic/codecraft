@@ -22,14 +22,14 @@
   overflow: hidden; /* Hide overflow, internal elements scroll */
 }
 
-/* --- NEW: Sidebar Header --- */
+/* Sidebar Header */
 .sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-md); /* Add padding here */
   border-bottom: var(--border-standard);
-  flex-shrink: 0;
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .sidebar-header h2 {
@@ -43,24 +43,57 @@
    padding: var(--spacing-xxs) var(--spacing-xs); /* Smaller button */
 }
 
-/* --- NEW: Current Folder Path --- */
-.current-folder-path {
+/* Navigation Controls */
+.navigation-controls {
+    display: flex;
+    align-items: center;
     padding: var(--spacing-xs) var(--spacing-md);
+    border-bottom: var(--border-standard);
+    flex-shrink: 0; /* Prevent shrinking */
+    gap: var(--spacing-sm); /* Add gap between button and path */
+    min-height: 30px; /* Ensure it has some height */
+}
+
+.navigation-controls .up-button {
+    padding: var(--spacing-xxs) var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+    /* Use theme button styles */
+    background-color: var(--color-bg-button);
+    border: var(--border-button);
+    color: var(--color-text-button);
+    border-radius: var(--border-radius-sm);
+}
+.navigation-controls .up-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--color-bg-button); /* Keep bg consistent when disabled */
+}
+/* Apply theme-specific button styles if needed (like Win95 bevels) */
+.theme-win95 .navigation-controls .up-button,
+.theme-mirc .navigation-controls .up-button {
+   /* Add specific bevel styles if you have them defined elsewhere for buttons */
+}
+
+
+.navigation-controls .current-folder-path {
     font-size: var(--font-size-sm);
     color: var(--color-text-tertiary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex-shrink: 0;
-    border-bottom: var(--border-standard);
+    flex-grow: 1; /* Allow path to take remaining space */
+    padding: 0;
+    border-bottom: none;
 }
 
-/* --- MODIFIED: File Tree Area --- */
+
+/* File Tree Styling */
 .file-tree {
-    flex-grow: 1; /* Allow file tree to take remaining vertical space */
-    overflow-y: auto; /* Allow scrolling WITHIN this area if content grows */
-    min-height: 50px; /* Give it some minimum space */
-    padding: var(--spacing-sm) var(--spacing-md); /* Padding inside the tree area */
+    flex-grow: 1; /* Allow tree to fill remaining vertical space */
+    overflow-y: auto; /* Enable scrolling for the tree */
+    min-height: 50px;
+    padding: var(--spacing-xs) 0; /* Less top/bottom container padding */
     font-size: var(--font-size-sm);
 }
 
@@ -70,112 +103,128 @@
     margin: 0;
 }
 
-.file-tree li.file-entry {
-    padding: var(--spacing-xxs) 0;
-    cursor: default; /* Change later for clicking */
+.file-tree-node {
+    /* Base list item */
+}
+
+/* Style for the clickable content row within a node */
+.file-tree-node .node-content {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: var(--spacing-xxs) var(--spacing-md);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    user-select: none;
+    position: relative;
 }
 
-.file-tree li.file-entry:hover {
+.file-tree-node .node-content:hover {
     background-color: var(--color-bg-hover);
 }
 
+/* Style for the expand/collapse icon span container */
+.file-tree-node .toggle-icon {
+    width: 1.5em; /* Reserve space for icon/spacer */
+    display: inline-flex; /* Use flex for centering SVG icon */
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+    vertical-align: middle; /* Align container with text */
+}
+.file-tree-node .toggle-icon.spacer {
+    visibility: hidden;
+}
+
+/* Style for the expand/collapse SVG icon itself */
+.file-tree-node .expand-icon {
+    /* *** REMOVE font-family override *** */
+    /* font-family: ... */
+    font-size: 0.9em; /* Adjust size if needed */
+    color: var(--color-text-tertiary);
+    display: inline-block; /* Allow sizing */
+    vertical-align: middle; /* Align icon */
+}
+
+
+/* Style for the file/folder SVG icon */
+.file-tree-node .file-icon {
+    margin-right: var(--spacing-xs);
+    display: inline-flex; /* Use flex for centering SVG icon */
+    align-items: center;
+    flex-shrink: 0;
+    vertical-align: middle; /* Align container with text */
+    /* *** REMOVE font-family override *** */
+    /* font-family: ... */
+    /* Set color for icons if needed, or let it inherit */
+    color: var(--color-text-accent); /* Example: Use accent color */
+    font-size: 1.1em; /* Slightly larger file/folder icons */
+}
+
+
+/* Style for the node name */
+.file-tree-node .node-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    margin-left: var(--spacing-xxs); /* Small space after icon */
+}
+
+/* Style for loading spinner */
+.file-tree-node .loading-spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    font-size: 0.9em;
+    vertical-align: middle;
+    color: var(--color-text-tertiary);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Style for error message or empty folder message */
+.file-tree-node .error-message,
+.file-tree-node .empty-folder-message {
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    padding: var(--spacing-xxs) 0;
+    margin: 0;
+    list-style: none;
+    user-select: none;
+}
+.file-tree-node .error-message {
+    color: var(--color-text-error);
+    font-style: normal;
+}
+
+
+/* Style for the initial placeholder message */
 .file-tree .placeholder-message {
     color: var(--color-text-tertiary);
-    padding: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    font-style: italic;
 }
 
-.file-tree .error-message {
-    color: var(--color-text-error);
-    padding: var(--spacing-md) 0;
-}
+/* (Keep Theme switcher styles) */
+.sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
+.sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
 
+/* (Keep Main Panel styles) */
+.main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
+.editor-panel { background-color: var(--color-bg-editor); overflow: hidden; color: var(--color-text-secondary); font-size: var(--font-size-md); position: relative; height: 100%; width: 100%; display: flex; }
+.terminal-panel-container { flex-shrink: 0; background-color: var(--color-bg-terminal); color: var(--color-text-terminal); overflow: hidden; font-family: var(--font-family-mono); font-size: var(--font-size-terminal); position: relative; height: 100%; width: 100%; display: flex; padding: var(--spacing-xs); }
+.terminal-panel-container > div { width: 100%; height: 100%; }
+.terminal-panel-container .terminal.xterm { height: 100% !important; width: 100% !important; }
+.terminal-panel-container .xterm-screen { width: 100% !important; height: 100% !important; }
+.terminal-panel-container p { display: none; }
 
-/* Theme switcher container - Positioned at the bottom */
-.sidebar .theme-switcher {
-  margin-top: auto; /* Pushes it to the bottom */
-  padding: var(--spacing-md); /* Add padding here */
-  border-top: var(--border-standard); /* Separator line */
-  flex-shrink: 0; /* Prevent shrinking */
-  position: relative; /* Needed for z-index context */
-  z-index: 5; /* Lower than dropdown options */
-}
+/* Ensure editor dirty indicator/error show above Monaco elements if needed */
+.editor-panel .error-message { z-index: 2; }
+.editor-panel span[style*="absolute"] { z-index: 2; }
 
-/* Label for the theme switcher */
-.sidebar .theme-switcher label {
-  display: block;
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-/* Main panel containing the INNER (vertical) Allotment */
-.main-panel {
-  /* REMOVE flex-grow: 1; */
-  display: flex; /* Still needed for its child (vertical Allotment) */
-  flex-direction: column; /* Stack editor and terminal vertically (conceptually) */
-  height: 100%; /* Still needed to fill the Allotment.Pane vertically */
-  overflow: hidden; /* Prevent this panel itself from scrolling */
-  background-color: var(--color-bg-main); /* Background for the area Allotment fills */
-}
-
-/* Styling for the direct children INSIDE the INNER (Vertical) Allotment Panes */
-/* Editor panel styles */
-.editor-panel {
-  /* No flex-grow needed - Allotment controls height */
-  background-color: var(--color-bg-editor); /* Use theme variable */
-  overflow: hidden; /* Monaco Editor manages its own scrolling */
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-md);
-  position: relative;
-  /* *** CRUCIAL FOR ALLOTMENT CHILD *** */
-  height: 100%;
-  width: 100%;
-  display: flex; /* Ensure Monaco container can fill space */
-}
-
-/* Styles for the container div returned by TerminalPanel */
-.terminal-panel-container {
-   /* No fixed height var - Allotment controls height */
-   flex-shrink: 0; /* Keep this, although Allotment manages shrinking */
-   background-color: var(--color-bg-terminal);
-   color: var(--color-text-terminal);
-   /* border-top removed as Allotment sash handles it */
-   overflow: hidden; /* Xterm manages its own scrolling */
-   font-family: var(--font-family-mono);
-   font-size: var(--font-size-terminal);
-   position: relative;
-   /* *** CRUCIAL FOR ALLOTMENT CHILD *** */
-   height: 100%;
-   width: 100%;
-   display: flex; /* Helps child elements fill the container */
-   padding: var(--spacing-xs); /* Add padding INSIDE the terminal container */
-}
-
-
-/* Target the direct child wrapper of the terminal (xterm needs this) */
-.terminal-panel-container > div {
-     width: 100%;
-     height: 100%;
-}
-
-/* Target the main xterm element itself for potential overrides */
-.terminal-panel-container .terminal.xterm {
-    height: 100% !important; /* Ensure it fills the container height */
-    width: 100% !important; /* Ensure it fills the container width */
-    /* Padding moved to parent container */
-}
-
-/* Ensure the internal xterm screen fills the terminal element */
- .terminal-panel-container .xterm-screen {
-     width: 100% !important;
-     height: 100% !important;
- }
-
-/* Hide any accidental placeholder <p> tags in terminal panel */
-.terminal-panel-container p {
-   display: none;
-}
 /* --- END FILE: src/renderer/App.css --- */

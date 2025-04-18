@@ -1,133 +1,8 @@
+/* --- START FILE: src/renderer/App.css --- */
 /* src/renderer/App.css */
 
 .app-container {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    background-color: var(--color-bg-app);
-  }
-  
-  .sidebar {
-    width: var(--sidebar-width); /* Use variable */
-    flex-shrink: 0;
-    background-color: var(--color-bg-sidebar);
-    border-right: var(--border-standard); /* Use variable */
-    padding: var(--spacing-md);
-    height: 100%;
-    /* IMPORTANT: Remove overflow-y: auto; from the sidebar itself */
-    /* overflow-y: auto; */
-    overflow: hidden; /* Hide overflow instead */
-    color: var(--color-text-primary);
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-  }
-  
-  .sidebar h2 {
-    margin-bottom: var(--spacing-sm);
-    font-size: var(--font-size-lg);
-    color: var(--color-text-heading);
-    flex-shrink: 0; /* Prevent shrinking */
-  }
-  
-  /* Container for the file tree (or its placeholder) */
-  .sidebar .file-tree-placeholder {
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-sm);
-      flex-grow: 1; /* Allow placeholder to take remaining vertical space */
-      overflow-y: auto; /* Allow scrolling WITHIN this area if content grows */
-      min-height: 50px; /* Give it some minimum space so it doesn't disappear */
-      /* Optional: Add some padding if needed inside this area */
-      /* padding: var(--spacing-sm) 0; */
-      margin-bottom: var(--spacing-md); /* Add space between file tree and switcher */
-  }
-  
-  
-  /* Theme switcher container - Positioned at the bottom */
-  .sidebar .theme-switcher {
-    margin-top: auto; /* Pushes it to the bottom */
-    padding-top: var(--spacing-md); /* Space above it */
-    border-top: var(--border-standard); /* Separator line */
-    flex-shrink: 0; /* Prevent shrinking */
-    position: relative; /* Needed for z-index context if dropdown overflows slightly */
-    z-index: 5; /* Lower than dropdown options, but above main panel if needed */
-  }
-  
-  /* Label for the theme switcher */
-  .sidebar .theme-switcher label {
-    display: block; /* Make label take its own line */
-    margin-bottom: var(--spacing-xs);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-  }
-  
-  /* REMOVE styles for the old native select, they are handled by CustomSelect.css now */
-  /* .sidebar .theme-switcher select { ... } */
-  /* .sidebar .theme-switcher select:focus { ... } */
-  
-  
-  /* Main panel containing editor and terminal */
-  .main-panel {
-    flex-grow: 1; /* Take remaining width */
-    display: flex;
-    flex-direction: column; /* Stack editor and terminal vertically */
-    height: 100%;
-    overflow: hidden; /* Prevent this panel itself from scrolling */
-  }
-  
-  /* Editor panel styles */
-  .editor-panel {
-    flex-grow: 1; /* Take available vertical space */
-    background-color: var(--color-bg-main); /* Use variable for background */
-    overflow: hidden; /* Monaco Editor manages its own scrolling */
-    display: flex; /* Helps child (Monaco editor) fill the space */
-    color: var(--color-text-secondary); /* Default text color if editor is empty */
-    font-size: var(--font-size-md); /* Base font size for this area */
-    position: relative; /* Necessary if Monaco uses absolute positioning */
-    min-height: 50px; /* Prevent collapsing completely */
-  }
-  
-  /* Terminal panel styles */
-  .terminal-panel {
-    height: var(--terminal-height); /* Use variable for height */
-    flex-shrink: 0; /* Prevent shrinking when window resizes */
-    background-color: var(--color-bg-terminal); /* Use variable */
-    color: var(--color-text-terminal); /* Use variable */
-    border-top: var(--border-accent); /* Use variable for top border */
-    overflow: hidden; /* Xterm manages its own scrolling */
-    font-family: var(--font-family-mono); /* Use monospace font variable */
-    font-size: var(--font-size-terminal); /* Use terminal font size variable */
-    position: relative; /* For potential internal positioning */
-    width: 100%;
-    display: flex; /* Helps child elements fill the container */
-  }
-  
-  /* Target the direct child wrapper of the terminal panel (often a div) */
-  .terminal-panel > div {
-       width: 100%;
-       height: 100%;
-  }
-  
-  /* Target the main xterm element itself */
-  .terminal-panel .terminal.xterm {
-      height: 100% !important; /* Ensure it fills the container height */
-      width: 100% !important; /* Ensure it fills the container width */
-      padding: var(--spacing-xs); /* Add internal padding using variable */
-  }
-  
-  /* Ensure the internal xterm screen fills the terminal element */
-   .terminal-panel .xterm-screen {
-       width: 100% !important;
-       height: 100% !important;
-   }
-  
-  /* Hide any accidental placeholder <p> tags in terminal panel */
-  .terminal-panel p {
-     display: none;
-  }/* --- START FILE: src/renderer/App.css --- */
-/* src/renderer/App.css */
-
-.app-container {
-  display: flex; /* Use flexbox for Sidebar + Main Panel layout */
+  /* REMOVE display: flex; */
   height: 100%;  /* Crucial: Take full viewport height */
   width: 100%;
   background-color: var(--color-bg-app);
@@ -135,14 +10,14 @@
 }
 
 .sidebar {
-  width: var(--sidebar-width); /* Use variable */
-  flex-shrink: 0; /* Prevent sidebar from shrinking */
+  /* REMOVE width: var(--sidebar-width); */
+  /* REMOVE flex-shrink: 0; */
   background-color: var(--color-bg-sidebar);
-  border-right: var(--border-standard);
+  /* REMOVE border-right: var(--border-standard); */ /* Allotment sash will overlay this */
   padding: var(--spacing-md);
-  height: 100%; /* Take full height of app-container */
+  height: 100%; /* Still needed to fill the Allotment.Pane vertically */
   color: var(--color-text-primary);
-  display: flex; /* Use flexbox internally */
+  display: flex; /* Still needed for internal layout (stacking elements) */
   flex-direction: column; /* Stack elements vertically */
   overflow: hidden; /* Hide overflow, internal elements scroll */
 }
@@ -151,14 +26,14 @@
   margin-bottom: var(--spacing-sm);
   font-size: var(--font-size-lg);
   color: var(--color-text-heading);
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0; /* Prevent shrinking of the heading */
 }
 
 /* Container for the file tree (or its placeholder) */
 .sidebar .file-tree-placeholder {
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
-    flex-grow: 1; /* Allow placeholder to take remaining vertical space */
+    flex-grow: 1; /* Allow placeholder to take remaining vertical space inside sidebar */
     overflow-y: auto; /* Allow scrolling WITHIN this area if content grows */
     min-height: 50px; /* Give it some minimum space */
     margin-bottom: var(--spacing-md); /* Space below it */
@@ -169,10 +44,10 @@
 
 /* Theme switcher container - Positioned at the bottom */
 .sidebar .theme-switcher {
-  margin-top: auto; /* Pushes it to the bottom */
+  margin-top: auto; /* Pushes it to the bottom of the sidebar */
   padding-top: var(--spacing-md); /* Space above it */
-  border-top: var(--border-standard); /* Separator line */
-  flex-shrink: 0; /* Prevent shrinking */
+  border-top: var(--border-standard); /* Separator line (Keep this internal one) */
+  flex-shrink: 0; /* Prevent shrinking of the switcher */
   position: relative; /* Needed for z-index context */
   z-index: 5; /* Lower than dropdown options */
 }
@@ -185,20 +60,20 @@
   color: var(--color-text-secondary);
 }
 
-/* Main panel containing Allotment */
+/* Main panel containing the INNER (vertical) Allotment */
 .main-panel {
-  flex-grow: 1; /* Take remaining width */
-  display: flex; /* Itself needs to be a flex container for Allotment */
+  /* REMOVE flex-grow: 1; */
+  display: flex; /* Still needed for its child (vertical Allotment) */
   flex-direction: column; /* Stack editor and terminal vertically (conceptually) */
-  height: 100%; /* Crucial: Take full height of app-container */
+  height: 100%; /* Still needed to fill the Allotment.Pane vertically */
   overflow: hidden; /* Prevent this panel itself from scrolling */
   background-color: var(--color-bg-main); /* Background for the area Allotment fills */
 }
 
-/* Styling for the direct children INSIDE Allotment Panes */
+/* Styling for the direct children INSIDE the INNER (Vertical) Allotment Panes */
 /* Editor panel styles */
 .editor-panel {
-  /* Removed flex-grow: 1; - Allotment controls height */
+  /* No flex-grow needed - Allotment controls height */
   background-color: var(--color-bg-editor); /* Use theme variable */
   overflow: hidden; /* Monaco Editor manages its own scrolling */
   color: var(--color-text-secondary);
@@ -212,11 +87,11 @@
 
 /* Styles for the container div returned by TerminalPanel */
 .terminal-panel-container {
-   /* Removed fixed height var - Allotment controls height */
+   /* No fixed height var - Allotment controls height */
    flex-shrink: 0; /* Keep this, although Allotment manages shrinking */
    background-color: var(--color-bg-terminal);
    color: var(--color-text-terminal);
-   border-top: var(--border-accent); /* Separator line handled by Allotment sash */
+   /* border-top removed as Allotment sash handles it */
    overflow: hidden; /* Xterm manages its own scrolling */
    font-family: var(--font-family-mono);
    font-size: var(--font-size-terminal);

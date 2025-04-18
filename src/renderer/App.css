@@ -14,7 +14,7 @@
   /* REMOVE flex-shrink: 0; */
   background-color: var(--color-bg-sidebar);
   /* REMOVE border-right: var(--border-standard); */ /* Allotment sash will overlay this */
-  padding: var(--spacing-md);
+  /* padding: var(--spacing-md); */ /* Move padding to inner elements if needed */
   height: 100%; /* Still needed to fill the Allotment.Pane vertically */
   color: var(--color-text-primary);
   display: flex; /* Still needed for internal layout (stacking elements) */
@@ -22,32 +22,83 @@
   overflow: hidden; /* Hide overflow, internal elements scroll */
 }
 
-.sidebar h2 {
-  margin-bottom: var(--spacing-sm);
-  font-size: var(--font-size-lg);
-  color: var(--color-text-heading);
-  flex-shrink: 0; /* Prevent shrinking of the heading */
+/* --- NEW: Sidebar Header --- */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md); /* Add padding here */
+  border-bottom: var(--border-standard);
+  flex-shrink: 0;
 }
 
-/* Container for the file tree (or its placeholder) */
-.sidebar .file-tree-placeholder {
-    color: var(--color-text-secondary);
+.sidebar-header h2 {
+  margin: 0; /* Remove default margin */
+  font-size: var(--font-size-lg);
+  color: var(--color-text-heading);
+}
+
+.sidebar-header button {
+   font-size: var(--font-size-sm);
+   padding: var(--spacing-xxs) var(--spacing-xs); /* Smaller button */
+}
+
+/* --- NEW: Current Folder Path --- */
+.current-folder-path {
+    padding: var(--spacing-xs) var(--spacing-md);
     font-size: var(--font-size-sm);
-    flex-grow: 1; /* Allow placeholder to take remaining vertical space inside sidebar */
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    border-bottom: var(--border-standard);
+}
+
+/* --- MODIFIED: File Tree Area --- */
+.file-tree {
+    flex-grow: 1; /* Allow file tree to take remaining vertical space */
     overflow-y: auto; /* Allow scrolling WITHIN this area if content grows */
     min-height: 50px; /* Give it some minimum space */
-    margin-bottom: var(--spacing-md); /* Space below it */
-    /* Add padding if needed */
-    /* padding-bottom: var(--spacing-md); */
+    padding: var(--spacing-sm) var(--spacing-md); /* Padding inside the tree area */
+    font-size: var(--font-size-sm);
+}
+
+.file-tree ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.file-tree li.file-entry {
+    padding: var(--spacing-xxs) 0;
+    cursor: default; /* Change later for clicking */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-tree li.file-entry:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.file-tree .placeholder-message {
+    color: var(--color-text-tertiary);
+    padding: var(--spacing-md) 0;
+}
+
+.file-tree .error-message {
+    color: var(--color-text-error);
+    padding: var(--spacing-md) 0;
 }
 
 
 /* Theme switcher container - Positioned at the bottom */
 .sidebar .theme-switcher {
-  margin-top: auto; /* Pushes it to the bottom of the sidebar */
-  padding-top: var(--spacing-md); /* Space above it */
-  border-top: var(--border-standard); /* Separator line (Keep this internal one) */
-  flex-shrink: 0; /* Prevent shrinking of the switcher */
+  margin-top: auto; /* Pushes it to the bottom */
+  padding: var(--spacing-md); /* Add padding here */
+  border-top: var(--border-standard); /* Separator line */
+  flex-shrink: 0; /* Prevent shrinking */
   position: relative; /* Needed for z-index context */
   z-index: 5; /* Lower than dropdown options */
 }

@@ -1,8 +1,13 @@
+// --- START FILE: src/main/index.ts ---
 // src/main/index.ts
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
 import * as pty from 'node-pty';
+import fs from 'node:fs/promises'; // Import fs promises
+
+// Import shared types (ensure paths are correct in your tsconfig for build)
+import type { DirectoryEntry, ReadDirectoryResponse, ReadFileResponse, SaveFileResponse } from '../shared.types';
 
 // --- Global Variables ---
 app.disableHardwareAcceleration();
@@ -24,6 +29,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
+      // __dirname here refers to dist-electron/main
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
@@ -42,7 +48,8 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   } else {
     console.log('Loading PROD build file');
-    const prodPath = path.join(__dirname, '..', '..', 'dist', 'renderer', 'index.html');
+    // Adjust path relative to __dirname (dist-electron/main)
+    const prodPath = path.join(__dirname, '..', 'renderer', 'index.html'); // Corrected path
     console.log(`Attempting to load production file: ${prodPath}`);
     mainWindow.loadFile(prodPath)
        .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
@@ -82,7 +89,7 @@ function setupIpcHandlers() {
     // Basic Ping Example
     ipcMain.handle('ping', () => 'pong from main!');
 
-    // Handle PTY Creation Request
+    // --- PTY Handlers ---
     ipcMain.handle('pty-create', async (_event, options: { cols: number; rows: number }) => {
         if (!mainWindow) {
             console.error("Cannot create PTY: mainWindow is not available.");
@@ -108,53 +115,44 @@ function setupIpcHandlers() {
             });
             console.log(`PTY process created successfully (PID: ${ptyProcess.pid}).`);
 
-            // --- CORRECTED EVENT LISTENER SYNTAX ---
-            // Handle Data from PTY -> Renderer
-            ptyProcess.onData(data => { // Correct syntax
+            ptyProcess.onData(data => {
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
                     targetWebContents.send('pty-data', data);
                  }
             });
 
-            // Handle PTY Exit -> Renderer
-            ptyProcess.onExit(({ exitCode, signal }) => { // Correct syntax
+            ptyProcess.onExit(({ exitCode, signal }) => {
                 console.log(`PTY process (PID: ${ptyProcess?.pid}) exited with code: ${exitCode}, signal: ${signal}`);
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
                     targetWebContents.send('pty-exit', exitCode);
                  }
-                 ptyProcess = null; // Clear the reference on exit
+                 ptyProcess = null;
             });
-            // --- END CORRECTIONS ---
-
-            // Note: Fatal errors during spawn are caught by the outer try/catch.
-            // Runtime errors often result in the process exiting, handled by onExit.
 
             return { success: true };
 
         } catch (error) {
             console.error('Failed to create PTY process:', error);
+            // Also send error back to renderer if it happens during creation
+            if (targetWebContents && !targetWebContents.isDestroyed()) {
+                targetWebContents.send('pty-error', error instanceof Error ? error.message : String(error));
+            }
             ptyProcess = null;
             return { success: false, error: error instanceof Error ? error.message : String(error) };
         }
     });
 
-    // Handle Renderer -> PTY (Input)
     ipcMain.on('pty-input', (_event, data: string) => {
-        if (ptyProcess) {
-            ptyProcess.write(data);
-        }
+        if (ptyProcess) ptyProcess.write(data);
     });
 
-    // Handle Renderer -> PTY (Resize)
     ipcMain.on('pty-resize', (_event, options: { cols: number; rows: number }) => {
         if (ptyProcess) {
             if (options.cols > 0 && options.rows > 0) {
                 try {
                     ptyProcess.resize(options.cols, options.rows);
-                    // console.log(`Resized PTY (PID: ${ptyProcess.pid}) to cols: ${options.cols}, rows: ${options.rows}`); // Less verbose logging
                 } catch (error) {
                      console.error(`Failed to resize PTY (PID: ${ptyProcess.pid}):`, error);
-                     // Inform renderer? Debounce?
                 }
             } else {
                 console.warn(`Received invalid resize dimensions: cols=${options.cols}, rows=${options.rows}`);
@@ -162,7 +160,7 @@ function setupIpcHandlers() {
         }
     });
 
-    // Example placeholder for opening a folder
+    // --- Dialog Handler ---
     ipcMain.handle('dialog:openDirectory', async () => {
         if (!mainWindow) return null;
         const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -171,11 +169,86 @@ function setupIpcHandlers() {
         if (canceled || filePaths.length === 0) {
             return null;
         } else {
+            console.log(`Directory selected: ${filePaths[0]}`);
             return filePaths[0];
         }
     });
 
-    console.log('IPC Handlers registered.');
+    // --- NEW File System Handlers ---
+
+    // Read Directory Handler
+    ipcMain.handle('fs:readDirectory', async (_event, folderPath: string): Promise<ReadDirectoryResponse> => {
+        console.log(`IPC Request: Reading directory - ${folderPath}`);
+        try {
+            if (!folderPath || typeof folderPath !== 'string') {
+                 throw new Error("Invalid folder path provided.");
+            }
+            // Verify path exists and is a directory
+            const stats = await fs.stat(folderPath);
+            if (!stats.isDirectory()) {
+                throw new Error(`Path is not a directory: ${folderPath}`);
+            }
+
+            const dirents = await fs.readdir(folderPath, { withFileTypes: true });
+            const entries: DirectoryEntry[] = dirents.map(dirent => ({
+                name: dirent.name,
+                path: path.join(folderPath, dirent.name),
+                isDirectory: dirent.isDirectory(),
+            }));
+            // Optional: Sort entries (folders first, then alphabetically)
+            entries.sort((a, b) => {
+                if (a.isDirectory && !b.isDirectory) return -1;
+                if (!a.isDirectory && b.isDirectory) return 1;
+                return a.name.localeCompare(b.name);
+            });
+
+            console.log(`IPC Success: Read ${entries.length} entries from ${folderPath}`);
+            return { success: true, entries: entries };
+        } catch (error) {
+            console.error(`IPC Error: Failed to read directory ${folderPath}:`, error);
+            return { success: false, error: error instanceof Error ? error.message : String(error) };
+        }
+    });
+
+    // Read File Handler
+    ipcMain.handle('fs:readFile', async (_event, filePath: string): Promise<ReadFileResponse> => {
+        console.log(`IPC Request: Reading file - ${filePath}`);
+        try {
+            if (!filePath || typeof filePath !== 'string') {
+                 throw new Error("Invalid file path provided.");
+            }
+            const stats = await fs.stat(filePath);
+            if (!stats.isFile()) {
+                throw new Error(`Path is not a file: ${filePath}`);
+            }
+            const content = await fs.readFile(filePath, { encoding: 'utf-8' });
+            console.log(`IPC Success: Read file ${filePath}`);
+            return { success: true, content: content };
+        } catch (error) {
+            console.error(`IPC Error: Failed to read file ${filePath}:`, error);
+            return { success: false, error: error instanceof Error ? error.message : String(error) };
+        }
+    });
+
+    // Save File Handler
+    ipcMain.handle('fs:saveFile', async (_event, filePath: string, content: string): Promise<SaveFileResponse> => {
+         console.log(`IPC Request: Saving file - ${filePath}`);
+         try {
+             if (!filePath || typeof filePath !== 'string') {
+                  throw new Error("Invalid file path provided.");
+             }
+             // Consider adding checks for directory existence if needed
+             await fs.writeFile(filePath, content, { encoding: 'utf-8' });
+             console.log(`IPC Success: Saved file ${filePath}`);
+             return { success: true };
+         } catch (error) {
+             console.error(`IPC Error: Failed to save file ${filePath}:`, error);
+             return { success: false, error: error instanceof Error ? error.message : String(error) };
+         }
+     });
+
+
+    console.log('IPC Handlers registered (including fs).');
 }
 
 // --- App Lifecycle Events ---
@@ -212,3 +285,4 @@ process.on('uncaughtException', (error: Error) => {
     dialog.showErrorBox('Unhandled Main Process Error', error.message || 'An unknown error occurred');
     // Consider if app.quit() is appropriate here
 });
+// --- END FILE: src/main/index.ts ---

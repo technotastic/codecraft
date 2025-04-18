@@ -1,35 +1,39 @@
 // src/renderer/components/Sidebar.tsx
 import React from 'react';
-import { useTheme, ThemeName } from '../contexts/ThemeContext'; // Import useTheme and ThemeName
+import { useTheme, ThemeName } from '../contexts/ThemeContext';
+import CustomSelect from './CustomSelect'; // Import the custom component
+
+const themeOptions: { value: ThemeName; label: string }[] = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'win95-placeholder', label: 'Windows 95 (Basic)' },
+];
 
 const Sidebar: React.FC = () => {
-  const { theme, setTheme } = useTheme(); // Use the theme context
-
-  const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setTheme(event.target.value as ThemeName);
-  };
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="sidebar">
       <h2>Files</h2>
 
-      {/* Theme Switcher Section - MOVED HERE */}
-      <div className="theme-switcher">
-        <label htmlFor="theme-select">Theme:</label>
-        <select id="theme-select" value={theme} onChange={handleThemeChange}>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="win95-placeholder">Windows 95 (Basic)</option>
-          {/* Add more themes here as they are created */}
-        </select>
-      </div>
-
       {/* File tree placeholder */}
       <div className="file-tree-placeholder">
         <p>Placeholder for file tree...</p>
-        {/* Add more placeholder content or structure as needed */}
       </div>
 
+      {/* Theme Switcher Section - At the bottom */}
+      <div className="theme-switcher">
+        <label id="theme-select-label" htmlFor="theme-select"> {/* Use label's ID for aria */}
+          Theme:
+        </label>
+        {/* Replace native select with CustomSelect */}
+        <CustomSelect<ThemeName>
+          labelId="theme-select-label" // Link to the label
+          options={themeOptions}
+          value={theme}
+          onChange={(newTheme) => setTheme(newTheme)}
+        />
+      </div>
     </div>
   );
 };

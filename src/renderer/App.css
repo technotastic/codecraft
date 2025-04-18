@@ -14,7 +14,9 @@
     border-right: var(--border-standard); /* Use variable */
     padding: var(--spacing-md);
     height: 100%;
-    overflow-y: auto; /* Allow sidebar content to scroll if needed */
+    /* IMPORTANT: Remove overflow-y: auto; from the sidebar itself */
+    /* overflow-y: auto; */
+    overflow: hidden; /* Hide overflow instead */
     color: var(--color-text-primary);
     display: flex;
     flex-direction: column; /* Stack elements vertically */
@@ -27,53 +29,41 @@
     flex-shrink: 0; /* Prevent shrinking */
   }
   
-  /* Styles for the theme switcher container */
+  /* Container for the file tree (or its placeholder) */
+  .sidebar .file-tree-placeholder {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      flex-grow: 1; /* Allow placeholder to take remaining vertical space */
+      overflow-y: auto; /* Allow scrolling WITHIN this area if content grows */
+      min-height: 50px; /* Give it some minimum space so it doesn't disappear */
+      /* Optional: Add some padding if needed inside this area */
+      /* padding: var(--spacing-sm) 0; */
+      margin-bottom: var(--spacing-md); /* Add space between file tree and switcher */
+  }
+  
+  
+  /* Theme switcher container - Positioned at the bottom */
   .sidebar .theme-switcher {
-    /* Removed margin-top: auto; */
-    /* Removed padding-top: var(--spacing-md); */
-    /* Removed border-top: var(--border-standard); */
-    margin-bottom: var(--spacing-md); /* Add space below the switcher */
+    margin-top: auto; /* Pushes it to the bottom */
+    padding-top: var(--spacing-md); /* Space above it */
+    border-top: var(--border-standard); /* Separator line */
     flex-shrink: 0; /* Prevent shrinking */
+    position: relative; /* Needed for z-index context if dropdown overflows slightly */
+    z-index: 5; /* Lower than dropdown options, but above main panel if needed */
   }
   
   /* Label for the theme switcher */
   .sidebar .theme-switcher label {
-    display: block;
+    display: block; /* Make label take its own line */
     margin-bottom: var(--spacing-xs);
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
   }
   
-  /* The select dropdown itself */
-  .sidebar .theme-switcher select {
-    width: 100%;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    background-color: var(--color-bg-input);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border-input);
-    border-radius: var(--border-radius-sm);
-    font-size: var(--font-size-sm);
-    cursor: pointer;
-  }
+  /* REMOVE styles for the old native select, they are handled by CustomSelect.css now */
+  /* .sidebar .theme-switcher select { ... } */
+  /* .sidebar .theme-switcher select:focus { ... } */
   
-  /* Focus style for the select dropdown */
-  .sidebar .theme-switcher select:focus {
-    outline: none;
-    border-color: var(--color-border-focus);
-    box-shadow: 0 0 0 1px var(--color-border-focus); /* Focus ring using accent color */
-  }
-  
-  /* Container for the file tree (or its placeholder) */
-  .sidebar .file-tree-placeholder {
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-sm);
-      /* margin-bottom: var(--spacing-md); REMOVED - Let it fill remaining space */
-      flex-grow: 1; /* Allow placeholder to take remaining vertical space */
-      overflow-y: auto; /* Allow scrolling within this area if content grows */
-      min-height: 50px; /* Give it some minimum space so it doesn't disappear */
-      /* Optional: Add some padding if needed inside this area */
-      /* padding: var(--spacing-sm) 0; */
-  }
   
   /* Main panel containing editor and terminal */
   .main-panel {

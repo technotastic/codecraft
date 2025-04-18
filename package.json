@@ -4,33 +4,75 @@
   "description": "A custom IDE built with Electron, React, and TypeScript",
   "main": "dist-electron/main/index.js",
   "scripts": {
-    "dev": "vite --config vite.config.mjs --debug",
-    "build": "npm run build:main && vite build && electron-builder",
+    "start": "electron .",
+    "dev:vite": "vite --config vite.config.mjs --debug",
+    "dev:main": "tsc --project tsconfig.node.json --watch",
+    "dev": "echo \"Run 'npm run dev:main' and 'npm run dev:vite' in separate terminals, then 'npm start'\" && exit 1",
     "build:main": "tsc --project tsconfig.node.json",
+    "build:renderer": "vite build --config vite.config.mjs",
+    "build": "npm run clean && npm run build:main && npm run build:renderer && electron-builder",
+    "rebuild": "electron-rebuild -f -w node-pty",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "clean": "rm -rf dist dist-electron build release"
+    "clean": "rm -rf dist dist-electron build release",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
     "node-pty": "^1.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-monaco-editor": "^0.58.0",
-    "react-xtermjs": "^1.0.9",
-    "xterm-addon-fit": "^0.8.0"
+    "xterm": "^5.5.0",
+    "xterm-addon-fit": "^0.9.0"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
+    "@types/node": "^20.14.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.12.0",
+    "@typescript-eslint/parser": "^7.12.0",
+    "@vitejs/plugin-react": "^4.3.1",
     "electron": "^30.0.9",
     "electron-builder": "^24.13.3",
     "electron-rebuild": "^3.2.9",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.2",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "typescript": "^5.4.5",
-    "vite": "^5.2.11",
+    "vite": "^5.2.12",
     "vite-plugin-monaco-editor": "^1.1.0"
+  },
+  "build": {
+    "appId": "com.example.codecraftide",
+    "productName": "CodeCraft IDE",
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "index.html",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "release/${version}"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

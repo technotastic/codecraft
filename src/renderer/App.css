@@ -8,86 +8,129 @@
   }
   
   .sidebar {
-    width: 250px;
+    width: var(--sidebar-width); /* Use variable */
     flex-shrink: 0;
     background-color: var(--color-bg-sidebar);
-    border-right: 1px solid var(--color-border);
+    border-right: var(--border-standard); /* Use variable */
     padding: var(--spacing-md);
     height: 100%;
-    overflow-y: auto;
+    overflow-y: auto; /* Allow sidebar content to scroll if needed */
     color: var(--color-text-primary);
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
   }
   
   .sidebar h2 {
     margin-bottom: var(--spacing-sm);
     font-size: var(--font-size-lg);
     color: var(--color-text-heading);
+    flex-shrink: 0; /* Prevent shrinking */
   }
   
-  .sidebar p {
+  /* Styles for the theme switcher container */
+  .sidebar .theme-switcher {
+    /* Removed margin-top: auto; */
+    /* Removed padding-top: var(--spacing-md); */
+    /* Removed border-top: var(--border-standard); */
+    margin-bottom: var(--spacing-md); /* Add space below the switcher */
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+  
+  /* Label for the theme switcher */
+  .sidebar .theme-switcher label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+  
+  /* The select dropdown itself */
+  .sidebar .theme-switcher select {
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--color-bg-input);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+  
+  /* Focus style for the select dropdown */
+  .sidebar .theme-switcher select:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: 0 0 0 1px var(--color-border-focus); /* Focus ring using accent color */
+  }
+  
+  /* Container for the file tree (or its placeholder) */
+  .sidebar .file-tree-placeholder {
       color: var(--color-text-secondary);
       font-size: var(--font-size-sm);
+      /* margin-bottom: var(--spacing-md); REMOVED - Let it fill remaining space */
+      flex-grow: 1; /* Allow placeholder to take remaining vertical space */
+      overflow-y: auto; /* Allow scrolling within this area if content grows */
+      min-height: 50px; /* Give it some minimum space so it doesn't disappear */
+      /* Optional: Add some padding if needed inside this area */
+      /* padding: var(--spacing-sm) 0; */
   }
   
+  /* Main panel containing editor and terminal */
   .main-panel {
     flex-grow: 1; /* Take remaining width */
     display: flex;
-    flex-direction: column; /* Stack editor and terminal */
+    flex-direction: column; /* Stack editor and terminal vertically */
     height: 100%;
-    overflow: hidden; /* Prevent scrollbars here */
+    overflow: hidden; /* Prevent this panel itself from scrolling */
   }
   
+  /* Editor panel styles */
   .editor-panel {
     flex-grow: 1; /* Take available vertical space */
-    background-color: var(--color-bg-main);
-    /* No padding */
-    overflow: hidden; /* Editor manages its own scrolling */
-    display: flex; /* Helps child fill space */
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-md);
-    /* Ensure editor fills this container. If MonacoEditor has issues, inspect its wrapper div */
-    position: relative; /* Needed if Monaco uses absolute positioning internally */
-    min-height: 50px; /* Add minimum height to prevent complete collapse */
+    background-color: var(--color-bg-main); /* Use variable for background */
+    overflow: hidden; /* Monaco Editor manages its own scrolling */
+    display: flex; /* Helps child (Monaco editor) fill the space */
+    color: var(--color-text-secondary); /* Default text color if editor is empty */
+    font-size: var(--font-size-md); /* Base font size for this area */
+    position: relative; /* Necessary if Monaco uses absolute positioning */
+    min-height: 50px; /* Prevent collapsing completely */
   }
   
+  /* Terminal panel styles */
   .terminal-panel {
-    height: 200px; /* Fixed height for terminal */
-    flex-shrink: 0; /* Prevent shrinking */
-    background-color: var(--color-bg-terminal);
-    color: var(--color-text-terminal);
-    border-top: 1px solid var(--color-border-accent);
-    /* No padding on container */
+    height: var(--terminal-height); /* Use variable for height */
+    flex-shrink: 0; /* Prevent shrinking when window resizes */
+    background-color: var(--color-bg-terminal); /* Use variable */
+    color: var(--color-text-terminal); /* Use variable */
+    border-top: var(--border-accent); /* Use variable for top border */
     overflow: hidden; /* Xterm manages its own scrolling */
-    font-family: var(--font-family-mono);
-    font-size: var(--font-size-base);
+    font-family: var(--font-family-mono); /* Use monospace font variable */
+    font-size: var(--font-size-terminal); /* Use terminal font size variable */
     position: relative; /* For potential internal positioning */
     width: 100%;
-    display: flex; /* Use flexbox to help child elements fill */
+    display: flex; /* Helps child elements fill the container */
   }
   
-  /* Target the direct child wrapper of the terminal panel (usually a div) */
-  /* Or target the XTerm component's root if identifiable */
+  /* Target the direct child wrapper of the terminal panel (often a div) */
   .terminal-panel > div {
        width: 100%;
        height: 100%;
   }
   
-  
-  /* Target the main xterm element for padding */
+  /* Target the main xterm element itself */
   .terminal-panel .terminal.xterm {
-      height: 100% !important; /* Fill container */
-      width: 100% !important; /* Fill container */
-      padding: 5px; /* Add padding inside the terminal viewport */
+      height: 100% !important; /* Ensure it fills the container height */
+      width: 100% !important; /* Ensure it fills the container width */
+      padding: var(--spacing-xs); /* Add internal padding using variable */
   }
   
-  /* Ensure the internal screen fills the terminal element */
+  /* Ensure the internal xterm screen fills the terminal element */
    .terminal-panel .xterm-screen {
        width: 100% !important;
        height: 100% !important;
    }
   
-  
-  /* Hide placeholder text if it exists */
+  /* Hide any accidental placeholder <p> tags in terminal panel */
   .terminal-panel p {
      display: none;
   }

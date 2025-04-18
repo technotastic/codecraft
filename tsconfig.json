@@ -28,7 +28,7 @@
     "include": [
       "src/renderer/**/*.ts",
       "src/renderer/**/*.tsx",
-      "src/vite-env.d.ts",
+      "src/renderer/vite-env.d.ts", // Adjusted path
       "src/shared.types.ts" // If it exists and is used by renderer
      ],
     "references": [{ "path": "./tsconfig.node.json" }] // Needs composite:true in node config

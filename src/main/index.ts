@@ -1,24 +1,17 @@
 // src/main/index.ts
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
-import * as pty from 'node-pty'; // Import node-pty
+import * as pty from 'node-pty';
 
 // --- Global Variables ---
-// Disable hardware acceleration - Common fix for rendering issues in WSL
 app.disableHardwareAcceleration();
-
-// Determine the shell based on the operating system
 const shellPath = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-// Variable to hold the PTY process instance for the main window
 let ptyProcess: pty.IPty | null = null;
-// Reference to the main browser window
-let mainWindow: BrowserWindow | null = null; // Use standard name
+let mainWindow: BrowserWindow | null = null;
 
 // --- Squirrel Startup Handler (Windows Installer) ---
-// Placed early before app is fully ready
 if (app.isPackaged && process.platform === 'win32') {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     if (require('electron-squirrel-startup')) {
       app.quit();
     }
@@ -27,11 +20,10 @@ if (app.isPackaged && process.platform === 'win32') {
 // --- Main Window Creation Function ---
 function createWindow() {
   console.log('Creating main window...');
-  mainWindow = new BrowserWindow({ // Assign to the global mainWindow
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
-      // __dirname is the automatically available CommonJS global
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
@@ -39,19 +31,21 @@ function createWindow() {
   });
 
   const isDev = !app.isPackaged;
+  const VITE_DEV_SERVER_URL = 'http://localhost:5173';
+
   console.log(`>>> DEBUG: app.isPackaged = ${app.isPackaged}, therefore isDev = ${isDev}`);
 
-  if (isDev) {
-    console.log('Loading DEV URL: http://localhost:5173');
-    mainWindow.loadURL('http://localhost:5173/')
-      .catch(err => console.error('Failed to load DEV URL:', err)); // Add error catching
+  if (isDev && VITE_DEV_SERVER_URL) {
+    console.log(`Loading DEV URL: ${VITE_DEV_SERVER_URL}`);
+    mainWindow.loadURL(VITE_DEV_SERVER_URL)
+      .catch(err => console.error('Failed to load DEV URL:', err));
     mainWindow.webContents.openDevTools();
   } else {
     console.log('Loading PROD build file');
-    const prodPath = path.join(__dirname, '../../dist/renderer/index.html');
+    const prodPath = path.join(__dirname, '..', '..', 'dist', 'renderer', 'index.html');
     console.log(`Attempting to load production file: ${prodPath}`);
     mainWindow.loadFile(prodPath)
-       .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err)); // Add error catching
+       .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
   }
 
   // --- Window Event Handlers ---
@@ -72,29 +66,29 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     console.log('Main window closed.');
-    // Kill the PTY process if the window is closed
     if (ptyProcess) {
         console.log('Killing PTY process due to window close.');
         ptyProcess.kill();
         ptyProcess = null;
     }
-    mainWindow = null; // Clear the window reference
+    mainWindow = null;
   });
 }
 
 // --- Function to Setup IPC Handlers ---
-// Separated for clarity, called after app is ready
 function setupIpcHandlers() {
     console.log('Setting up IPC Handlers...');
 
+    // Basic Ping Example
+    ipcMain.handle('ping', () => 'pong from main!');
+
     // Handle PTY Creation Request
     ipcMain.handle('pty-create', async (_event, options: { cols: number; rows: number }) => {
-        // Ensure mainWindow exists before trying to use its webContents
         if (!mainWindow) {
             console.error("Cannot create PTY: mainWindow is not available.");
             return { success: false, error: "Main window not available." };
         }
-        const targetWebContents = mainWindow.webContents; // Use local ref
+        const targetWebContents = mainWindow.webContents;
 
         if (ptyProcess) {
             console.log('Existing PTY process found. Killing it before creating a new one.');
@@ -103,28 +97,39 @@ function setupIpcHandlers() {
         }
         console.log(`Creating PTY process with shell: ${shellPath}, cols: ${options.cols}, rows: ${options.rows}`);
         try {
+            const cwd = process.env.HOME || process.env.USERPROFILE || process.cwd();
+            console.log(`PTY current working directory: ${cwd}`);
             ptyProcess = pty.spawn(shellPath, [], {
                 name: 'xterm-color',
                 cols: options.cols || 80,
                 rows: options.rows || 24,
-                cwd: process.env.HOME || process.cwd(),
-                env: process.env,
+                cwd: cwd,
+                env: { ...process.env },
             });
             console.log(`PTY process created successfully (PID: ${ptyProcess.pid}).`);
 
-            // Attach Listeners to the PTY Process
-            ptyProcess.onData((data: string) => {
-                 // Use targetWebContents captured when handler was registered
-                 targetWebContents.send('pty-data', data);
+            // --- CORRECTED EVENT LISTENER SYNTAX ---
+            // Handle Data from PTY -> Renderer
+            ptyProcess.onData(data => { // Correct syntax
+                 if (targetWebContents && !targetWebContents.isDestroyed()) {
+                    targetWebContents.send('pty-data', data);
+                 }
             });
 
-            ptyProcess.onExit(({ exitCode }) => {
-                console.log(`PTY process (PID: ${ptyProcess?.pid}) exited with code: ${exitCode}`);
-                 targetWebContents.send('pty-exit', exitCode);
-                 ptyProcess = null; // Clear the reference
+            // Handle PTY Exit -> Renderer
+            ptyProcess.onExit(({ exitCode, signal }) => { // Correct syntax
+                console.log(`PTY process (PID: ${ptyProcess?.pid}) exited with code: ${exitCode}, signal: ${signal}`);
+                 if (targetWebContents && !targetWebContents.isDestroyed()) {
+                    targetWebContents.send('pty-exit', exitCode);
+                 }
+                 ptyProcess = null; // Clear the reference on exit
             });
+            // --- END CORRECTIONS ---
 
-            return { success: true }; // Indicate success back to renderer
+            // Note: Fatal errors during spawn are caught by the outer try/catch.
+            // Runtime errors often result in the process exiting, handled by onExit.
+
+            return { success: true };
 
         } catch (error) {
             console.error('Failed to create PTY process:', error);
@@ -137,28 +142,38 @@ function setupIpcHandlers() {
     ipcMain.on('pty-input', (_event, data: string) => {
         if (ptyProcess) {
             ptyProcess.write(data);
-        } else {
-            // Don't warn too much, could happen if closed quickly
-            // console.warn('Received renderer input but ptyProcess is null.');
         }
     });
 
     // Handle Renderer -> PTY (Resize)
     ipcMain.on('pty-resize', (_event, options: { cols: number; rows: number }) => {
         if (ptyProcess) {
-            console.log(`Resizing PTY (PID: ${ptyProcess.pid}) to cols: ${options.cols}, rows: ${options.rows}`);
-            try {
-                 ptyProcess.resize(options.cols, options.rows);
-            } catch (error) {
-                 console.error(`Failed to resize PTY (PID: ${ptyProcess.pid}):`, error);
+            if (options.cols > 0 && options.rows > 0) {
+                try {
+                    ptyProcess.resize(options.cols, options.rows);
+                    // console.log(`Resized PTY (PID: ${ptyProcess.pid}) to cols: ${options.cols}, rows: ${options.rows}`); // Less verbose logging
+                } catch (error) {
+                     console.error(`Failed to resize PTY (PID: ${ptyProcess.pid}):`, error);
+                     // Inform renderer? Debounce?
+                }
+            } else {
+                console.warn(`Received invalid resize dimensions: cols=${options.cols}, rows=${options.rows}`);
             }
-        } else {
-            // console.warn('Received resize request but ptyProcess is null.');
         }
     });
 
-    // Basic Ping Example
-    ipcMain.handle('ping', () => 'pong from main!');
+    // Example placeholder for opening a folder
+    ipcMain.handle('dialog:openDirectory', async () => {
+        if (!mainWindow) return null;
+        const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+            properties: ['openDirectory']
+        });
+        if (canceled || filePaths.length === 0) {
+            return null;
+        } else {
+            return filePaths[0];
+        }
+    });
 
     console.log('IPC Handlers registered.');
 }
@@ -166,31 +181,34 @@ function setupIpcHandlers() {
 // --- App Lifecycle Events ---
 app.whenReady().then(() => {
   console.log('App is ready.');
-  setupIpcHandlers(); // Register IPC handlers
-  createWindow();     // Create the main window
+  setupIpcHandlers();
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        console.log('App activated, creating window.');
+        createWindow();
+    }
+  });
 });
 
 app.on('window-all-closed', () => {
   console.log('All windows closed.');
-  // On macOS, apps stay active. On other platforms, quit.
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-// Ensure app quits properly
-app.on('quit', () => {
-    console.log('App quitting. Killing PTY process if exists.');
+app.on('will-quit', () => {
+    console.log('App will quit. Killing PTY process if exists.');
     if (ptyProcess) {
         ptyProcess.kill();
         ptyProcess = null;
     }
 });
 
-app.on('activate', () => {
-  // On macOS re-create window if none are open and dock icon is clicked
-  if (mainWindow === null) {
-    console.log('App activated, creating window.');
-    createWindow();
-  }
+process.on('uncaughtException', (error: Error) => {
+    console.error('Uncaught Main Process Exception:', error);
+    dialog.showErrorBox('Unhandled Main Process Error', error.message || 'An unknown error occurred');
+    // Consider if app.quit() is appropriate here
 });

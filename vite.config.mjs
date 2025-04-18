@@ -35,25 +35,31 @@ export default defineConfig({
     actualMonacoPlugin({
         // Plugin options
         // languages: ['json', 'css', 'html', 'typescript', 'javascript']
+        // By default, it includes common languages like JS, TS, CSS, HTML, JSON
     })
 
   ],
   build: {
-    outDir: 'dist/renderer',
+    outDir: 'dist/renderer', // Keep output directory for renderer code
+    emptyOutDir: true, // Ensure the directory is cleaned before build
   },
   resolve: {
     alias: {
+      // Ensure aliases match tsconfig.json paths
       '@renderer': path.resolve(__dirname, './src/renderer'),
       '@main': path.resolve(__dirname, './src/main'),
       '@preload': path.resolve(__dirname, './src/preload'),
-      // '@shared': path.resolve(__dirname, './src/shared'),
+      // '@shared': path.resolve(__dirname, './src/shared'), // Uncomment if needed
     },
   },
-  root: '.',
+  root: '.', // Project root containing index.html
+  base: './', // Use relative paths for Electron production build
   server: {
-     // Optional server options
+     // Optional server options like port
+     // port: 3000, // Default is 5173
+     strictPort: true, // Throw error if port is already in use
    },
   optimizeDeps: {
-    force: true // Keep for now
+    // force: true // Generally remove 'force: true' unless deps are causing issues
   }
 });

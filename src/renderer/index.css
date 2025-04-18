@@ -4,31 +4,167 @@
 :root {
     /* Font */
     --font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    --font-family-mono: 'Courier New', Courier, monospace; /* Placeholder monospace */
-    --font-size-base: 14px; /* Base font size - adjust as needed */
-    --font-size-sm: 0.875rem;
-    --font-size-md: 1rem;
-    --font-size-lg: 1.125rem;
+    --font-family-mono: Consolas, 'Courier New', monospace; /* More common monospace */
+    --font-size-base: 14px;
+    --font-size-sm: 0.875rem; /* 12px */
+    --font-size-md: 1rem;    /* 14px */
+    --font-size-lg: 1.125rem; /* 16px */
+    --font-size-xl: 1.25rem;  /* 18px */
+    --font-size-editor: var(--font-size-sm); /* Default editor size */
+    --font-size-terminal: var(--font-size-sm); /* Default terminal size */
   
     /* Colors - Light Theme */
-    --color-bg-app: #f0f0f0;
-    --color-bg-sidebar: #e8e8e8;
+    --color-bg-app: #f8f8f8;
+    --color-bg-sidebar: #ececec;
     --color-bg-main: #ffffff;
-    --color-bg-terminal: #1e1e1e;
+    --color-bg-editor: #ffffff; /* Monaco default light */
+    --color-bg-terminal: #ffffff; /* Terminal default light */
+    --color-bg-button: #e0e0e0;
+    --color-bg-button-hover: #d6d6d6;
+    --color-bg-button-active: #cccccc;
+    --color-bg-input: #ffffff;
+    --color-bg-dropdown: #ffffff;
+    --color-bg-selected: #d5e5f6; /* A light blue for selections */
+    --color-bg-hover: #ededed; /* General hover background */
   
     --color-text-primary: #1f1f1f;
     --color-text-secondary: #555555;
-    --color-text-terminal: #cccccc;
+    --color-text-tertiary: #888888; /* For less important info */
+    --color-text-terminal: #333333; /* Terminal default light */
     --color-text-heading: #000000;
+    --color-text-button: #1f1f1f;
+    --color-text-link: #0066cc;
+    --color-text-link-hover: #004c99;
+    --color-text-placeholder: #aaaaaa;
+    --color-text-inverse: #ffffff; /* Text on dark backgrounds */
+    --color-text-accent: #007acc; /* Accent color, e.g., focus ring */
+    --color-text-error: #d9534f;
   
     --color-border: #cccccc;
     --color-border-accent: #aaaaaa;
+    --color-border-input: #b0b0b0;
+    --color-border-focus: #007acc; /* Use accent for focus */
   
     /* Spacing */
+    --spacing-xxs: 2px;
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
     --spacing-lg: 24px;
+    --spacing-xl: 32px;
+  
+    /* Borders & Shadows */
+    --border-radius-sm: 3px;
+    --border-radius-md: 5px;
+    --box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --box-shadow-md: 0 3px 6px rgba(0, 0, 0, 0.15);
+    --border-standard: 1px solid var(--color-border);
+    --border-accent: 1px solid var(--color-border-accent);
+    --border-button: 1px solid var(--color-border-input);
+    --button-bevel-shadow: none; /* For aesthetic themes */
+  
+    /* Other UI Elements */
+    --scrollbar-thumb-bg: #c1c1c1;
+    --scrollbar-track-bg: #f1f1f1;
+  
+    /* Specific Component Variables (Examples) */
+    --sidebar-width: 250px;
+    --terminal-height: 200px;
+  }
+  
+  /* Dark Theme */
+  .theme-dark {
+    --font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-family-mono: Consolas, 'Courier New', monospace;
+  
+    --color-bg-app: #1e1e1e;
+    --color-bg-sidebar: #252526;
+    --color-bg-main: #1e1e1e; /* VSCode editor dark */
+    --color-bg-editor: #1e1e1e;
+    --color-bg-terminal: #1e1e1e;
+    --color-bg-button: #3a3a3a;
+    --color-bg-button-hover: #4a4a4a;
+    --color-bg-button-active: #5a5a5a;
+    --color-bg-input: #3c3c3c;
+    --color-bg-dropdown: #3c3c3c;
+    --color-bg-selected: #094771; /* Darker blue selection */
+    --color-bg-hover: #2a2d2e;
+  
+    --color-text-primary: #d4d4d4;
+    --color-text-secondary: #cccccc;
+    --color-text-tertiary: #a0a0a0;
+    --color-text-terminal: #cccccc;
+    --color-text-heading: #ffffff;
+    --color-text-button: #d4d4d4;
+    --color-text-link: #3794ff;
+    --color-text-link-hover: #60aaff;
+    --color-text-placeholder: #777777;
+    --color-text-inverse: #1f1f1f; /* Text on light backgrounds */
+    --color-text-accent: #007acc;
+    --color-text-error: #f48771;
+  
+    --color-border: #3f3f46;
+    --color-border-accent: #505050;
+    --color-border-input: #5f5f5f;
+    --color-border-focus: #007acc;
+  
+    --scrollbar-thumb-bg: #555;
+    --scrollbar-track-bg: #333;
+  
+    --border-standard: 1px solid var(--color-border);
+    --border-accent: 1px solid var(--color-border-accent);
+    --border-button: 1px solid var(--color-border-input);
+    --button-bevel-shadow: none;
+  }
+  
+  /* Windows 95 Placeholder Theme */
+  .theme-win95-placeholder {
+    /* Define unique fonts IF needed and available/loaded */
+    /* @font-face { font-family: 'MS Sans Serif'; src: url(...) } */
+    --font-family-ui: Tahoma, 'MS Sans Serif', system-ui, sans-serif; /* Approximate */
+    --font-family-mono: 'Courier New', monospace;
+    --font-size-base: 13px; /* Slightly smaller */
+  
+    --color-bg-app: #c0c0c0; /* Classic grey */
+    --color-bg-sidebar: #c0c0c0;
+    --color-bg-main: #ffffff;
+    --color-bg-editor: #ffffff;
+    --color-bg-terminal: #000080; /* Classic blue console */
+    --color-bg-button: #c0c0c0;
+    --color-bg-button-hover: #c0c0c0; /* No visual hover usually */
+    --color-bg-button-active: #a0a0a0; /* Pressed state */
+    --color-bg-input: #ffffff;
+    --color-bg-dropdown: #ffffff;
+    --color-bg-selected: #000080; /* System selection blue */
+    --color-bg-hover: #c0c0c0; /* No hover on most elements */
+  
+    --color-text-primary: #000000;
+    --color-text-secondary: #000000;
+    --color-text-tertiary: #808080; /* Greyed out text */
+    --color-text-terminal: #c0c0c0; /* Light grey text on blue */
+    --color-text-heading: #000000;
+    --color-text-button: #000000;
+    --color-text-link: #0000ff;
+    --color-text-link-hover: #0000ff;
+    --color-text-placeholder: #808080;
+    --color-text-inverse: #ffffff;
+    --color-text-accent: #000080; /* Focus outline often black or system blue */
+    --color-text-error: #ff0000;
+  
+    --color-border: #808080; /* Inner bevel dark */
+    --color-border-accent: #ffffff; /* Outer bevel light */
+    --color-border-input: #808080;
+    --color-border-focus: #000000; /* Black focus rect */
+  
+    --scrollbar-thumb-bg: #c0c0c0;
+    --scrollbar-track-bg: #a0a0a0; /* Often a slightly darker grey */
+  
+    --border-standard: 1px solid var(--color-border); /* Needs more specific bevel */
+    --border-accent: 1px solid var(--color-border-accent);
+    --border-button: none; /* Button uses bevel shadow */
+    --button-bevel-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf; /* Win95 Button Bevel */
+  
+    /* Note: Truly replicating Win95 requires more specific CSS overrides beyond vars */
   }
   
   /* Basic Reset */
@@ -51,4 +187,23 @@
     height: 100%;
     width: 100%;
     overflow: hidden; /* Prevent body scrollbars */
+  }
+  
+  /* Basic Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 10px; /* Width of the scrollbar */
+    height: 10px; /* Height for horizontal scrollbar */
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-bg); /* Track color */
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg); /* Handle color */
+    border-radius: 5px; /* Rounded corners */
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black); /* Slightly darker on hover */
   }

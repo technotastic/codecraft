@@ -11,3 +11,7 @@ declare global {
     electronAPI: ElectronAPI;
   }
 }
+
+// Make this file a module by exporting an empty object if it doesn't export anything else
+// This helps prevent potential issues with global scope pollution in TypeScript.
+export {};

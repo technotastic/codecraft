@@ -1,3 +1,4 @@
+/* --- START FILE: src/renderer/index.css --- */
 /* src/renderer/index.css */
 
 /* --- FONT FACE DEFINITIONS (PLACEHOLDERS) --- */
@@ -25,440 +26,888 @@
 
 /* Define CSS Variables for the default theme (Light) */
 :root {
-    /* Font */
-    --font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    --font-family-mono: Consolas, 'Courier New', monospace; /* More common monospace */
-    --font-size-base: 14px;
-    --font-size-sm: 0.875rem; /* 12px */
-    --font-size-md: 1rem;    /* 14px */
-    --font-size-lg: 1.125rem; /* 16px */
-    --font-size-xl: 1.25rem;  /* 18px */
-    --font-size-editor: var(--font-size-sm); /* Default editor size */
-    --font-size-terminal: var(--font-size-sm); /* Default terminal size */
-  
-    /* Colors - Light Theme */
-    --color-bg-app: #f8f8f8;
-    --color-bg-sidebar: #ececec;
-    --color-bg-main: #ffffff;
-    --color-bg-editor: #ffffff; /* Monaco default light */
-    --color-bg-terminal: #ffffff; /* Terminal default light */
-    --color-bg-button: #e0e0e0;
-    --color-bg-button-hover: #d6d6d6;
-    --color-bg-button-active: #cccccc;
-    --color-bg-input: #ffffff;
-    --color-bg-dropdown: #ffffff;
-    --color-bg-selected: #d5e5f6; /* A light blue for selections */
-    --color-bg-hover: #ededed; /* General hover background */
-  
-    --color-text-primary: #1f1f1f;
-    --color-text-secondary: #555555;
-    --color-text-tertiary: #888888; /* For less important info */
-    --color-text-terminal: #333333; /* Terminal default light */
-    --color-text-heading: #000000;
-    --color-text-button: #1f1f1f;
-    --color-text-link: #0066cc;
-    --color-text-link-hover: #004c99;
-    --color-text-placeholder: #aaaaaa;
-    --color-text-inverse: #ffffff; /* Text on dark backgrounds */
-    --color-text-accent: #007acc; /* Accent color, e.g., focus ring */
-    --color-text-error: #d9534f;
-  
-    --color-border: #cccccc;
-    --color-border-accent: #aaaaaa;
-    --color-border-input: #b0b0b0;
-    --color-border-focus: #007acc; /* Use accent for focus */
-  
-    /* Spacing */
-    --spacing-xxs: 2px;
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 32px;
-  
-    /* Borders & Shadows */
-    --border-radius-sm: 3px;
-    --border-radius-md: 5px;
-    --box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --box-shadow-md: 0 3px 6px rgba(0, 0, 0, 0.15);
-    --border-standard: 1px solid var(--color-border);
-    --border-accent: 1px solid var(--color-border-accent);
-    --border-button: 1px solid var(--color-border-input);
-    --button-bevel-shadow: none; /* For aesthetic themes */
-  
-    /* Other UI Elements */
-    --scrollbar-thumb-bg: #c1c1c1;
-    --scrollbar-track-bg: #f1f1f1;
-  
-    /* Specific Component Variables (Examples) */
-    --sidebar-width: 250px;
-    --terminal-height: 200px;
-  
-    /* Theme Specific Overrides (Placeholders) */
-    --scanline-opacity: 0;
-    --crt-filter: none;
-  }
-  
-  /* Dark Theme */
-  .theme-dark {
-    /* (Keep dark theme variables as before) */
-    --font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    --font-family-mono: Consolas, 'Courier New', monospace;
-  
-    --color-bg-app: #1e1e1e;
-    --color-bg-sidebar: #252526;
-    --color-bg-main: #1e1e1e;
-    --color-bg-editor: #1e1e1e;
-    --color-bg-terminal: #1e1e1e;
-    --color-bg-button: #3a3a3a;
-    --color-bg-button-hover: #4a4a4a;
-    --color-bg-button-active: #5a5a5a;
-    --color-bg-input: #3c3c3c;
-    --color-bg-dropdown: #3c3c3c;
-    --color-bg-selected: #094771;
-    --color-bg-hover: #2a2d2e;
-  
-    --color-text-primary: #d4d4d4;
-    --color-text-secondary: #cccccc;
-    --color-text-tertiary: #a0a0a0;
-    --color-text-terminal: #cccccc;
-    --color-text-heading: #ffffff;
-    --color-text-button: #d4d4d4;
-    --color-text-link: #3794ff;
-    --color-text-link-hover: #60aaff;
-    --color-text-placeholder: #777777;
-    --color-text-inverse: #1f1f1f;
-    --color-text-accent: #007acc;
-    --color-text-error: #f48771;
-  
-    --color-border: #3f3f46;
-    --color-border-accent: #505050;
-    --color-border-input: #5f5f5f;
-    --color-border-focus: #007acc;
-  
-    --scrollbar-thumb-bg: #555;
-    --scrollbar-track-bg: #333;
-  
-    --border-standard: 1px solid var(--color-border);
-    --border-accent: 1px solid var(--color-border-accent);
-    --border-button: 1px solid var(--color-border-input);
-    --button-bevel-shadow: none;
-  }
-  
-  /* Windows 95 Theme - Enhanced */
-  .theme-win95 {
-    --font-family-ui: Tahoma, 'MS Sans Serif', 'Microsoft Sans Serif', system-ui, sans-serif; /* Prioritize classic fonts */
-    --font-family-mono: 'Courier New', monospace;
-    --font-size-base: 13px;
-    --font-size-editor: 12px;
-    --font-size-terminal: 12px;
-  
-    --color-bg-app: #c0c0c0;
-    --color-bg-sidebar: #c0c0c0;
-    --color-bg-main: #ffffff;
-    --color-bg-editor: #ffffff;
-    --color-bg-terminal: #000080; /* Classic blue console */
-    --color-bg-button: #c0c0c0;
-    --color-bg-button-hover: #c0c0c0;
-    --color-bg-button-active: #b0b0b0; /* Slightly darker pressed */
-    --color-bg-input: #ffffff;
-    --color-bg-dropdown: #ffffff;
-    --color-bg-selected: #000080;
-    --color-bg-hover: #c0c0c0;
-  
-    --color-text-primary: #000000;
-    --color-text-secondary: #000000;
-    --color-text-tertiary: #808080;
-    --color-text-terminal: #c0c0c0;
-    --color-text-heading: #000000;
-    --color-text-button: #000000;
-    --color-text-link: #0000ff;
-    --color-text-link-hover: #0000ff;
-    --color-text-placeholder: #808080;
-    --color-text-inverse: #ffffff; /* Text on selection bg */
-    --color-text-accent: #000080;
-    --color-text-error: #ff0000;
-  
-    --color-border: #808080;       /* Inner bevel dark gray */
-    --color-border-accent: #ffffff; /* Outer bevel white */
-    --color-border-dark: #000000;   /* Inner bevel black */
-    --color-border-light: #dfdfdf; /* Outer bevel light gray */
-    --color-border-input: #808080;
-    --color-border-focus: #000000;
-  
-    --scrollbar-thumb-bg: #c0c0c0;
-    --scrollbar-track-bg: #a0a0a0; /* Needs bevel styles */
-  
-    --border-standard: 1px solid var(--color-border); /* Use specific borders below */
-    --border-radius-sm: 0; /* No rounded corners */
-    --border-radius-md: 0;
-    --box-shadow-sm: none;
-    --box-shadow-md: none;
-  
-    /* Bevel for buttons etc. - Use direct styles instead */
-    --button-bevel-shadow: none; /* Will apply via direct CSS */
-  
-    /* Specific Bevel Colors */
-    --win95-bevel-shadow-light: #ffffff;
-    --win95-bevel-shadow-lighter: #dfdfdf;
-    --win95-bevel-shadow-dark: #808080;
-    --win95-bevel-shadow-darker: #0a0a0a;
-  }
-  
-  /* Pip-Boy Theme */
-  .theme-pipboy {
-    /* Assumes 'Overseer' font is loaded or replace with monospace */
-    --font-family-ui: 'Overseer', Consolas, monospace;
-    --font-family-mono: 'Overseer', Consolas, monospace;
-    --font-size-base: 15px; /* Slightly larger, adjust as needed */
-    --font-size-editor: 14px;
-    --font-size-terminal: 14px;
-  
-    /* Pip-Boy Green */
-    --pipboy-green: #15ff60;
-    --pipboy-green-dark: #10b445;
-    --pipboy-green-darker: #0a702a;
-    --pipboy-bg: #0a1a0f; /* Very dark green/black */
-    --pipboy-bg-lighter: #102a18;
-  
-    --color-bg-app: var(--pipboy-bg);
-    --color-bg-sidebar: var(--pipboy-bg-lighter);
-    --color-bg-main: var(--pipboy-bg);
-    --color-bg-editor: var(--pipboy-bg);
-    --color-bg-terminal: var(--pipboy-bg);
-    --color-bg-button: transparent;
-    --color-bg-button-hover: var(--pipboy-green-darker);
-    --color-bg-button-active: var(--pipboy-green-dark);
-    --color-bg-input: var(--pipboy-bg-lighter);
-    --color-bg-dropdown: var(--pipboy-bg-lighter);
-    --color-bg-selected: var(--pipboy-green-dark);
-    --color-bg-hover: var(--pipboy-green-darker);
-  
-    --color-text-primary: var(--pipboy-green);
-    --color-text-secondary: color-mix(in srgb, var(--pipboy-green) 70%, black);
-    --color-text-tertiary: color-mix(in srgb, var(--pipboy-green) 50%, black);
-    --color-text-terminal: var(--pipboy-green);
-    --color-text-heading: var(--pipboy-green);
-    --color-text-button: var(--pipboy-green);
-    --color-text-link: var(--pipboy-green);
-    --color-text-link-hover: color-mix(in srgb, var(--pipboy-green) 80%, white);
-    --color-text-placeholder: var(--color-text-tertiary);
-    --color-text-inverse: var(--pipboy-bg); /* Text on selection bg */
-    --color-text-accent: var(--pipboy-green);
-    --color-text-error: #ff5555; /* A contrasting red/orange */
-  
-    --color-border: var(--pipboy-green-dark);
-    --color-border-accent: var(--pipboy-green);
-    --color-border-input: var(--pipboy-green-dark);
-    --color-border-focus: var(--pipboy-green);
-  
-    --scrollbar-thumb-bg: var(--pipboy-green-dark);
-    --scrollbar-track-bg: var(--pipboy-bg-lighter);
-  
-    --border-standard: 1px solid var(--color-border);
-    --border-accent: 1px solid var(--color-border-accent);
-    --border-button: 1px solid var(--color-border);
-    --border-radius-sm: 0;
-    --border-radius-md: 0;
-    --box-shadow-sm: none;
-    --box-shadow-md: none;
-    --button-bevel-shadow: none;
-  
-    /* Effects */
-    --scanline-opacity: 0.15; /* Adjust opacity */
-    --crt-filter: brightness(1.1) contrast(1.1); /* Basic CRT effect */
-  }
-  
-  /* mIRC Inspired Theme (Basic) */
-  .theme-mirc {
-    /* Classic Windows fonts */
-    --font-family-ui: 'MS Sans Serif', Tahoma, system-ui, sans-serif;
-    --font-family-mono: 'Courier New', monospace;
-    --font-size-base: 13px;
-    --font-size-editor: 12px;
-    --font-size-terminal: 12px;
-  
-    /* mIRC often used system colors, very similar to Win95 */
-    --color-bg-app: #c0c0c0;
-    --color-bg-sidebar: #c0c0c0; /* Channel list area */
-    --color-bg-main: #ffffff; /* Main chat/edit area */
-    --color-bg-editor: #ffffff;
-    --color-bg-terminal: #000000; /* Black usually for status/raw */
-    --color-bg-button: #c0c0c0;
-    --color-bg-button-hover: #c0c0c0;
-    --color-bg-button-active: #b0b0b0;
-    --color-bg-input: #ffffff; /* Input line */
-    --color-bg-dropdown: #ffffff;
-    --color-bg-selected: #000080;
-    --color-bg-hover: #c0c0c0;
-  
-    --color-text-primary: #000000;
-    --color-text-secondary: #000080; /* Often blue for links/commands */
-    --color-text-tertiary: #808080;
-    --color-text-terminal: #00ff00; /* Green text on black */
-    --color-text-heading: #000000;
-    --color-text-button: #000000;
-    --color-text-link: #0000ff;
-    --color-text-link-hover: #ff0000; /* Often red hover */
-    --color-text-placeholder: #808080;
-    --color-text-inverse: #ffffff;
-    --color-text-accent: #000080;
-    --color-text-error: #ff0000;
-  
-    --color-border: #808080;
-    --color-border-accent: #ffffff;
-    --color-border-input: #808080;
-    --color-border-focus: #000000;
-  
-    --scrollbar-thumb-bg: #c0c0c0;
-    --scrollbar-track-bg: #a0a0a0;
-  
-    --border-standard: 1px solid var(--color-border);
-    --border-radius-sm: 0;
-    --border-radius-md: 0;
-    --box-shadow-sm: none;
-    --box-shadow-md: none;
-    --button-bevel-shadow: none; /* Use direct styles */
-  
-    --win95-bevel-shadow-light: #ffffff;
-    --win95-bevel-shadow-lighter: #dfdfdf;
-    --win95-bevel-shadow-dark: #808080;
-    --win95-bevel-shadow-darker: #0a0a0a;
-  }
-  
-  
-  /* --- Basic Reset & Global Styles --- */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  html, body {
-    font-family: var(--font-family-ui);
-    font-size: var(--font-size-base);
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-app);
-  }
-  
-  html, body, #root {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-  }
-  
-  /* Apply optional CRT Filter */
-  #root {
-    filter: var(--crt-filter);
-  }
-  
-  /* Optional Scanline Overlay for Pipboy */
-  #root.theme-pipboy::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-    background-size: 100% 4px; /* Adjust thickness */
-    pointer-events: none;
-    z-index: 1000;
-    opacity: var(--scanline-opacity);
-  }
-  
-  /* Basic Scrollbar Styling */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: var(--scrollbar-track-bg);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb-bg);
-    border-radius: var(--border-radius-sm); /* Use theme radius */
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black);
-  }
-  
-  /* --- Theme Specific Overrides for Components --- */
-  
-  /* Win95 / mIRC Bevels */
-  .theme-win95 button, .theme-win95 .custom-select-trigger,
-  .theme-mirc button, .theme-mirc .custom-select-trigger {
-    border: none; /* Remove default border */
-    box-shadow: inset -1px -1px var(--win95-bevel-shadow-darker),
-                inset 1px 1px var(--win95-bevel-shadow-light),
-                inset -2px -2px var(--win95-bevel-shadow-dark),
-                inset 2px 2px var(--win95-bevel-shadow-lighter);
-    padding: calc(var(--spacing-xs) + 1px) calc(var(--spacing-sm) + 1px); /* Adjust padding for border */
-  }
-  .theme-win95 button:active, .theme-win95 .custom-select-trigger:active,
-  .theme-mirc button:active, .theme-mirc .custom-select-trigger:active {
-     /* Inverted bevel for pressed state */
-     box-shadow: inset 1px 1px var(--win95-bevel-shadow-darker),
-                 inset -1px -1px var(--win95-bevel-shadow-light),
-                 inset 2px 2px var(--win95-bevel-shadow-dark),
-                 inset -2px -2px var(--win95-bevel-shadow-lighter);
-     padding: calc(var(--spacing-xs) + 2px) var(--spacing-sm) var(--spacing-xs) calc(var(--spacing-sm) + 2px); /* Shift text slightly */
-  }
-  
-  /* Input field bevel */
-  .theme-win95 input[type="text"], .theme-win95 textarea, .theme-win95 .custom-select-options,
-  .theme-mirc input[type="text"], .theme-mirc textarea, .theme-mirc .custom-select-options {
+  /* Font */
+  --font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: Consolas, 'Courier New', monospace; /* More common monospace */
+  --font-size-base: 14px;
+  --font-size-sm: 0.875rem; /* 12px */
+  --font-size-md: 1rem;    /* 14px */
+  --font-size-lg: 1.125rem; /* 16px */
+  --font-size-xl: 1.25rem;  /* 18px */
+  --font-size-editor: var(--font-size-sm); /* Default editor size */
+  --font-size-terminal: var(--font-size-sm); /* Default terminal size */
+
+  /* Colors - Light Theme */
+  --color-bg-app: #f8f8f8;
+  --color-bg-sidebar: #ececec;
+  --color-bg-main: #ffffff;
+  --color-bg-editor: #ffffff; /* Monaco default light */
+  --color-bg-terminal: #ffffff; /* Terminal default light */
+  --color-bg-button: #e0e0e0;
+  --color-bg-button-hover: #d6d6d6;
+  --color-bg-button-active: #cccccc;
+  --color-bg-input: #ffffff;
+  --color-bg-dropdown: #ffffff;
+  --color-bg-selected: #d5e5f6; /* A light blue for selections */
+  --color-bg-hover: #ededed; /* General hover background */
+
+  --color-text-primary: #1f1f1f;
+  --color-text-secondary: #555555;
+  --color-text-tertiary: #888888; /* For less important info */
+  --color-text-terminal: #333333; /* Terminal default light */
+  --color-text-heading: #000000;
+  --color-text-button: #1f1f1f;
+  --color-text-link: #0066cc;
+  --color-text-link-hover: #004c99;
+  --color-text-placeholder: #aaaaaa;
+  --color-text-inverse: #ffffff; /* Text on dark backgrounds */
+  --color-text-accent: #007acc; /* Accent color, e.g., focus ring */
+  --color-text-error: #d9534f;
+
+  --color-border: #cccccc;
+  --color-border-accent: #aaaaaa;
+  --color-border-input: #b0b0b0;
+  --color-border-focus: #007acc; /* Use accent for focus */
+
+  /* Spacing */
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Borders & Shadows */
+  --border-radius-sm: 3px;
+  --border-radius-md: 5px;
+  --box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --box-shadow-md: 0 3px 6px rgba(0, 0, 0, 0.15);
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--color-border-input);
+  --button-bevel-shadow: none; /* For aesthetic themes */
+
+  /* Other UI Elements */
+  --scrollbar-thumb-bg: #c1c1c1;
+  --scrollbar-track-bg: #f1f1f1;
+
+  /* Specific Component Variables (Examples) */
+  --sidebar-width: 250px;
+  --terminal-height: 200px;
+
+  /* Theme Specific Overrides (Placeholders) */
+  --scanline-opacity: 0;
+  --crt-filter: none;
+  --noise-opacity: 0;
+  --win95-bevel-shadow-light: transparent;
+  --win95-bevel-shadow-lighter: transparent;
+  --win95-bevel-shadow-dark: transparent;
+  --win95-bevel-shadow-darker: transparent;
+}
+
+/* Dark Theme */
+.theme-dark {
+  /* (Keep dark theme variables as before) */
+  --font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: Consolas, 'Courier New', monospace;
+
+  --color-bg-app: #1e1e1e;
+  --color-bg-sidebar: #252526;
+  --color-bg-main: #1e1e1e;
+  --color-bg-editor: #1e1e1e;
+  --color-bg-terminal: #1e1e1e;
+  --color-bg-button: #3a3a3a;
+  --color-bg-button-hover: #4a4a4a;
+  --color-bg-button-active: #5a5a5a;
+  --color-bg-input: #3c3c3c;
+  --color-bg-dropdown: #3c3c3c;
+  --color-bg-selected: #094771;
+  --color-bg-hover: #2a2d2e;
+
+  --color-text-primary: #d4d4d4;
+  --color-text-secondary: #cccccc;
+  --color-text-tertiary: #a0a0a0;
+  --color-text-terminal: #cccccc;
+  --color-text-heading: #ffffff;
+  --color-text-button: #d4d4d4;
+  --color-text-link: #3794ff;
+  --color-text-link-hover: #60aaff;
+  --color-text-placeholder: #777777;
+  --color-text-inverse: #1f1f1f;
+  --color-text-accent: #007acc;
+  --color-text-error: #f48771;
+
+  --color-border: #3f3f46;
+  --color-border-accent: #505050;
+  --color-border-input: #5f5f5f;
+  --color-border-focus: #007acc;
+
+  --scrollbar-thumb-bg: #555;
+  --scrollbar-track-bg: #333;
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--color-border-input);
+  --button-bevel-shadow: none;
+}
+
+/* Windows 95 Theme - Enhanced */
+.theme-win95 {
+  --font-family-ui: Tahoma, 'MS Sans Serif', 'Microsoft Sans Serif', system-ui, sans-serif; /* Prioritize classic fonts */
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-base: 13px;
+  --font-size-editor: 12px;
+  --font-size-terminal: 12px;
+
+  --color-bg-app: #c0c0c0;
+  --color-bg-sidebar: #c0c0c0;
+  --color-bg-main: #ffffff;
+  --color-bg-editor: #ffffff;
+  --color-bg-terminal: #000080; /* Classic blue console */
+  --color-bg-button: #c0c0c0;
+  --color-bg-button-hover: #c0c0c0;
+  --color-bg-button-active: #b0b0b0; /* Slightly darker pressed */
+  --color-bg-input: #ffffff;
+  --color-bg-dropdown: #ffffff;
+  --color-bg-selected: #000080;
+  --color-bg-hover: #c0c0c0;
+
+  --color-text-primary: #000000;
+  --color-text-secondary: #000000;
+  --color-text-tertiary: #808080;
+  --color-text-terminal: #c0c0c0;
+  --color-text-heading: #000000;
+  --color-text-button: #000000;
+  --color-text-link: #0000ff;
+  --color-text-link-hover: #0000ff;
+  --color-text-placeholder: #808080;
+  --color-text-inverse: #ffffff; /* Text on selection bg */
+  --color-text-accent: #000080;
+  --color-text-error: #ff0000;
+
+  --color-border: #808080;       /* Inner bevel dark gray */
+  --color-border-accent: #ffffff; /* Outer bevel white */
+  --color-border-dark: #000000;   /* Inner bevel black */
+  --color-border-light: #dfdfdf; /* Outer bevel light gray */
+  --color-border-input: #808080;
+  --color-border-focus: #000000;
+
+  --scrollbar-thumb-bg: #c0c0c0;
+  --scrollbar-track-bg: #a0a0a0; /* Needs bevel styles */
+
+  --border-standard: 1px solid var(--color-border); /* Use specific borders below */
+  --border-radius-sm: 0; /* No rounded corners */
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+
+  /* Bevel for buttons etc. - Use direct styles instead */
+  --button-bevel-shadow: none; /* Will apply via direct CSS */
+
+  /* Specific Bevel Colors */
+  --win95-bevel-shadow-light: #ffffff;
+  --win95-bevel-shadow-lighter: #dfdfdf;
+  --win95-bevel-shadow-dark: #808080;
+  --win95-bevel-shadow-darker: #0a0a0a;
+}
+
+/* Pip-Boy Theme */
+.theme-pipboy {
+  /* Assumes 'Overseer' font is loaded or replace with monospace */
+  --font-family-ui: 'Overseer', Consolas, monospace;
+  --font-family-mono: 'Overseer', Consolas, monospace;
+  --font-size-base: 15px; /* Slightly larger, adjust as needed */
+  --font-size-editor: 14px;
+  --font-size-terminal: 14px;
+
+  /* Pip-Boy Green */
+  --pipboy-green: #15ff60;
+  --pipboy-green-dark: #10b445;
+  --pipboy-green-darker: #0a702a;
+  --pipboy-bg: #0a1a0f; /* Very dark green/black */
+  --pipboy-bg-lighter: #102a18;
+
+  --color-bg-app: var(--pipboy-bg);
+  --color-bg-sidebar: var(--pipboy-bg-lighter);
+  --color-bg-main: var(--pipboy-bg);
+  --color-bg-editor: var(--pipboy-bg);
+  --color-bg-terminal: var(--pipboy-bg);
+  --color-bg-button: transparent;
+  --color-bg-button-hover: var(--pipboy-green-darker);
+  --color-bg-button-active: var(--pipboy-green-dark);
+  --color-bg-input: var(--pipboy-bg-lighter);
+  --color-bg-dropdown: var(--pipboy-bg-lighter);
+  --color-bg-selected: var(--pipboy-green-dark);
+  --color-bg-hover: var(--pipboy-green-darker);
+
+  --color-text-primary: var(--pipboy-green);
+  --color-text-secondary: color-mix(in srgb, var(--pipboy-green) 70%, black);
+  --color-text-tertiary: color-mix(in srgb, var(--pipboy-green) 50%, black);
+  --color-text-terminal: var(--pipboy-green);
+  --color-text-heading: var(--pipboy-green);
+  --color-text-button: var(--pipboy-green);
+  --color-text-link: var(--pipboy-green);
+  --color-text-link-hover: color-mix(in srgb, var(--pipboy-green) 80%, white);
+  --color-text-placeholder: var(--color-text-tertiary);
+  --color-text-inverse: var(--pipboy-bg); /* Text on selection bg */
+  --color-text-accent: var(--pipboy-green);
+  --color-text-error: #ff5555; /* A contrasting red/orange */
+
+  --color-border: var(--pipboy-green-dark);
+  --color-border-accent: var(--pipboy-green);
+  --color-border-input: var(--pipboy-green-dark);
+  --color-border-focus: var(--pipboy-green);
+
+  --scrollbar-thumb-bg: var(--pipboy-green-dark);
+  --scrollbar-track-bg: var(--pipboy-bg-lighter);
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--color-border);
+  --border-radius-sm: 0;
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none;
+
+  /* Effects */
+  --scanline-opacity: 0.15; /* Adjust opacity */
+  --crt-filter: brightness(1.1) contrast(1.1); /* Basic CRT effect */
+}
+
+/* mIRC Inspired Theme (Refined) */
+.theme-mirc {
+  /* Classic Windows fonts */
+  --font-family-ui: 'MS Sans Serif', Tahoma, system-ui, sans-serif;
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-base: 13px;
+  --font-size-editor: 12px;
+  --font-size-terminal: 12px;
+
+  /* mIRC often used system colors, very similar to Win95 */
+  --color-bg-app: #c0c0c0;
+  --color-bg-sidebar: #c0c0c0; /* Channel list area */
+  --color-bg-main: #ffffff; /* Main chat/edit area */
+  --color-bg-editor: #ffffff;
+  --color-bg-terminal: #000000; /* Black usually for status/raw */
+  --color-bg-button: #c0c0c0;
+  --color-bg-button-hover: #c0c0c0;
+  --color-bg-button-active: #b0b0b0;
+  --color-bg-input: #ffffff; /* Input line */
+  --color-bg-dropdown: #ffffff;
+  --color-bg-selected: #000080;
+  --color-bg-hover: #c0c0c0;
+
+  --color-text-primary: #000000;
+  --color-text-secondary: #000080; /* Often blue for links/commands */
+  --color-text-tertiary: #808080;
+  --color-text-terminal: #00ff00; /* Green text on black */
+  --color-text-heading: #000000;
+  --color-text-button: #000000;
+  --color-text-link: #0000ff;
+  --color-text-link-hover: #ff0000; /* Often red hover */
+  --color-text-placeholder: #808080;
+  --color-text-inverse: #ffffff;
+  --color-text-accent: #000080;
+  --color-text-error: #ff0000;
+
+  --color-border: #808080;
+  --color-border-accent: #ffffff;
+  --color-border-input: #808080;
+  --color-border-focus: #000000;
+  --color-border-dark: #000000;
+  --color-border-light: #dfdfdf;
+
+  --scrollbar-thumb-bg: #c0c0c0;
+  --scrollbar-track-bg: #a0a0a0;
+
+  --border-standard: 1px solid var(--color-border);
+  --border-radius-sm: 0;
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none; /* Use direct styles */
+
+  --win95-bevel-shadow-light: #ffffff;
+  --win95-bevel-shadow-lighter: #dfdfdf;
+  --win95-bevel-shadow-dark: #808080;
+  --win95-bevel-shadow-darker: #0a0a0a;
+}
+
+
+/* QBasic Theme */
+.theme-qbasic {
+  --font-family-ui: 'Courier New', monospace;
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-base: 14px;
+  --font-size-editor: 13px;
+  --font-size-terminal: 13px;
+
+  --qbasic-blue: #0000AA;
+  --qbasic-white: #FFFFFF;
+  --qbasic-yellow: #FFFF55;
+  --qbasic-gray: #AAAAAA;
+  --qbasic-dark-gray: #555555;
+
+  --color-bg-app: var(--qbasic-blue);
+  --color-bg-sidebar: var(--qbasic-dark-gray);
+  --color-bg-main: var(--qbasic-blue);
+  --color-bg-editor: var(--qbasic-blue);
+  --color-bg-terminal: var(--qbasic-blue);
+  --color-bg-button: var(--qbasic-gray);
+  --color-bg-button-hover: #bbbbbb;
+  --color-bg-button-active: #cccccc;
+  --color-bg-input: var(--qbasic-dark-gray);
+  --color-bg-dropdown: var(--qbasic-gray);
+  --color-bg-selected: var(--qbasic-dark-gray);
+  --color-bg-hover: #bbbbbb;
+
+  --color-text-primary: var(--qbasic-yellow); /* Bright text */
+  --color-text-secondary: var(--qbasic-white);
+  --color-text-tertiary: var(--qbasic-gray);
+  --color-text-terminal: var(--qbasic-yellow);
+  --color-text-heading: var(--qbasic-white);
+  --color-text-button: #000000; /* Black text on gray button */
+  --color-text-link: var(--qbasic-yellow);
+  --color-text-link-hover: var(--qbasic-white);
+  --color-text-placeholder: var(--qbasic-gray);
+  --color-text-inverse: var(--qbasic-white); /* Text on selection */
+  --color-text-accent: var(--qbasic-yellow);
+  --color-text-error: #FF5555;
+
+  --color-border: var(--qbasic-gray);
+  --color-border-accent: var(--qbasic-white);
+  --color-border-input: var(--qbasic-gray);
+  --color-border-focus: var(--qbasic-yellow);
+
+  --scrollbar-thumb-bg: var(--qbasic-gray);
+  --scrollbar-track-bg: var(--qbasic-dark-gray);
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--color-border);
+  --border-radius-sm: 0;
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none;
+}
+
+/* Orange Monochrome Theme */
+.theme-orange {
+  --font-family-ui: 'Courier New', monospace;
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-base: 14px;
+  --font-size-editor: 13px;
+  --font-size-terminal: 13px;
+
+  --orange-bright: #FFA500; /* Bright Orange */
+  --orange-medium: #D98C00; /* Slightly darker orange for borders/accents */
+  --orange-dark: #201500; /* Very dark brown/black background */
+  --orange-darker: #100A00;
+
+  --color-bg-app: var(--orange-dark);
+  --color-bg-sidebar: var(--orange-darker);
+  --color-bg-main: var(--orange-dark);
+  --color-bg-editor: var(--orange-dark);
+  --color-bg-terminal: var(--orange-dark);
+  --color-bg-button: transparent;
+  --color-bg-button-hover: var(--orange-medium);
+  --color-bg-button-active: var(--orange-bright);
+  --color-bg-input: var(--orange-darker);
+  --color-bg-dropdown: var(--orange-darker);
+  --color-bg-selected: var(--orange-medium);
+  --color-bg-hover: var(--orange-medium);
+
+  --color-text-primary: var(--orange-bright);
+  --color-text-secondary: color-mix(in srgb, var(--orange-bright) 70%, black);
+  --color-text-tertiary: color-mix(in srgb, var(--orange-bright) 50%, black);
+  --color-text-terminal: var(--orange-bright);
+  --color-text-heading: var(--orange-bright);
+  --color-text-button: var(--orange-bright);
+  --color-text-link: var(--orange-bright);
+  --color-text-link-hover: color-mix(in srgb, var(--orange-bright) 80%, white);
+  --color-text-placeholder: var(--color-text-tertiary);
+  --color-text-inverse: var(--orange-dark); /* Text on selection bg */
+  --color-text-accent: var(--orange-bright);
+  --color-text-error: #FF5555;
+
+  --color-border: var(--orange-medium);
+  --color-border-accent: var(--orange-bright);
+  --color-border-input: var(--orange-medium);
+  --color-border-focus: var(--orange-bright);
+
+  --scrollbar-thumb-bg: var(--orange-medium);
+  --scrollbar-track-bg: var(--orange-darker);
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--color-border);
+  --border-radius-sm: 0;
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none;
+
+  --scanline-opacity: 0.08;
+  --crt-filter: brightness(1.05) contrast(1.05);
+}
+
+/* CGA Theme (Mode 4, Palette 1 inspired) */
+.theme-cga {
+  --font-family-ui: 'Courier New', monospace;
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-base: 14px;
+  --font-size-editor: 13px;
+  --font-size-terminal: 13px;
+
+  --cga-black: #000000;
+  --cga-cyan: #55FFFF;
+  --cga-magenta: #FF55FF;
+  --cga-white: #FFFFFF;
+
+  --color-bg-app: var(--cga-black);
+  --color-bg-sidebar: #111111;
+  --color-bg-main: var(--cga-black);
+  --color-bg-editor: var(--cga-black);
+  --color-bg-terminal: var(--cga-black);
+  --color-bg-button: #222222;
+  --color-bg-button-hover: #333333;
+  --color-bg-button-active: #444444;
+  --color-bg-input: #111111;
+  --color-bg-dropdown: #222222;
+  --color-bg-selected: var(--cga-cyan); /* Use a bright color for selection */
+  --color-bg-hover: #333333;
+
+  --color-text-primary: var(--cga-cyan); /* Cyan text */
+  --color-text-secondary: var(--cga-magenta); /* Use magenta for secondary? */
+  --color-text-tertiary: #AAAAAA; /* Gray for less important */
+  --color-text-terminal: var(--cga-cyan);
+  --color-text-heading: var(--cga-white);
+  --color-text-button: var(--cga-white);
+  --color-text-link: var(--cga-magenta);
+  --color-text-link-hover: var(--cga-white);
+  --color-text-placeholder: #555555;
+  --color-text-inverse: var(--cga-black); /* Text on selection */
+  --color-text-accent: var(--cga-cyan);
+  --color-text-error: var(--cga-magenta); /* Use magenta for errors */
+
+  --color-border: var(--cga-cyan);
+  --color-border-accent: var(--cga-white);
+  --color-border-input: #555555;
+  --color-border-focus: var(--cga-white);
+
+  --scrollbar-thumb-bg: #444444;
+  --scrollbar-track-bg: #111111;
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid #555555;
+  --border-radius-sm: 0;
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none;
+}
+
+
+/* Atari 2600 Theme */
+.theme-atari {
+  --font-family-ui: 'Courier New', monospace; /* Or ideally a blockier font */
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-base: 14px;
+  --font-size-editor: 13px;
+  --font-size-terminal: 13px;
+
+  --atari-black: #000000;
+  --atari-cyan: #3FFFCF; /* Representative bright color */
+  --atari-orange: #D87050;
+  --atari-dk-gray: #444444;
+  --atari-lt-gray: #AAAAAA;
+
+  --color-bg-app: var(--atari-black);
+  --color-bg-sidebar: #181818;
+  --color-bg-main: var(--atari-black);
+  --color-bg-editor: var(--atari-black);
+  --color-bg-terminal: var(--atari-black);
+  --color-bg-button: var(--atari-dk-gray);
+  --color-bg-button-hover: #555555;
+  --color-bg-button-active: #666666;
+  --color-bg-input: #222222;
+  --color-bg-dropdown: var(--atari-dk-gray);
+  --color-bg-selected: var(--atari-orange); /* Orange selection */
+  --color-bg-hover: #555555;
+
+  --color-text-primary: var(--atari-cyan); /* Bright cyan text */
+  --color-text-secondary: var(--atari-lt-gray);
+  --color-text-tertiary: var(--atari-dk-gray);
+  --color-text-terminal: var(--atari-cyan);
+  --color-text-heading: var(--atari-orange);
+  --color-text-button: var(--atari-lt-gray);
+  --color-text-link: var(--atari-orange);
+  --color-text-link-hover: var(--atari-cyan);
+  --color-text-placeholder: var(--atari-dk-gray);
+  --color-text-inverse: var(--atari-black); /* Text on selection */
+  --color-text-accent: var(--atari-cyan);
+  --color-text-error: var(--atari-orange); /* Use orange for errors */
+
+  --color-border: var(--atari-dk-gray);
+  --color-border-accent: var(--atari-cyan);
+  --color-border-input: var(--atari-lt-gray);
+  --color-border-focus: var(--atari-orange);
+
+  --scrollbar-thumb-bg: #555555;
+  --scrollbar-track-bg: #222222;
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--atari-lt-gray);
+  --border-radius-sm: 0;
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none;
+}
+
+/* SNES Theme */
+.theme-snes {
+  --font-family-ui: system-ui, sans-serif; /* Less blocky */
+  --font-family-mono: Consolas, 'Courier New', monospace;
+  --font-size-base: 14px;
+  --font-size-editor: 13px;
+  --font-size-terminal: 13px;
+
+  --snes-bg: #2F2F4F; /* Dark purplish gray */
+  --snes-sidebar-bg: #3C3C5C;
+  --snes-text: #E0E0FF; /* Light lavender text */
+  --snes-accent1: #8080FF; /* Purple */
+  --snes-accent2: #40C040; /* Green */
+  --snes-accent3: #E04040; /* Red */
+  --snes-accent4: #E0E040; /* Yellow */
+  --snes-border: #505070;
+  --snes-hover: #4A4A6A;
+
+  --color-bg-app: var(--snes-bg);
+  --color-bg-sidebar: var(--snes-sidebar-bg);
+  --color-bg-main: var(--snes-bg);
+  --color-bg-editor: var(--snes-bg);
+  --color-bg-terminal: var(--snes-bg);
+  --color-bg-button: var(--snes-sidebar-bg);
+  --color-bg-button-hover: var(--snes-hover);
+  --color-bg-button-active: var(--snes-accent1);
+  --color-bg-input: var(--snes-sidebar-bg);
+  --color-bg-dropdown: var(--snes-sidebar-bg);
+  --color-bg-selected: var(--snes-accent1);
+  --color-bg-hover: var(--snes-hover);
+
+  --color-text-primary: var(--snes-text);
+  --color-text-secondary: color-mix(in srgb, var(--snes-text) 80%, black);
+  --color-text-tertiary: color-mix(in srgb, var(--snes-text) 60%, black);
+  --color-text-terminal: var(--snes-text);
+  --color-text-heading: var(--snes-accent4); /* Yellow heading */
+  --color-text-button: var(--snes-text);
+  --color-text-link: var(--snes-accent2); /* Green link */
+  --color-text-link-hover: color-mix(in srgb, var(--snes-accent2) 80%, white);
+  --color-text-placeholder: var(--color-text-tertiary);
+  --color-text-inverse: var(--snes-bg); /* Text on selection */
+  --color-text-accent: var(--snes-accent1);
+  --color-text-error: var(--snes-accent3); /* Red error */
+
+  --color-border: var(--snes-border);
+  --color-border-accent: var(--snes-accent1);
+  --color-border-input: var(--snes-border);
+  --color-border-focus: var(--snes-accent2);
+
+  --scrollbar-thumb-bg: var(--snes-hover);
+  --scrollbar-track-bg: var(--snes-sidebar-bg);
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--snes-border);
+  --border-radius-sm: 3px; /* Slightly rounded */
+  --border-radius-md: 5px;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none;
+}
+
+
+/* B&W TV Theme */
+.theme-bw_tv {
+  --font-family-ui: 'Courier New', monospace;
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-base: 14px;
+  --font-size-editor: 13px;
+  --font-size-terminal: 13px;
+
+  --bw-black: #000000;
+  --bw-dark-gray: #333333;
+  --bw-gray: #888888;
+  --bw-light-gray: #cccccc;
+  --bw-white: #ffffff;
+
+  --color-bg-app: var(--bw-black);
+  --color-bg-sidebar: var(--bw-dark-gray);
+  --color-bg-main: var(--bw-black);
+  --color-bg-editor: var(--bw-black);
+  --color-bg-terminal: var(--bw-black);
+  --color-bg-button: var(--bw-gray);
+  --color-bg-button-hover: var(--bw-light-gray);
+  --color-bg-button-active: var(--bw-white);
+  --color-bg-input: var(--bw-dark-gray);
+  --color-bg-dropdown: var(--bw-gray);
+  --color-bg-selected: var(--bw-light-gray);
+  --color-bg-hover: var(--bw-gray);
+
+  --color-text-primary: var(--bw-light-gray);
+  --color-text-secondary: var(--bw-gray);
+  --color-text-tertiary: var(--bw-dark-gray);
+  --color-text-terminal: var(--bw-light-gray);
+  --color-text-heading: var(--bw-white);
+  --color-text-button: var(--bw-black); /* Black text on gray button */
+  --color-text-link: var(--bw-white);
+  --color-text-link-hover: var(--bw-light-gray);
+  --color-text-placeholder: var(--bw-gray);
+  --color-text-inverse: var(--bw-black); /* Text on selection */
+  --color-text-accent: var(--bw-white);
+  --color-text-error: var(--bw-white); /* White for errors */
+
+  --color-border: var(--bw-gray);
+  --color-border-accent: var(--bw-light-gray);
+  --color-border-input: var(--bw-gray);
+  --color-border-focus: var(--bw-white);
+
+  --scrollbar-thumb-bg: var(--bw-gray);
+  --scrollbar-track-bg: var(--bw-dark-gray);
+
+  --border-standard: 1px solid var(--color-border);
+  --border-accent: 1px solid var(--color-border-accent);
+  --border-button: 1px solid var(--color-border);
+  --border-radius-sm: 0;
+  --border-radius-md: 0;
+  --box-shadow-sm: none;
+  --box-shadow-md: none;
+  --button-bevel-shadow: none;
+
+  --scanline-opacity: 0.1;
+  --noise-opacity: 0.05; /* Add noise */
+  --crt-filter: grayscale(100%) brightness(1.1) contrast(1.2);
+}
+
+
+/* --- Basic Reset & Global Styles --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-app);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Apply optional CRT Filter globally */
+#root {
+  position: relative; /* Needed for pseudo-elements */
+  filter: var(--crt-filter);
+  isolation: isolate; /* Create new stacking context for z-index */
+}
+
+/* Optional Scanline Overlay */
+#root.theme-pipboy::after,
+#root.theme-orange::after,
+#root.theme-bw_tv::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px; /* Adjust thickness */
+  pointer-events: none;
+  z-index: 1000;
+  opacity: var(--scanline-opacity);
+}
+
+/* Optional Noise Overlay for B&W TV */
+@keyframes noiseAnimation {
+  0% { transform: translate(0,0); }
+  10% { transform: translate(-5%,-5%); }
+  20% { transform: translate(-10%,5%); }
+  30% { transform: translate(5%,-10%); }
+  40% { transform: translate(-5%,15%); }
+  50% { transform: translate(-10%,-5%); }
+  60% { transform: translate(15%,0); }
+  70% { transform: translate(0,10%); }
+  80% { transform: translate(-15%,0); }
+  90% { transform: translate(10%,5%); }
+  100% { transform: translate(5%,0); }
+}
+
+#root.theme-bw_tv::before {
+  content: "";
+  position: absolute;
+  top: -10%; left: -10%; /* Cover more area for animation */
+  width: 120%;
+  height: 120%;
+  /* Generate noise texture: https://css-tricks.com/snippets/css/cross-browser-noise-texture/ */
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOCIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjxmZUNvbG9yTWF0cml4IHR5cGU9Im1hdHJpeCIgdmFsdWVzPSIwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAtMC4xIDAuMSIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWx0ZXI9InVybCgjbm9pc2UpIiBvcGFjaXR5PSIwLjUiLz48L3N2Zz4=");
+  pointer-events: none;
+  z-index: 1001; /* Above scanlines */
+  opacity: var(--noise-opacity);
+  animation: noiseAnimation .2s infinite;
+}
+
+
+/* Basic Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-bg);
+  border-radius: var(--border-radius-sm); /* Use theme radius */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black);
+}
+
+/* --- Theme Specific Overrides for Components --- */
+
+/* Win95 / mIRC Bevels */
+.theme-win95 button, .theme-win95 .custom-select-trigger,
+.theme-mirc button, .theme-mirc .custom-select-trigger {
+  border: none; /* Remove default border */
+  box-shadow: inset -1px -1px var(--win95-bevel-shadow-darker, transparent),
+              inset 1px 1px var(--win95-bevel-shadow-light, transparent),
+              inset -2px -2px var(--win95-bevel-shadow-dark, transparent),
+              inset 2px 2px var(--win95-bevel-shadow-lighter, transparent);
+  padding: calc(var(--spacing-xs) + 1px) calc(var(--spacing-sm) + 1px); /* Adjust padding for border */
+}
+.theme-win95 button:active, .theme-win95 .custom-select-trigger:active,
+.theme-mirc button:active, .theme-mirc .custom-select-trigger:active {
+   /* Inverted bevel for pressed state */
+   box-shadow: inset 1px 1px var(--win95-bevel-shadow-darker, transparent),
+               inset -1px -1px var(--win95-bevel-shadow-light, transparent),
+               inset 2px 2px var(--win95-bevel-shadow-dark, transparent),
+               inset -2px -2px var(--win95-bevel-shadow-lighter, transparent);
+   padding: calc(var(--spacing-xs) + 2px) var(--spacing-sm) var(--spacing-xs) calc(var(--spacing-sm) + 2px); /* Shift text slightly */
+}
+
+/* Input field bevel */
+.theme-win95 input[type="text"], .theme-win95 textarea, .theme-win95 .custom-select-options,
+.theme-mirc input[type="text"], .theme-mirc textarea, .theme-mirc .custom-select-options {
+  border: none;
+   box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent), /* Inset dark */
+               inset -1px -1px var(--win95-bevel-shadow-light, transparent), /* Inset light */
+               1px 1px 0 1px var(--win95-bevel-shadow-darker, transparent); /* Outer bottom/right black border */
+   border-radius: 0;
+}
+.theme-win95 .custom-select-options,
+.theme-mirc .custom-select-options {
+     bottom: calc(100% + 1px); /* Adjust position slightly for bevel */
+     box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent),
+                 inset -1px -1px var(--win95-bevel-shadow-light, transparent),
+                 1px 1px 0 1px var(--win95-bevel-shadow-darker, transparent), /* Bottom/right */
+                 -1px -1px 0 1px var(--win95-bevel-shadow-lighter, transparent); /* Top/left */
+}
+
+
+/* Win95/mIRC Scrollbars need more specific styling for bevels */
+.theme-win95 ::-webkit-scrollbar-track,
+.theme-mirc ::-webkit-scrollbar-track {
+   background: #a0a0a0; /* Pattern or simple color */
+   border: none;
+}
+.theme-win95 ::-webkit-scrollbar-thumb,
+.theme-mirc ::-webkit-scrollbar-thumb {
+    background-color: var(--color-bg-button);
+    box-shadow: inset -1px -1px var(--win95-bevel-shadow-darker, transparent),
+              inset 1px 1px var(--win95-bevel-shadow-light, transparent),
+              inset -2px -2px var(--win95-bevel-shadow-dark, transparent),
+              inset 2px 2px var(--win95-bevel-shadow-lighter, transparent);
     border: none;
-     box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark), /* Inset dark */
-                 inset -1px -1px var(--win95-bevel-shadow-light), /* Inset light */
-                 1px 1px 0 1px var(--win95-bevel-shadow-darker); /* Outer bottom/right black border */
-     border-radius: 0;
-  }
-  .theme-win95 .custom-select-options,
-  .theme-mirc .custom-select-options {
-       bottom: calc(100% + 1px); /* Adjust position slightly for bevel */
-       box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark),
-                   inset -1px -1px var(--win95-bevel-shadow-light),
-                   1px 1px 0 1px var(--win95-bevel-shadow-darker), /* Bottom/right */
-                   -1px -1px 0 1px var(--win95-bevel-shadow-lighter); /* Top/left */
-  }
-  
-  
-  /* Win95/mIRC Scrollbars need more specific styling for bevels */
-  .theme-win95 ::-webkit-scrollbar-track,
-  .theme-mirc ::-webkit-scrollbar-track {
-     background: #a0a0a0; /* Pattern or simple color */
-     border: none;
-  }
-  .theme-win95 ::-webkit-scrollbar-thumb,
-  .theme-mirc ::-webkit-scrollbar-thumb {
-      background-color: var(--color-bg-button);
-      box-shadow: inset -1px -1px var(--win95-bevel-shadow-darker),
-                inset 1px 1px var(--win95-bevel-shadow-light),
-                inset -2px -2px var(--win95-bevel-shadow-dark),
-                inset 2px 2px var(--win95-bevel-shadow-lighter);
-      border: none;
-      border-radius: 0;
-  }
-  
-  /* Pip-Boy Specific Styles */
-  .theme-pipboy button, .theme-pipboy .custom-select-trigger {
+    border-radius: 0;
+}
+
+/* Pip-Boy Specific Styles */
+.theme-pipboy button, .theme-pipboy .custom-select-trigger {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  transition: background-color 0.1s ease-in-out;
+}
+.theme-pipboy button:hover, .theme-pipboy .custom-select-trigger:hover {
+  background-color: var(--color-bg-button-hover);
+}
+.theme-pipboy button:active, .theme-pipboy .custom-select-trigger:active {
+  background-color: var(--color-bg-button-active);
+}
+.theme-pipboy .custom-select-options {
     border: 1px solid var(--color-border);
-    background: transparent;
-    transition: background-color 0.1s ease-in-out;
-  }
-  .theme-pipboy button:hover, .theme-pipboy .custom-select-trigger:hover {
+    background-color: var(--pipboy-bg-lighter); /* Slightly different bg */
+}
+.theme-pipboy input, .theme-pipboy textarea {
+   border: 1px solid var(--color-border);
+   background-color: var(--color-bg-input);
+   color: var(--color-text-primary);
+}
+.theme-pipboy ::-webkit-scrollbar-thumb {
+    border: 1px solid var(--pipboy-green-darker);
+}
+
+/* Default Button / Input / Select styles for other themes */
+button, .custom-select-trigger {
+    background-color: var(--color-bg-button);
+    border: var(--border-button);
+    color: var(--color-text-button);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    font-size: inherit;
+}
+button:hover, .custom-select-trigger:hover {
     background-color: var(--color-bg-button-hover);
-  }
-  .theme-pipboy button:active, .theme-pipboy .custom-select-trigger:active {
+}
+button:active, .custom-select-trigger:active {
     background-color: var(--color-bg-button-active);
-  }
-  .theme-pipboy .custom-select-options {
-      border: 1px solid var(--color-border);
-      background-color: var(--pipboy-bg-lighter); /* Slightly different bg */
-  }
-  .theme-pipboy input, .theme-pipboy textarea {
-     border: 1px solid var(--color-border);
-     background-color: var(--color-bg-input);
-     color: var(--color-text-primary);
-  }
-  .theme-pipboy ::-webkit-scrollbar-thumb {
-      border: 1px solid var(--pipboy-green-darker);
-  }
+}
+input[type="text"], textarea {
+    background-color: var(--color-bg-input);
+    border: 1px solid var(--color-border-input);
+    color: var(--color-text-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+}
+input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: 0 0 0 1px var(--color-border-focus);
+}
+.custom-select-options {
+    background-color: var(--color-bg-dropdown);
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--box-shadow-sm);
+}
+.custom-select-option:hover {
+    background-color: var(--color-bg-hover);
+}
+.custom-select-option.selected {
+    background-color: var(--color-bg-selected);
+    color: var(--color-text-inverse);
+}
+
+/* --- END FILE: src/renderer/index.css --- */

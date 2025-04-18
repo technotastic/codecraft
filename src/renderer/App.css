@@ -123,4 +123,133 @@
   /* Hide any accidental placeholder <p> tags in terminal panel */
   .terminal-panel p {
      display: none;
-  }
+  }/* --- START FILE: src/renderer/App.css --- */
+/* src/renderer/App.css */
+
+.app-container {
+  display: flex; /* Use flexbox for Sidebar + Main Panel layout */
+  height: 100%;  /* Crucial: Take full viewport height */
+  width: 100%;
+  background-color: var(--color-bg-app);
+  overflow: hidden; /* Prevent body scrollbars */
+}
+
+.sidebar {
+  width: var(--sidebar-width); /* Use variable */
+  flex-shrink: 0; /* Prevent sidebar from shrinking */
+  background-color: var(--color-bg-sidebar);
+  border-right: var(--border-standard);
+  padding: var(--spacing-md);
+  height: 100%; /* Take full height of app-container */
+  color: var(--color-text-primary);
+  display: flex; /* Use flexbox internally */
+  flex-direction: column; /* Stack elements vertically */
+  overflow: hidden; /* Hide overflow, internal elements scroll */
+}
+
+.sidebar h2 {
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-heading);
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Container for the file tree (or its placeholder) */
+.sidebar .file-tree-placeholder {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    flex-grow: 1; /* Allow placeholder to take remaining vertical space */
+    overflow-y: auto; /* Allow scrolling WITHIN this area if content grows */
+    min-height: 50px; /* Give it some minimum space */
+    margin-bottom: var(--spacing-md); /* Space below it */
+    /* Add padding if needed */
+    /* padding-bottom: var(--spacing-md); */
+}
+
+
+/* Theme switcher container - Positioned at the bottom */
+.sidebar .theme-switcher {
+  margin-top: auto; /* Pushes it to the bottom */
+  padding-top: var(--spacing-md); /* Space above it */
+  border-top: var(--border-standard); /* Separator line */
+  flex-shrink: 0; /* Prevent shrinking */
+  position: relative; /* Needed for z-index context */
+  z-index: 5; /* Lower than dropdown options */
+}
+
+/* Label for the theme switcher */
+.sidebar .theme-switcher label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Main panel containing Allotment */
+.main-panel {
+  flex-grow: 1; /* Take remaining width */
+  display: flex; /* Itself needs to be a flex container for Allotment */
+  flex-direction: column; /* Stack editor and terminal vertically (conceptually) */
+  height: 100%; /* Crucial: Take full height of app-container */
+  overflow: hidden; /* Prevent this panel itself from scrolling */
+  background-color: var(--color-bg-main); /* Background for the area Allotment fills */
+}
+
+/* Styling for the direct children INSIDE Allotment Panes */
+/* Editor panel styles */
+.editor-panel {
+  /* Removed flex-grow: 1; - Allotment controls height */
+  background-color: var(--color-bg-editor); /* Use theme variable */
+  overflow: hidden; /* Monaco Editor manages its own scrolling */
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+  position: relative;
+  /* *** CRUCIAL FOR ALLOTMENT CHILD *** */
+  height: 100%;
+  width: 100%;
+  display: flex; /* Ensure Monaco container can fill space */
+}
+
+/* Styles for the container div returned by TerminalPanel */
+.terminal-panel-container {
+   /* Removed fixed height var - Allotment controls height */
+   flex-shrink: 0; /* Keep this, although Allotment manages shrinking */
+   background-color: var(--color-bg-terminal);
+   color: var(--color-text-terminal);
+   border-top: var(--border-accent); /* Separator line handled by Allotment sash */
+   overflow: hidden; /* Xterm manages its own scrolling */
+   font-family: var(--font-family-mono);
+   font-size: var(--font-size-terminal);
+   position: relative;
+   /* *** CRUCIAL FOR ALLOTMENT CHILD *** */
+   height: 100%;
+   width: 100%;
+   display: flex; /* Helps child elements fill the container */
+   padding: var(--spacing-xs); /* Add padding INSIDE the terminal container */
+}
+
+
+/* Target the direct child wrapper of the terminal (xterm needs this) */
+.terminal-panel-container > div {
+     width: 100%;
+     height: 100%;
+}
+
+/* Target the main xterm element itself for potential overrides */
+.terminal-panel-container .terminal.xterm {
+    height: 100% !important; /* Ensure it fills the container height */
+    width: 100% !important; /* Ensure it fills the container width */
+    /* Padding moved to parent container */
+}
+
+/* Ensure the internal xterm screen fills the terminal element */
+ .terminal-panel-container .xterm-screen {
+     width: 100% !important;
+     height: 100% !important;
+ }
+
+/* Hide any accidental placeholder <p> tags in terminal panel */
+.terminal-panel-container p {
+   display: none;
+}
+/* --- END FILE: src/renderer/App.css --- */

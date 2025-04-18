@@ -1,5 +1,3 @@
-Okay, here is a prompt you can use to continue this session later or with another AI instance. It summarizes the current state and outlines the next steps based on our conversation and your V1 goals.
-
 ---
 
 **Continuation Prompt for CodeCraft IDE Development**
@@ -7,51 +5,73 @@ Okay, here is a prompt you can use to continue this session later or with anothe
 **Project:** CodeCraft IDE - A desktop IDE using Electron, React, TypeScript.
 
 **Current Status:**
-We have successfully set up the development environment using a manual Vite configuration (no Electron Forge template in use currently) with a multi-terminal workflow:
-1.  Terminal 1: `npm run build:main -- --watch` (Compiles `src/main` and `src/preload` via `tsc --project tsconfig.node.json`)
-2.  Terminal 2: `npm run dev` (Runs Vite dev server via `vite --config vite.config.mjs`)
-3.  Terminal 3: `npx electron .` (Launches the Electron app)
+We have successfully set up the development environment using a manual Vite configuration with a multi-terminal workflow:
+1.  Terminal 1: `npm run dev:main` (Compiles `src/main` and `src/preload` via `tsc --watch`)
+2.  Terminal 2: `npm run dev:vite` (Runs Vite dev server via `vite`)
+3.  Terminal 3: `npm start` (Launches the Electron app via `electron .`)
 
 The application structure includes:
-*   **Main Process (`src/main/index.ts`):** Handles window creation, IPC, and `node-pty` management. Compiles to CommonJS. Hardware acceleration is disabled (for WSL compatibility).
-*   **Preload Script (`src/preload/index.ts`):** Exposes an `electronAPI` via `contextBridge` for IPC. Compiles to CommonJS.
-*   **Renderer Process (`src/renderer`):** Uses React and TypeScript. Bundled by Vite.
-    *   **Layout:** A basic 3-panel layout (`Sidebar`, `EditorPanel`, `TerminalPanel`) managed by `App.tsx` and styled using CSS variables (`index.css`, `App.css`).
-    *   **Editor Panel:** Currently renders a functional Monaco Editor instance using `react-monaco-editor`. Basic default content is shown.
-    *   **Terminal Panel:** Renders a functional Xterm.js terminal using manual `Terminal` instantiation (not the `react-xtermjs` component wrapper due to type issues). Basic styling and `FitAddon` are implemented.
-    *   **IPC:** Basic `ping` works. Crucially, the IPC bridge for the terminal (`pty-create`, `pty-input`, `pty-resize`, `pty-data`, `pty-exit`) is **implemented and functional**. Users can type commands into the frontend terminal, have them executed by `node-pty` in the main process, and see the output streamed back. Resizing via `FitAddon` and IPC seems to be working, although potentially needs refinement.
+*   **Main Process (`src/main/index.ts`):** Handles window creation, IPC (Ping, PTY management, Dialog), application menu creation (File, Edit, View with Theme submenu), and `node-pty` management. Compiles to CommonJS. Hardware acceleration disabled.
+*   **Preload Script (`src/preload/index.ts`):** Exposes an `electronAPI` via `contextBridge` for IPC (Ping, PTY, Dialog, Menu Theme/Open Folder actions). Compiles to CommonJS.
+*   **Renderer Process (`src/renderer`):** Uses React, TypeScript, and Vite.
+    *   **Layout:** Uses `Allotment` for a resizable vertical split between the Editor and Terminal panels, inside a main content area next to a fixed `Sidebar`.
+    *   **Theming:**
+        *   Uses React Context (`ThemeContext`) to manage the current theme name (`light`, `dark`, `win95`, `pipboy`, `mirc`).
+        *   Applies theme classes (`.theme-*`) to the root and body elements.
+        *   `index.css` defines extensive CSS variables and specific style overrides for each theme.
+        *   Includes a custom React dropdown component (`CustomSelect.tsx`) for theme switching in the `Sidebar`.
+        *   Top application menu (`View > Theme`) reflects and can set the current theme.
+    *   **Editor Panel:** Renders a functional Monaco Editor instance using `react-monaco-editor`. Basic custom Monaco themes are defined and applied based on the selected app theme (e.g., `pipboy-monaco-theme`).
+    *   **Terminal Panel:** Renders a functional Xterm.js terminal using manual `Terminal` instantiation and `FitAddon`. The terminal's colors are updated based on the selected app theme. IPC bridge (`pty-create`, `pty-input`, `pty-resize`, `pty-data`, `pty-exit`) is functional. Resizing via `FitAddon` and IPC is handled.
+    *   **Sidebar:** Contains a placeholder for the file tree and the custom theme switcher dropdown.
 
-**Key Dependencies Installed:** `electron`, `react`, `typescript`, `vite`, `monaco-editor`, `react-monaco-editor`, `xterm`, `xterm-addon-fit`, `node-pty`.
+**Key Dependencies Installed:** `electron`, `react`, `typescript`, `vite`, `monaco-editor`, `react-monaco-editor`, `xterm`, `xterm-addon-fit`, `node-pty`, `allotment`, `electron-squirrel-startup`.
 
-**V1 Goals Recap:** Monaco Editor, File Tree/Management, Integrated Terminal (xterm+node-pty), Theming (VS Code compatible).
+**V1 Goals Recap (Original + New):**
+*   Functional Monaco Editor (Done - basic)
+*   Integrated Terminal (xterm+node-pty) (Done - basic)
+*   File Tree/Management (Not started)
+*   Theming (Foundation done: CSS Vars, aesthetic themes, VS Code compatible base needed)
+*   Font Size Control (To be implemented)
+*   Movable/Resizable Panels (Partially done - vertical split)
 
 **Next Steps to Implement:**
 
 1.  **File Management (Core Functionality):**
-    *   **Sidebar UI:** Replace the "Placeholder for file tree" in `Sidebar.tsx` with a basic file/folder listing component.
-    *   **Open Folder:** Add a mechanism (e.g., button, menu item via main process) to select a folder. Use IPC to send the selected path to the main process.
-    *   **Read Directory:** Implement an IPC handler in `main/index.ts` (e.g., `read-directory`) that uses Node.js `fs` module to read the contents of the selected folder path. Send the file/folder list back to the renderer.
-    *   **Display Tree:** Populate the Sidebar component with the received file/folder list. Make it expandable/collapsible.
-    *   **Read File:** Add an IPC handler (`read-file`) in `main/index.ts` to read the content of a selected file path.
-    *   **Load in Editor:** When a file is clicked in the Sidebar, trigger the `read-file` IPC call. Receive the content in the renderer and update the Monaco Editor's value (`setCode(...)` in `EditorPanel.tsx`). Detect file type and set Monaco's language accordingly.
-    *   **Save File:** Add an IPC handler (`save-file`) in `main/index.ts`. Add a save mechanism (e.g., Ctrl+S listener, button) in the renderer that sends the current editor content and file path via IPC to be saved using `fs`.
-    *   **(Optional V1+)** Implement tabs for multiple open files in `EditorPanel`.
+    *   **Sidebar UI:** Replace placeholder with a file/folder listing component.
+    *   **Open Folder:** Wire up the "File > Open Folder..." menu item (and/or add a button) to trigger `dialog:openDirectory` IPC, store the selected path in the renderer state/context.
+    *   **Read Directory:** Implement IPC handler (`fs:read-directory`) in main using Node `fs` to read contents of the selected path. Send file/folder list back.
+    *   **Display Tree:** Populate Sidebar component with the list, make it expandable/collapsible.
+    *   **Read File:** IPC handler (`fs:read-file`) in main to read file content.
+    *   **Load in Editor:** On file click, trigger `fs:read-file` IPC, update Monaco Editor value and language mode.
+    *   **Save File:** IPC handler (`fs:save-file`) in main. Add save mechanism (Ctrl+S, menu) in renderer to send content/path.
+    *   **(Optional)** Tabs for multiple open files.
 
-2.  **Theming System:**
-    *   Implement a simple theme switcher (e.g., a button or dropdown) in the UI.
-    *   Modify `index.css` to include variable definitions for a dark theme under a specific class (e.g., `.theme-dark`).
-    *   Use React state to toggle the theme class on the root HTML element or a top-level container.
-    *   **(Later)** Investigate loading theme colors from VS Code `.json` theme files via the main process.
+2.  **Theming System (Phase 2 - VS Code Integration):**
+    *   IPC handlers for opening/reading VS Code theme `.json` files.
+    *   Main process parser to extract colors (`workbench.colorCustomizations`, `tokenColors`).
+    *   Map VS Code keys to our CSS variables & Monaco theme keys.
+    *   Dynamically update CSS variables and apply `monaco.editor.defineTheme`.
 
-3.  **Terminal Refinements:**
-    *   Improve resize robustness if needed.
-    *   Handle the `pty-exit` event more visually (e.g., display message prominently, disable input).
-    *   Add a "clear terminal" button/command (send IPC message, main process sends control code like `\x1bc` or `\x0c` to pty).
+3.  **Theming System (Phase 3 - Refinements):**
+    *   Refine aesthetic theme definitions (CSS and Monaco) for better accuracy/completeness.
+    *   Handle font loading robustly.
 
-4.  **Editor Enhancements:**
+4.  **Font Size Control:**
+    *   Re-implement a robust font size control mechanism (e.g., using context, updating CSS variables, ensuring editor/terminal resize correctly).
+
+5.  **Layout Enhancements:**
+    *   Consider adding horizontal splitting (e.g., Sidebar vs Main Content Area) using `Allotment`.
+    *   Explore more complex layouts if needed (e.g., multiple editor groups like VS Code, potentially using React-Mosaic).
+
+6.  **Terminal Refinements:**
+    *   Improve visual handling of the `pty-exit` event.
+    *   Add a "clear terminal" command/button.
+
+7.  **Editor Enhancements:**
     *   Configure more Monaco options (minimap, word wrap, etc.).
     *   Indicate unsaved changes.
 
-**Question:** Which of these next steps (primarily focusing on File Management or Theming) should we work on first?
+**Question:** Which of these next steps should we focus on now? (File Management is strongly recommended as the next core feature).
 
 ---

@@ -21,10 +21,16 @@ export interface ElectronAPI {
   // Dialog (Filesystem access via Main)
   dialog_openDirectory: () => Promise<string | null>; // Returns selected path or null
 
-  // --- NEW File System API ---
+  // File System API
   fs_readDirectory: (folderPath: string) => Promise<ReadDirectoryResponse>; // Reads directory contents
   fs_readFile: (filePath: string) => Promise<ReadFileResponse>; // Reads file content
   fs_saveFile: (filePath: string, content: string) => Promise<SaveFileResponse>; // Saves file content
+
+  // *** NEW: App/Window Control API ***
+  app_quit: () => Promise<void>;
+  window_toggleFullscreen: () => Promise<void>;
+  window_toggleDevTools: () => Promise<void>;
+  // *** END NEW API ***
 }
 
 // --- Implementation of the API ---
@@ -40,6 +46,7 @@ const api: ElectronAPI = {
   term_onData: (callback) => {
     const subscription = (_event: IpcRendererEvent, data: string) => callback(data);
     ipcRenderer.on('pty-data', subscription);
+    // Return a function to unsubscribe
     return () => {
       ipcRenderer.removeListener('pty-data', subscription);
     };
@@ -47,6 +54,7 @@ const api: ElectronAPI = {
   term_onExit: (callback) => {
      const subscription = (_event: IpcRendererEvent, code?: number) => callback(code);
      ipcRenderer.on('pty-exit', subscription);
+     // Return a function to unsubscribe
      return () => {
        ipcRenderer.removeListener('pty-exit', subscription);
      };
@@ -54,6 +62,7 @@ const api: ElectronAPI = {
   term_onError: (callback) => {
     const subscription = (_event: IpcRendererEvent, errorMessage: string) => callback(errorMessage);
     ipcRenderer.on('pty-error', subscription);
+    // Return a function to unsubscribe
     return () => {
       ipcRenderer.removeListener('pty-error', subscription);
     };
@@ -62,16 +71,22 @@ const api: ElectronAPI = {
   // Dialog methods
   dialog_openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
 
-  // --- NEW File System Methods ---
+  // File System Methods
   fs_readDirectory: (folderPath) => ipcRenderer.invoke('fs:readDirectory', folderPath),
   fs_readFile: (filePath) => ipcRenderer.invoke('fs:readFile', filePath),
   fs_saveFile: (filePath, content) => ipcRenderer.invoke('fs:saveFile', filePath, content),
+
+  // *** NEW: App/Window Control Methods ***
+  app_quit: () => ipcRenderer.invoke('app:quit'),
+  window_toggleFullscreen: () => ipcRenderer.invoke('window:toggle-fullscreen'),
+  window_toggleDevTools: () => ipcRenderer.invoke('window:toggle-devtools'),
+  // *** END NEW Methods ***
 };
 
 // --- Expose the API to the Renderer process ---
 try {
   contextBridge.exposeInMainWorld('electronAPI', api);
-  console.log('Preload script exposed electronAPI successfully (including fs methods).');
+  console.log('Preload script exposed electronAPI successfully (including app/window controls).');
 } catch (error) {
   console.error('Error exposing context bridge in preload script:', error);
 }

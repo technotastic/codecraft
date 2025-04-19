@@ -8,7 +8,7 @@ import FileTreeNode from './FileTreeNode';
 import type { DirectoryEntry } from '../../shared.types';
 import { FaFolderOpen, FaLevelUpAlt } from 'react-icons/fa';
 
-// Theme options (keep as before)
+// Theme options
 const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' },
   { value: 'win95', label: 'Windows 95' }, { value: 'pipboy', label: 'Pip-Boy' },
@@ -21,7 +21,7 @@ const themeOptions: { value: ThemeName; label: string }[] = [
 
 const Sidebar: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  // *** Use the new context function ***
+  // Use the new context function
   const { openOrFocusFile } = useEditor(); // Get openOrFocusFile from context
   const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
   const [rootDirectoryEntries, setRootDirectoryEntries] = useState<DirectoryEntry[]>([]);
@@ -47,7 +47,7 @@ const Sidebar: React.FC = () => {
     }
   };
 
-  // Effect to read root directory (keep as before)
+  // Effect to read root directory
    useEffect(() => {
     if (currentFolderPath) {
       console.log(`Reading ROOT directory: ${currentFolderPath}`);
@@ -99,7 +99,7 @@ const Sidebar: React.FC = () => {
     }
   };
 
-   // *** UPDATED: Use openOrFocusFile for files ***
+   // UPDATED: Use openOrFocusFile for files
    const handleEntryClick = useCallback((entry: DirectoryEntry) => {
     if (entry.isDirectory) {
       // Toggle expansion for directories
@@ -119,20 +119,23 @@ const Sidebar: React.FC = () => {
       {/* Header and Open Folder Button */}
       <div className="sidebar-header">
         <h2>Files</h2>
+        {/* MODIFIED BUTTON: Icon only with title */}
         <button
           onClick={handleOpenFolder}
-          title="Open Folder..."
+          title="Open Folder..." // Tooltip
           aria-label="Open Folder"
-          className="open-folder-button"
+          // Use the generic icon-button class for styling
+          className="open-folder-button icon-button"
         >
           <FaFolderOpen />
-          <span style={{ marginLeft: 'var(--spacing-xs)' }}>Open...</span>
+          {/* Removed the <span>Open...</span> text */}
         </button>
       </div>
 
       {/* Navigation Controls */}
       {currentFolderPath && (
         <div className="navigation-controls">
+           {/* Up button remains the same */}
            <button
              onClick={handleGoUp}
              // Disable if parent is the same as current (e.g., at root '/')
@@ -151,33 +154,34 @@ const Sidebar: React.FC = () => {
 
       {/* File Tree Area */}
       <div className="file-tree">
-        {isLoading && <p>Loading...</p>} {/* Simplified loading text */}
-        {error && <p className="error-message">Error: {error}</p>}
-        {!isLoading && !error && rootDirectoryEntries.length === 0 && !currentFolderPath && (
-           <p className="placeholder-message">Click the <FaFolderOpen style={{ verticalAlign: 'middle', margin: '0 2px'}} /> <span style={{ verticalAlign: 'middle' }}>Open...</span> button to browse files.</p>
-        )}
-         {/* Removed the specific "Folder is empty" message from here, FileTreeNode handles it */}
-        <ul>
-          {rootDirectoryEntries.map((entry) => (
-            <FileTreeNode
-              key={entry.path}
-              entry={entry}
-              isExpanded={!!expandedFolders[entry.path]}
-              allExpandedFolders={expandedFolders} // Pass the whole map down
-              onToggleExpand={toggleFolderExpansion} // Passed down for child nodes
-              onEntryClick={handleEntryClick} // Passed down for child nodes
-              level={0}
-            />
-          ))}
-        </ul>
+          {/* Loading/Error/Placeholder/List remains the same */}
+           {isLoading && <p>Loading...</p>}
+           {error && <p className="error-message">Error: {error}</p>}
+           {!isLoading && !error && rootDirectoryEntries.length === 0 && !currentFolderPath && (
+             <p className="placeholder-message">Click the <FaFolderOpen style={{ verticalAlign: 'middle', margin: '0 2px'}} /> button above to browse files.</p>
+           )}
+           <ul>
+             {rootDirectoryEntries.map((entry) => (
+                <FileTreeNode
+                  key={entry.path}
+                  entry={entry}
+                  isExpanded={!!expandedFolders[entry.path]}
+                  allExpandedFolders={expandedFolders} // Pass the whole map down
+                  onToggleExpand={toggleFolderExpansion} // Passed down for child nodes
+                  onEntryClick={handleEntryClick} // Passed down for child nodes
+                  level={0}
+                />
+             ))}
+           </ul>
       </div>
 
       {/* Theme Switcher */}
       <div className="theme-switcher">
-         <label id="theme-select-label" htmlFor="theme-select">
-           Theme:
-         </label>
-         <CustomSelect<ThemeName>
+        {/* Theme switcher remains the same */}
+        <label id="theme-select-label" htmlFor="theme-select">
+          Theme:
+        </label>
+        <CustomSelect<ThemeName>
            labelId="theme-select-label"
            options={themeOptions}
            value={theme}

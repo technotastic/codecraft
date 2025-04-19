@@ -31,17 +31,21 @@
     margin: 0;
     font-size: var(--font-size-lg);
     color: var(--color-text-heading);
+    /* Add ellipsis if title is too long for narrow sidebar */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1; /* Allow title to take space */
+    margin-right: var(--spacing-sm); /* Space between title and button */
   }
 
-  /* Style for the "Open Folder" button in the header */
+  /* Style for the "Open Folder" button - Ensure it uses icon-button styles */
   .sidebar-header button.open-folder-button {
-     font-size: var(--font-size-sm);
-     padding: var(--spacing-xs) var(--spacing-sm); /* Standard button padding */
-     /* Inherit default button styles (background, border) from general button rules */
-     display: inline-flex; /* Align icon and text */
-     align-items: center;
-     justify-content: center;
-     line-height: 1; /* Ensure consistent height */
+    /* Primarily relies on .icon-button styles now */
+    flex-shrink: 0; /* Prevent button from shrinking */
+    /* Override specific padding/size if needed for header context */
+    /* padding: var(--spacing-xs); */
+    /* font-size: var(--font-size-lg); /* Maybe make icon slightly larger? */
   }
 
   /* Navigation Controls */

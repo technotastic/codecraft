@@ -2,8 +2,6 @@
 /* src/renderer/index.css */
 
 /* --- FONT FACE DEFINITIONS (PLACEHOLDERS) --- */
-/* You need to acquire and host these fonts appropriately */
-
 /* Example for Pip-Boy style font */
 /* @font-face {
   font-family: 'Overseer';
@@ -92,7 +90,7 @@
   --scrollbar-track-bg: #f1f1f1;
 
   /* Specific Component Variables (Examples) */
-  --sidebar-width: 250px;
+  --sidebar-width: 150px; /* <<< ADJUSTED DEFAULT WIDTH <<< */
   --terminal-height: 200px;
 
   /* Theme Specific Overrides (Placeholders) */

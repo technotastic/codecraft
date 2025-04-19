@@ -1,3 +1,4 @@
+// --- START FILE: src/renderer/main.tsx ---
 // src/renderer/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -14,9 +15,11 @@ if (!rootElement) throw new Error('Failed to find the root element');
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   // Wrap ThemeProvider AND EditorProvider around App
-  <ThemeProvider defaultTheme="dark">
+  // <<< SET DEFAULT THEME TO ORANGE CRT >>>
+  <ThemeProvider defaultTheme="orange">
     <EditorProvider>
       <App />
     </EditorProvider>
   </ThemeProvider>
 );
+// --- END FILE: src/renderer/main.tsx ---

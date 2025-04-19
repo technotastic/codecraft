@@ -5,6 +5,7 @@
     display: flex;
     flex-wrap: nowrap; /* Prevent wrapping */
     overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
+    overflow-y: hidden; /* <<< HIDE potential vertical scrollbar <<< */
     background-color: var(--color-bg-sidebar); /* Use sidebar bg or a dedicated tab bg */
     border-bottom: 1px solid var(--color-border);
     padding: var(--spacing-xxs) var(--spacing-xs) 0 var(--spacing-xs); /* Padding around tabs, no bottom padding */
@@ -19,6 +20,7 @@
 /* Basic Scrollbar Styling for Webkit (Chrome, Safari, Edge) */
 .tab-container::-webkit-scrollbar {
     height: 6px; /* Height of horizontal scrollbar */
+    /* We don't need to define width as overflow-y is hidden */
 }
 .tab-container::-webkit-scrollbar-track {
     background: var(--scrollbar-track-bg);
@@ -127,7 +129,7 @@
 .theme-mirc .tab {
     border-radius: 0;
     border: none; /* Remove default border */
-    box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent), /* left */
+     box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent), /* left */
                  inset 1px 1px var(--win95-bevel-shadow-light, transparent), /* top/right */
                  inset 0px -1px var(--win95-bevel-shadow-darker, transparent); /* bottom line */
     background-color: var(--color-bg-button);

@@ -299,7 +299,7 @@ ehthumbs_vista.db
 --- END FILE: .gitignore ---
 
 --- START FILE: tsconfig.node.tsbuildinfo ---
-{"fileNames":["./node_modules/typescript/lib/lib.es5.d.ts","./node_modules/typescript/lib/lib.es2015.d.ts","./node_modules/typescript/lib/lib.es2016.d.ts","./node_modules/typescript/lib/lib.es2017.d.ts","./node_modules/typescript/lib/lib.es2018.d.ts","./node_modules/typescript/lib/lib.es2019.d.ts","./node_modules/typescript/lib/lib.es2020.d.ts","./node_modules/typescript/lib/lib.es2021.d.ts","./node_modules/typescript/lib/lib.es2022.d.ts","./node_modules/typescript/lib/lib.es2023.d.ts","./node_modules/typescript/lib/lib.es2024.d.ts","./node_modules/typescript/lib/lib.esnext.d.ts","./node_modules/typescript/lib/lib.dom.d.ts","./node_modules/typescript/lib/lib.es2015.core.d.ts","./node_modules/typescript/lib/lib.es2015.collection.d.ts","./node_modules/typescript/lib/lib.es2015.generator.d.ts","./node_modules/typescript/lib/lib.es2015.iterable.d.ts","./node_modules/typescript/lib/lib.es2015.promise.d.ts","./node_modules/typescript/lib/lib.es2015.proxy.d.ts","./node_modules/typescript/lib/lib.es2015.reflect.d.ts","./node_modules/typescript/lib/lib.es2015.symbol.d.ts","./node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts","./node_modules/typescript/lib/lib.es2016.array.include.d.ts","./node_modules/typescript/lib/lib.es2016.intl.d.ts","./node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts","./node_modules/typescript/lib/lib.es2017.date.d.ts","./node_modules/typescript/lib/lib.es2017.object.d.ts","./node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts","./node_modules/typescript/lib/lib.es2017.string.d.ts","./node_modules/typescript/lib/lib.es2017.intl.d.ts","./node_modules/typescript/lib/lib.es2017.typedarrays.d.ts","./node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts","./node_modules/typescript/lib/lib.es2018.asynciterable.d.ts","./node_modules/typescript/lib/lib.es2018.intl.d.ts","./node_modules/typescript/lib/lib.es2018.promise.d.ts","./node_modules/typescript/lib/lib.es2018.regexp.d.ts","./node_modules/typescript/lib/lib.es2019.array.d.ts","./node_modules/typescript/lib/lib.es2019.object.d.ts","./node_modules/typescript/lib/lib.es2019.string.d.ts","./node_modules/typescript/lib/lib.es2019.symbol.d.ts","./node_modules/typescript/lib/lib.es2019.intl.d.ts","./node_modules/typescript/lib/lib.es2020.bigint.d.ts","./node_modules/typescript/lib/lib.es2020.date.d.ts","./node_modules/typescript/lib/lib.es2020.promise.d.ts","./node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts","./node_modules/typescript/lib/lib.es2020.string.d.ts","./node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts","./node_modules/typescript/lib/lib.es2020.intl.d.ts","./node_modules/typescript/lib/lib.es2020.number.d.ts","./node_modules/typescript/lib/lib.es2021.promise.d.ts","./node_modules/typescript/lib/lib.es2021.string.d.ts","./node_modules/typescript/lib/lib.es2021.weakref.d.ts","./node_modules/typescript/lib/lib.es2021.intl.d.ts","./node_modules/typescript/lib/lib.es2022.array.d.ts","./node_modules/typescript/lib/lib.es2022.error.d.ts","./node_modules/typescript/lib/lib.es2022.intl.d.ts","./node_modules/typescript/lib/lib.es2022.object.d.ts","./node_modules/typescript/lib/lib.es2022.string.d.ts","./node_modules/typescript/lib/lib.es2022.regexp.d.ts","./node_modules/typescript/lib/lib.es2023.array.d.ts","./node_modules/typescript/lib/lib.es2023.collection.d.ts","./node_modules/typescript/lib/lib.es2023.intl.d.ts","./node_modules/typescript/lib/lib.es2024.arraybuffer.d.ts","./node_modules/typescript/lib/lib.es2024.collection.d.ts","./node_modules/typescript/lib/lib.es2024.object.d.ts","./node_modules/typescript/lib/lib.es2024.promise.d.ts","./node_modules/typescript/lib/lib.es2024.regexp.d.ts","./node_modules/typescript/lib/lib.es2024.sharedmemory.d.ts","./node_modules/typescript/lib/lib.es2024.string.d.ts","./node_modules/typescript/lib/lib.esnext.array.d.ts","./node_modules/typescript/lib/lib.esnext.collection.d.ts","./node_modules/typescript/lib/lib.esnext.intl.d.ts","./node_modules/typescript/lib/lib.esnext.disposable.d.ts","./node_modules/typescript/lib/lib.esnext.promise.d.ts","./node_modules/typescript/lib/lib.esnext.decorators.d.ts","./node_modules/typescript/lib/lib.esnext.iterator.d.ts","./node_modules/typescript/lib/lib.esnext.float16.d.ts","./node_modules/typescript/lib/lib.decorators.d.ts","./node_modules/typescript/lib/lib.decorators.legacy.d.ts","./src/main/env.d.ts","./node_modules/@types/node/compatibility/disposable.d.ts","./node_modules/@types/node/compatibility/indexable.d.ts","./node_modules/@types/node/compatibility/iterators.d.ts","./node_modules/@types/node/compatibility/index.d.ts","./node_modules/@types/node/globals.typedarray.d.ts","./node_modules/@types/node/buffer.buffer.d.ts","./node_modules/buffer/index.d.ts","./node_modules/undici-types/header.d.ts","./node_modules/undici-types/readable.d.ts","./node_modules/undici-types/file.d.ts","./node_modules/undici-types/fetch.d.ts","./node_modules/undici-types/formdata.d.ts","./node_modules/undici-types/connector.d.ts","./node_modules/undici-types/client.d.ts","./node_modules/undici-types/errors.d.ts","./node_modules/undici-types/dispatcher.d.ts","./node_modules/undici-types/global-dispatcher.d.ts","./node_modules/undici-types/global-origin.d.ts","./node_modules/undici-types/pool-stats.d.ts","./node_modules/undici-types/pool.d.ts","./node_modules/undici-types/handlers.d.ts","./node_modules/undici-types/balanced-pool.d.ts","./node_modules/undici-types/agent.d.ts","./node_modules/undici-types/mock-interceptor.d.ts","./node_modules/undici-types/mock-agent.d.ts","./node_modules/undici-types/mock-client.d.ts","./node_modules/undici-types/mock-pool.d.ts","./node_modules/undici-types/mock-errors.d.ts","./node_modules/undici-types/proxy-agent.d.ts","./node_modules/undici-types/env-http-proxy-agent.d.ts","./node_modules/undici-types/retry-handler.d.ts","./node_modules/undici-types/retry-agent.d.ts","./node_modules/undici-types/api.d.ts","./node_modules/undici-types/interceptors.d.ts","./node_modules/undici-types/util.d.ts","./node_modules/undici-types/cookies.d.ts","./node_modules/undici-types/patch.d.ts","./node_modules/undici-types/websocket.d.ts","./node_modules/undici-types/eventsource.d.ts","./node_modules/undici-types/filereader.d.ts","./node_modules/undici-types/diagnostics-channel.d.ts","./node_modules/undici-types/content-type.d.ts","./node_modules/undici-types/cache.d.ts","./node_modules/undici-types/index.d.ts","./node_modules/@types/node/globals.d.ts","./node_modules/@types/node/assert.d.ts","./node_modules/@types/node/assert/strict.d.ts","./node_modules/@types/node/async_hooks.d.ts","./node_modules/@types/node/buffer.d.ts","./node_modules/@types/node/child_process.d.ts","./node_modules/@types/node/cluster.d.ts","./node_modules/@types/node/console.d.ts","./node_modules/@types/node/constants.d.ts","./node_modules/@types/node/crypto.d.ts","./node_modules/@types/node/dgram.d.ts","./node_modules/@types/node/diagnostics_channel.d.ts","./node_modules/@types/node/dns.d.ts","./node_modules/@types/node/dns/promises.d.ts","./node_modules/@types/node/domain.d.ts","./node_modules/@types/node/dom-events.d.ts","./node_modules/@types/node/events.d.ts","./node_modules/@types/node/fs.d.ts","./node_modules/@types/node/fs/promises.d.ts","./node_modules/@types/node/http.d.ts","./node_modules/@types/node/http2.d.ts","./node_modules/@types/node/https.d.ts","./node_modules/@types/node/inspector.d.ts","./node_modules/@types/node/module.d.ts","./node_modules/@types/node/net.d.ts","./node_modules/@types/node/os.d.ts","./node_modules/@types/node/path.d.ts","./node_modules/@types/node/perf_hooks.d.ts","./node_modules/@types/node/process.d.ts","./node_modules/@types/node/punycode.d.ts","./node_modules/@types/node/querystring.d.ts","./node_modules/@types/node/readline.d.ts","./node_modules/@types/node/readline/promises.d.ts","./node_modules/@types/node/repl.d.ts","./node_modules/@types/node/sea.d.ts","./node_modules/@types/node/stream.d.ts","./node_modules/@types/node/stream/promises.d.ts","./node_modules/@types/node/stream/consumers.d.ts","./node_modules/@types/node/stream/web.d.ts","./node_modules/@types/node/string_decoder.d.ts","./node_modules/@types/node/test.d.ts","./node_modules/@types/node/timers.d.ts","./node_modules/@types/node/timers/promises.d.ts","./node_modules/@types/node/tls.d.ts","./node_modules/@types/node/trace_events.d.ts","./node_modules/@types/node/tty.d.ts","./node_modules/@types/node/url.d.ts","./node_modules/@types/node/util.d.ts","./node_modules/@types/node/v8.d.ts","./node_modules/@types/node/vm.d.ts","./node_modules/@types/node/wasi.d.ts","./node_modules/@types/node/worker_threads.d.ts","./node_modules/@types/node/zlib.d.ts","./node_modules/@types/node/index.d.ts","./node_modules/electron/electron.d.ts","./node_modules/node-pty/typings/node-pty.d.ts","./src/shared.types.ts","./src/main/index.ts","./src/preload/index.ts","./node_modules/@babel/types/lib/index.d.ts","./node_modules/@types/babel__generator/index.d.ts","./node_modules/@babel/parser/typings/babel-parser.d.ts","./node_modules/@types/babel__template/index.d.ts","./node_modules/@types/babel__traverse/index.d.ts","./node_modules/@types/babel__core/index.d.ts","./node_modules/keyv/src/index.d.ts","./node_modules/@types/http-cache-semantics/index.d.ts","./node_modules/@types/responselike/index.d.ts","./node_modules/@types/cacheable-request/index.d.ts","./node_modules/@types/ms/index.d.ts","./node_modules/@types/debug/index.d.ts","./node_modules/@types/estree/index.d.ts","./node_modules/@types/fs-extra/index.d.ts","./node_modules/@types/keyv/index.d.ts","./node_modules/@types/path-browserify/index.d.ts","./node_modules/@types/prop-types/index.d.ts","./node_modules/@types/react/global.d.ts","./node_modules/csstype/index.d.ts","./node_modules/@types/react/index.d.ts","./node_modules/@types/react-dom/index.d.ts","./node_modules/@types/yauzl/index.d.ts","../node_modules/@types/connect/index.d.ts","../node_modules/@types/body-parser/index.d.ts","../node_modules/@types/bonjour/index.d.ts","../node_modules/@types/mime/index.d.ts","../node_modules/@types/send/index.d.ts","../node_modules/@types/qs/index.d.ts","../node_modules/@types/range-parser/index.d.ts","../node_modules/@types/express-serve-static-core/index.d.ts","../node_modules/@types/connect-history-api-fallback/index.d.ts","../node_modules/@types/estree/index.d.ts","../node_modules/@types/json-schema/index.d.ts","../node_modules/@types/eslint/use-at-your-own-risk.d.ts","../node_modules/@types/eslint/index.d.ts","../node_modules/@types/eslint-scope/index.d.ts","../node_modules/@types/http-errors/index.d.ts","../node_modules/@types/serve-static/index.d.ts","../node_modules/@types/express/node_modules/@types/express-serve-static-core/index.d.ts","../node_modules/@types/express/index.d.ts","../node_modules/@types/minimatch/index.d.ts","../node_modules/@types/glob/index.d.ts","../node_modules/@types/graceful-fs/index.d.ts","../node_modules/@types/html-minifier-terser/index.d.ts","../node_modules/@types/http-proxy/index.d.ts","../node_modules/@types/istanbul-lib-coverage/index.d.ts","../node_modules/@types/istanbul-lib-report/index.d.ts","../node_modules/@types/istanbul-reports/index.d.ts","../node_modules/@types/node-forge/index.d.ts","../node_modules/@types/retry/index.d.ts","../node_modules/@types/serve-index/index.d.ts","../node_modules/@types/sockjs/index.d.ts","../node_modules/@types/stack-utils/index.d.ts","../node_modules/@types/ws/index.d.ts","../node_modules/@types/yargs-parser/index.d.ts","../node_modules/@types/yargs/index.d.ts"],"fileIdsList":[[86,129,184],[86,129],[86,129,184,185,186,187,188],[86,129,184,186],[86,129,141,144,171,178,190,191,192],[86,129,194],[86,129,142,178],[86,129,141,178],[86,126,129],[86,128,129],[129],[86,129,134,163],[86,129,130,135,141,142,149,160,171],[86,129,130,131,141,149],[81,82,83,86,129],[86,129,132,172],[86,129,133,134,142,150],[86,129,134,160,168],[86,129,135,137,141,149],[86,128,129,136],[86,129,137,138],[86,129,141],[86,129,139,141],[86,128,129,141],[86,129,141,142,143,160,171],[86,129,141,142,143,156,160,163],[86,124,129,176],[86,129,137,141,144,149,160,171],[86,129,141,142,144,145,149,160,168,171],[86,129,144,146,160,168,171],[84,85,86,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177],[86,129,141,147],[86,129,148,171,176],[86,129,137,141,149,160],[86,129,150],[86,129,151],[86,128,129,152],[86,126,127,128,129,130,131,132,133,134,135,136,137,138,139,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177],[86,129,154],[86,129,155],[86,129,141,156,157],[86,129,156,158,172,174],[86,129,141,160,161,163],[86,129,162,163],[86,129,160,161],[86,129,163],[86,129,164],[86,126,129,160],[86,129,141,166,167],[86,129,166,167],[86,129,134,149,160,168],[86,129,169],[86,129,149,170],[86,129,144,155,171],[86,129,134,172],[86,129,160,173],[86,129,148,174],[86,129,175],[86,129,134,141,143,152,160,171,174,176],[86,129,160,177],[86,129,203],[86,129,200,201,202],[86,129,144,160,178],[86,129,141,160,178],[86,129,141,142,178],[86,96,100,129,171],[86,96,129,160,171],[86,91,129],[86,93,96,129,168,171],[86,129,149,168],[86,129,178],[86,91,129,178],[86,93,96,129,149,171],[86,88,89,92,95,129,141,160,171],[86,96,103,129],[86,88,94,129],[86,96,117,118,129],[86,92,96,129,163,171,178],[86,117,129,178],[86,90,91,129,178],[86,96,129],[86,90,91,92,93,94,95,96,97,98,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,118,119,120,121,122,123,129],[86,96,111,129],[86,96,103,104,129],[86,94,96,104,105,129],[86,95,129],[86,88,91,96,129],[86,96,100,104,105,129],[86,100,129],[86,94,96,99,129,171],[86,88,93,96,103,129],[86,129,160],[86,91,96,117,129,176,178],[86,129,143,150,151,179,180,181],[86,129,179,181],[86,129,144,178,206],[86,129,135,178],[86,129,171,178,213],[86,129,144,178],[86,129,215,218],[86,129,215,216,217],[86,129,218],[86,129,141,144,178,210,211,212],[86,129,207,211,213,221,222],[86,129,141,142,178,224],[86,129,141,144,146,149,160,171,178],[86,129,229],[86,129,230],[86,129,142,160,178,209],[86,129,142,223],[86,129,144,178,210,220],[86,129,141,144,146,160,168,171,177,178],[86,129,238]],"fileInfos":[{"version":"69684132aeb9b5642cbcd9e22dff7818ff0ee1aa831728af0ecf97d3364d5546","affectsGlobalScope":true,"impliedFormat":1},{"version":"45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4","impliedFormat":1},{"version":"3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75","impliedFormat":1},{"version":"e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962","impliedFormat":1},{"version":"5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8","impliedFormat":1},{"version":"68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7","impliedFormat":1},{"version":"5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4","impliedFormat":1},{"version":"feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569","impliedFormat":1},{"version":"ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2","impliedFormat":1},{"version":"27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10","impliedFormat":1},{"version":"8fd575e12870e9944c7e1d62e1f5a73fcf23dd8d3a321f2a2c74c20d022283fe","impliedFormat":1},{"version":"8bf8b5e44e3c9c36f98e1007e8b7018c0f38d8adc07aecef42f5200114547c70","impliedFormat":1},{"version":"092c2bfe125ce69dbb1223c85d68d4d2397d7d8411867b5cc03cec902c233763","affectsGlobalScope":true,"impliedFormat":1},{"version":"c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671","affectsGlobalScope":true,"impliedFormat":1},{"version":"dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44","affectsGlobalScope":true,"impliedFormat":1},{"version":"515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71","affectsGlobalScope":true,"impliedFormat":1},{"version":"0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3","affectsGlobalScope":true,"impliedFormat":1},{"version":"0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537","affectsGlobalScope":true,"impliedFormat":1},{"version":"ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671","affectsGlobalScope":true,"impliedFormat":1},{"version":"8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0","affectsGlobalScope":true,"impliedFormat":1},{"version":"4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d","affectsGlobalScope":true,"impliedFormat":1},{"version":"936e80ad36a2ee83fc3caf008e7c4c5afe45b3cf3d5c24408f039c1d47bdc1df","affectsGlobalScope":true,"impliedFormat":1},{"version":"d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a","affectsGlobalScope":true,"impliedFormat":1},{"version":"68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618","affectsGlobalScope":true,"impliedFormat":1},{"version":"eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a","affectsGlobalScope":true,"impliedFormat":1},{"version":"38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119","affectsGlobalScope":true,"impliedFormat":1},{"version":"69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e","affectsGlobalScope":true,"impliedFormat":1},{"version":"fef8cfad2e2dc5f5b3d97a6f4f2e92848eb1b88e897bb7318cef0e2820bceaab","affectsGlobalScope":true,"impliedFormat":1},{"version":"2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893","affectsGlobalScope":true,"impliedFormat":1},{"version":"4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc","affectsGlobalScope":true,"impliedFormat":1},{"version":"954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667","affectsGlobalScope":true,"impliedFormat":1},{"version":"ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376","affectsGlobalScope":true,"impliedFormat":1},{"version":"9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb","affectsGlobalScope":true,"impliedFormat":1},{"version":"811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c","affectsGlobalScope":true,"impliedFormat":1},{"version":"717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca","affectsGlobalScope":true,"impliedFormat":1},{"version":"d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2","affectsGlobalScope":true,"impliedFormat":1},{"version":"71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557","affectsGlobalScope":true,"impliedFormat":1},{"version":"576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850","affectsGlobalScope":true,"impliedFormat":1},{"version":"89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6","affectsGlobalScope":true,"impliedFormat":1},{"version":"74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b","affectsGlobalScope":true,"impliedFormat":1},{"version":"d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca","affectsGlobalScope":true,"impliedFormat":1},{"version":"063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df","affectsGlobalScope":true,"impliedFormat":1},{"version":"934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab","affectsGlobalScope":true,"impliedFormat":1},{"version":"52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47","affectsGlobalScope":true,"impliedFormat":1},{"version":"3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6","affectsGlobalScope":true,"impliedFormat":1},{"version":"59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867","affectsGlobalScope":true,"impliedFormat":1},{"version":"639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a","affectsGlobalScope":true,"impliedFormat":1},{"version":"368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1","affectsGlobalScope":true,"impliedFormat":1},{"version":"af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74","affectsGlobalScope":true,"impliedFormat":1},{"version":"995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399","affectsGlobalScope":true,"impliedFormat":1},{"version":"959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a","affectsGlobalScope":true,"impliedFormat":1},{"version":"965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d","affectsGlobalScope":true,"impliedFormat":1},{"version":"3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005","affectsGlobalScope":true,"impliedFormat":1},{"version":"b5ce7a470bc3628408429040c4e3a53a27755022a32fd05e2cb694e7015386c7","affectsGlobalScope":true,"impliedFormat":1},{"version":"8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a","affectsGlobalScope":true,"impliedFormat":1},{"version":"3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004","affectsGlobalScope":true,"impliedFormat":1},{"version":"b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad","affectsGlobalScope":true,"impliedFormat":1},{"version":"df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4","affectsGlobalScope":true,"impliedFormat":1},{"version":"436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a","affectsGlobalScope":true,"impliedFormat":1},{"version":"8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d","affectsGlobalScope":true,"impliedFormat":1},{"version":"87dc0f382502f5bbce5129bdc0aea21e19a3abbc19259e0b43ae038a9fc4e326","affectsGlobalScope":true,"impliedFormat":1},{"version":"b1cb28af0c891c8c96b2d6b7be76bd394fddcfdb4709a20ba05a7c1605eea0f9","affectsGlobalScope":true,"impliedFormat":1},{"version":"2fef54945a13095fdb9b84f705f2b5994597640c46afeb2ce78352fab4cb3279","affectsGlobalScope":true,"impliedFormat":1},{"version":"ac77cb3e8c6d3565793eb90a8373ee8033146315a3dbead3bde8db5eaf5e5ec6","affectsGlobalScope":true,"impliedFormat":1},{"version":"56e4ed5aab5f5920980066a9409bfaf53e6d21d3f8d020c17e4de584d29600ad","affectsGlobalScope":true,"impliedFormat":1},{"version":"4ece9f17b3866cc077099c73f4983bddbcb1dc7ddb943227f1ec070f529dedd1","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a6282c8827e4b9a95f4bf4f5c205673ada31b982f50572d27103df8ceb8013c","affectsGlobalScope":true,"impliedFormat":1},{"version":"1c9319a09485199c1f7b0498f2988d6d2249793ef67edda49d1e584746be9032","affectsGlobalScope":true,"impliedFormat":1},{"version":"e3a2a0cee0f03ffdde24d89660eba2685bfbdeae955a6c67e8c4c9fd28928eeb","affectsGlobalScope":true,"impliedFormat":1},{"version":"811c71eee4aa0ac5f7adf713323a5c41b0cf6c4e17367a34fbce379e12bbf0a4","affectsGlobalScope":true,"impliedFormat":1},{"version":"51ad4c928303041605b4d7ae32e0c1ee387d43a24cd6f1ebf4a2699e1076d4fa","affectsGlobalScope":true,"impliedFormat":1},{"version":"60037901da1a425516449b9a20073aa03386cce92f7a1fd902d7602be3a7c2e9","affectsGlobalScope":true,"impliedFormat":1},{"version":"d4b1d2c51d058fc21ec2629fff7a76249dec2e36e12960ea056e3ef89174080f","affectsGlobalScope":true,"impliedFormat":1},{"version":"22adec94ef7047a6c9d1af3cb96be87a335908bf9ef386ae9fd50eeb37f44c47","affectsGlobalScope":true,"impliedFormat":1},{"version":"4245fee526a7d1754529d19227ecbf3be066ff79ebb6a380d78e41648f2f224d","affectsGlobalScope":true,"impliedFormat":1},{"version":"8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea","affectsGlobalScope":true,"impliedFormat":1},{"version":"782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538","affectsGlobalScope":true,"impliedFormat":1},{"version":"8c51b09def07d64dc1f975abbd73b7017c6e3a377f34f3aaea5abe1cb00779c1","affectsGlobalScope":true},{"version":"70521b6ab0dcba37539e5303104f29b721bfb2940b2776da4cc818c07e1fefc1","affectsGlobalScope":true,"impliedFormat":1},{"version":"ab41ef1f2cdafb8df48be20cd969d875602483859dc194e9c97c8a576892c052","affectsGlobalScope":true,"impliedFormat":1},{"version":"d153a11543fd884b596587ccd97aebbeed950b26933ee000f94009f1ab142848","affectsGlobalScope":true,"impliedFormat":1},{"version":"21d819c173c0cf7cc3ce57c3276e77fd9a8a01d35a06ad87158781515c9a438a","impliedFormat":1},{"version":"a79e62f1e20467e11a904399b8b18b18c0c6eea6b50c1168bf215356d5bebfaf","affectsGlobalScope":true,"impliedFormat":1},{"version":"6b80c6175da9de59bace50a72c2d68490d4ab5b07016ff5367bc7ba33cf2f219","affectsGlobalScope":true,"impliedFormat":1},{"version":"8e9c23ba78aabc2e0a27033f18737a6df754067731e69dc5f52823957d60a4b6","impliedFormat":1},{"version":"5929864ce17fba74232584d90cb721a89b7ad277220627cc97054ba15a98ea8f","impliedFormat":1},{"version":"24bd580b5743dc56402c440dc7f9a4f5d592ad7a419f25414d37a7bfe11e342b","impliedFormat":1},{"version":"25c8056edf4314820382a5fdb4bb7816999acdcb929c8f75e3f39473b87e85bc","impliedFormat":1},{"version":"c464d66b20788266e5353b48dc4aa6bc0dc4a707276df1e7152ab0c9ae21fad8","impliedFormat":1},{"version":"78d0d27c130d35c60b5e5566c9f1e5be77caf39804636bc1a40133919a949f21","impliedFormat":1},{"version":"c6fd2c5a395f2432786c9cb8deb870b9b0e8ff7e22c029954fabdd692bff6195","impliedFormat":1},{"version":"1d6e127068ea8e104a912e42fc0a110e2aa5a66a356a917a163e8cf9a65e4a75","impliedFormat":1},{"version":"5ded6427296cdf3b9542de4471d2aa8d3983671d4cac0f4bf9c637208d1ced43","impliedFormat":1},{"version":"6bdc71028db658243775263e93a7db2fd2abfce3ca569c3cca5aee6ed5eb186d","impliedFormat":1},{"version":"cadc8aced301244057c4e7e73fbcae534b0f5b12a37b150d80e5a45aa4bebcbd","impliedFormat":1},{"version":"385aab901643aa54e1c36f5ef3107913b10d1b5bb8cbcd933d4263b80a0d7f20","impliedFormat":1},{"version":"9670d44354bab9d9982eca21945686b5c24a3f893db73c0dae0fd74217a4c219","impliedFormat":1},{"version":"0b8a9268adaf4da35e7fa830c8981cfa22adbbe5b3f6f5ab91f6658899e657a7","impliedFormat":1},{"version":"11396ed8a44c02ab9798b7dca436009f866e8dae3c9c25e8c1fbc396880bf1bb","impliedFormat":1},{"version":"ba7bc87d01492633cb5a0e5da8a4a42a1c86270e7b3d2dea5d156828a84e4882","impliedFormat":1},{"version":"4893a895ea92c85345017a04ed427cbd6a1710453338df26881a6019432febdd","impliedFormat":1},{"version":"c21dc52e277bcfc75fac0436ccb75c204f9e1b3fa5e12729670910639f27343e","impliedFormat":1},{"version":"13f6f39e12b1518c6650bbb220c8985999020fe0f21d818e28f512b7771d00f9","impliedFormat":1},{"version":"9b5369969f6e7175740bf51223112ff209f94ba43ecd3bb09eefff9fd675624a","impliedFormat":1},{"version":"4fe9e626e7164748e8769bbf74b538e09607f07ed17c2f20af8d680ee49fc1da","impliedFormat":1},{"version":"24515859bc0b836719105bb6cc3d68255042a9f02a6022b3187948b204946bd2","impliedFormat":1},{"version":"ea0148f897b45a76544ae179784c95af1bd6721b8610af9ffa467a518a086a43","impliedFormat":1},{"version":"24c6a117721e606c9984335f71711877293a9651e44f59f3d21c1ea0856f9cc9","impliedFormat":1},{"version":"dd3273ead9fbde62a72949c97dbec2247ea08e0c6952e701a483d74ef92d6a17","impliedFormat":1},{"version":"405822be75ad3e4d162e07439bac80c6bcc6dbae1929e179cf467ec0b9ee4e2e","impliedFormat":1},{"version":"0db18c6e78ea846316c012478888f33c11ffadab9efd1cc8bcc12daded7a60b6","impliedFormat":1},{"version":"4d2b0eb911816f66abe4970898f97a2cfc902bcd743cbfa5017fad79f7ef90d8","impliedFormat":1},{"version":"bd0532fd6556073727d28da0edfd1736417a3f9f394877b6d5ef6ad88fba1d1a","impliedFormat":1},{"version":"89167d696a849fce5ca508032aabfe901c0868f833a8625d5a9c6e861ef935d2","impliedFormat":1},{"version":"e53a3c2a9f624d90f24bf4588aacd223e7bec1b9d0d479b68d2f4a9e6011147f","impliedFormat":1},{"version":"24b8685c62562f5d98615c5a0c1d05f297cf5065f15246edfe99e81ec4c0e011","impliedFormat":1},{"version":"93507c745e8f29090efb99399c3f77bec07db17acd75634249dc92f961573387","impliedFormat":1},{"version":"339dc5265ee5ed92e536a93a04c4ebbc2128f45eeec6ed29f379e0085283542c","impliedFormat":1},{"version":"4732aec92b20fb28c5fe9ad99521fb59974289ed1e45aecb282616202184064f","impliedFormat":1},{"version":"2e85db9e6fd73cfa3d7f28e0ab6b55417ea18931423bd47b409a96e4a169e8e6","impliedFormat":1},{"version":"c46e079fe54c76f95c67fb89081b3e399da2c7d109e7dca8e4b58d83e332e605","impliedFormat":1},{"version":"bf67d53d168abc1298888693338cb82854bdb2e69ef83f8a0092093c2d562107","impliedFormat":1},{"version":"08faa97886e71757779428dd4c69a545c32c85fd629d1116d42710b32c6378bc","affectsGlobalScope":true,"impliedFormat":1},{"version":"6b042aa5d277ad6963e2837179fd2f8fbb01968ac67115b0833c0244e93d1d50","impliedFormat":1},{"version":"7394959e5a741b185456e1ef5d64599c36c60a323207450991e7a42e08911419","impliedFormat":1},{"version":"3d77c73be94570813f8cadd1f05ebc3dc5e2e4fdefe4d340ca20cd018724ee36","impliedFormat":1},{"version":"23cfd70b42094e54cc3c5dab996d81b97e2b6f38ccb24ead85454b8ddfe2fc4f","affectsGlobalScope":true,"impliedFormat":1},{"version":"f3e58c4c18a031cbb17abec7a4ad0bd5ae9fc70c1f4ba1e7fb921ad87c504aca","impliedFormat":1},{"version":"a3e8bafb2af8e850c644f4be7f5156cf7d23b7bfdc3b786bd4d10ed40329649c","impliedFormat":1},{"version":"35ec8b6760fd7138bbf5809b84551e31028fb2ba7b6dc91d95d098bf212ca8b4","affectsGlobalScope":true,"impliedFormat":1},{"version":"5524481e56c48ff486f42926778c0a3cce1cc85dc46683b92b1271865bcf015a","impliedFormat":1},{"version":"4b87f767c7bc841511113c876a6b8bf1fd0cb0b718c888ad84478b372ec486b1","affectsGlobalScope":true,"impliedFormat":1},{"version":"8d04e3640dd9eb67f7f1e5bd3d0bf96c784666f7aefc8ac1537af6f2d38d4c29","impliedFormat":1},{"version":"3c884d9d9ec454bdf0d5a0b8465bf8297d2caa4d853851d92cc417ac6f30b969","impliedFormat":1},{"version":"5a369483ac4cfbdf0331c248deeb36140e6907db5e1daed241546b4a2055f82c","impliedFormat":1},{"version":"e8f5b5cc36615c17d330eaf8eebbc0d6bdd942c25991f96ef122f246f4ff722f","impliedFormat":1},{"version":"f0bd7e6d931657b59605c44112eaf8b980ba7f957a5051ed21cb93d978cf2f45","impliedFormat":1},{"version":"ee1ee365d88c4c6c0c0a5a5701d66ebc27ccd0bcfcfaa482c6e2e7fe7b98edf7","affectsGlobalScope":true,"impliedFormat":1},{"version":"0ada07543808f3b967624645a8e1ccd446f8b01ade47842acf1328aec899fed0","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a37b8d00d03f0381d2db2fe31b0571dc9d7cc0f4b87ca103cc3cd2277690ba0","impliedFormat":1},{"version":"71adf5dbc59568663d252a46179e71e4d544c053978bfc526d11543a3f716f42","impliedFormat":1},{"version":"38bf8ff1b403c861e9052c9ea651cb4f38c1ecc084a34d79f8acc6d6477a7321","impliedFormat":1},{"version":"93bd413918fa921c8729cef45302b24d8b6c7855d72d5bf82d3972595ae8dcbf","impliedFormat":1},{"version":"4ff41188773cbf465807dd2f7059c7494cbee5115608efc297383832a1150c43","impliedFormat":1},{"version":"dccdf1677e531e33f8ac961a68bc537418c9a414797c1ea7e91307501cdc3f5e","impliedFormat":1},{"version":"e184c4b8918ef56c8c9e68bd79f3f3780e2d0d75bf2b8a41da1509a40c2deb46","affectsGlobalScope":true,"impliedFormat":1},{"version":"d206b4baf4ddcc15d9d69a9a2f4999a72a2c6adeaa8af20fa7a9960816287555","impliedFormat":1},{"version":"93f437e1398a4f06a984f441f7fa7a9f0535c04399619b5c22e0b87bdee182cb","impliedFormat":1},{"version":"afbe24ab0d74694372baa632ecb28bb375be53f3be53f9b07ecd7fc994907de5","impliedFormat":1},{"version":"70731d10d5311bd4cf710ef7f6539b62660f4b0bfdbb3f9fbe1d25fe6366a7fa","affectsGlobalScope":true,"impliedFormat":1},{"version":"6b19db3600a17af69d4f33d08cc7076a7d19fb65bb36e442cac58929ec7c9482","affectsGlobalScope":true,"impliedFormat":1},{"version":"9e043a1bc8fbf2a255bccf9bf27e0f1caf916c3b0518ea34aa72357c0afd42ec","impliedFormat":1},{"version":"137c2894e8f3e9672d401cc0a305dc7b1db7c69511cf6d3970fb53302f9eae09","impliedFormat":1},{"version":"3bc2f1e2c95c04048212c569ed38e338873f6a8593930cf5a7ef24ffb38fc3b6","impliedFormat":1},{"version":"8145e07aad6da5f23f2fcd8c8e4c5c13fb26ee986a79d03b0829b8fce152d8b2","impliedFormat":1},{"version":"f9d9d753d430ed050dc1bf2667a1bab711ccbb1c1507183d794cc195a5b085cc","impliedFormat":1},{"version":"9eece5e586312581ccd106d4853e861aaaa1a39f8e3ea672b8c3847eedd12f6e","impliedFormat":1},{"version":"ba1f814c22fd970255ddd60d61fb7e00c28271c933ab5d5cc19cd3ca66b8f57c","impliedFormat":1},{"version":"37ba7b45141a45ce6e80e66f2a96c8a5ab1bcef0fc2d0f56bb58df96ec67e972","impliedFormat":1},{"version":"125d792ec6c0c0f657d758055c494301cc5fdb327d9d9d5960b3f129aff76093","impliedFormat":1},{"version":"295f068af94245ee9d780555351bef98adfd58f8baf0b9dadbc31a489b881f8b","affectsGlobalScope":true,"impliedFormat":1},{"version":"1851a3b4db78664f83901bb9cac9e45e03a37bb5933cc5bf37e10bb7e91ab4eb","impliedFormat":1},{"version":"09d479208911ac3ac6a7c2fe86217fc1abe6c4f04e2d52e4890e500699eeab32","affectsGlobalScope":true,"impliedFormat":1},{"version":"12ed4559eba17cd977aa0db658d25c4047067444b51acfdcbf38470630642b23","affectsGlobalScope":true,"impliedFormat":1},{"version":"f3ffabc95802521e1e4bcba4c88d8615176dc6e09111d920c7a213bdda6e1d65","impliedFormat":1},{"version":"4f029899f9bae07e225c43aef893590541b2b43267383bf5e32e3a884d219ed5","impliedFormat":1},{"version":"ae56f65caf3be91108707bd8dfbccc2a57a91feb5daabf7165a06a945545ed26","impliedFormat":1},{"version":"a136d5de521da20f31631a0a96bf712370779d1c05b7015d7019a9b2a0446ca9","impliedFormat":1},{"version":"5b566927cad2ed2139655d55d690ffa87df378b956e7fe1c96024c4d9f75c4cf","affectsGlobalScope":true,"impliedFormat":1},{"version":"bce947017cb7a2deebcc4f5ba04cead891ce6ad1602a4438ae45ed9aa1f39104","affectsGlobalScope":true,"impliedFormat":1},{"version":"d3dffd70e6375b872f0b4e152de4ae682d762c61a24881ecc5eb9f04c5caf76f","impliedFormat":1},{"version":"e2c72c065a36bc9ab2a00ac6a6f51e71501619a72c0609defd304d46610487a4","impliedFormat":1},{"version":"d91a7d8b5655c42986f1bdfe2105c4408f472831c8f20cf11a8c3345b6b56c8c","impliedFormat":1},{"version":"616075a6ac578cf5a013ee12964188b4412823796ce0b202c6f1d2e4ca8480d7","affectsGlobalScope":true,"impliedFormat":1},{"version":"e8a979b8af001c9fc2e774e7809d233c8ca955a28756f52ee5dee88ccb0611d2","impliedFormat":1},{"version":"cac793cc47c29e26e4ac3601dcb00b4435ebed26203485790e44f2ad8b6ad847","impliedFormat":1},{"version":"deecdc1f3f5ea9548ef73774f412c7af489afeb7dca1c394b5add10e929aff42","affectsGlobalScope":true,"impliedFormat":1},{"version":"f0bb8c099438ad08fc589906658b01e8745b5d836d0bb95b1c70a232ed7340cd","impliedFormat":1},{"version":"55cecc2684158898adf489c3e21778a5de83371499804cc8fd16ffe1bfa86952","signature":"e6dbac159b975f1ffec3f0b71d44df83838e9934c0f8d6e27a84f99a11aef197"},{"version":"fe26f0e1bf9e794321626350e6a4e39bc5bf35600dbeffa36f7491de2a679061","signature":"8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"},{"version":"9d63a9b562c7f877bba620cb4775dd77332c7944c27bf7ab98415449062431bf","signature":"59c8fede0ec9c34ee69a4e8c992babc705c17208784415ad1ac8991a0f507cd5"},{"version":"d50ab0815120231ab511558a753c33b2806b42cabe006356fb0bb763fc30e865","impliedFormat":1},{"version":"b6d03c9cfe2cf0ba4c673c209fcd7c46c815b2619fd2aad59fc4229aaef2ed43","impliedFormat":1},{"version":"32ddc6ad753ae79571bbf28cebff7a383bf7f562ac5ef5d25c94ef7f71609d49","impliedFormat":1},{"version":"670a76db379b27c8ff42f1ba927828a22862e2ab0b0908e38b671f0e912cc5ed","impliedFormat":1},{"version":"81df92841a7a12d551fcbc7e4e83dbb7d54e0c73f33a82162d13e9ae89700079","impliedFormat":1},{"version":"069bebfee29864e3955378107e243508b163e77ab10de6a5ee03ae06939f0bb9","impliedFormat":1},{"version":"42baf4ca38c38deaf411ea73f37bc39ff56c6e5c761a968b64ac1b25c92b5cd8","impliedFormat":1},{"version":"d7dbe0ad36bdca8a6ecf143422a48e72cc8927bab7b23a1a2485c2f78a7022c6","impliedFormat":1},{"version":"8718fa41d7cf4aa91de4e8f164c90f88e0bf343aa92a1b9b725a9c675c64e16b","impliedFormat":1},{"version":"f992cd6cc0bcbaa4e6c810468c90f2d8595f8c6c3cf050c806397d3de8585562","impliedFormat":1},{"version":"fb893a0dfc3c9fb0f9ca93d0648694dd95f33cbad2c0f2c629f842981dfd4e2e","impliedFormat":1},{"version":"3eb11dbf3489064a47a2e1cf9d261b1f100ef0b3b50ffca6c44dd99d6dd81ac1","impliedFormat":1},{"version":"e2b48abff5a8adc6bb1cd13a702b9ef05e6045a98e7cfa95a8779b53b6d0e69d","impliedFormat":1},{"version":"ed19da84b7dbf00952ad0b98ce5c194f1903bcf7c94d8103e8e0d63b271543ae","impliedFormat":1},{"version":"fec943fdb3275eb6e006b35e04a8e2e99e9adf3f4b969ddf15315ac7575a93e4","impliedFormat":1},{"version":"9ef3570c3cc75e652dc75c94908ff9df95ed73b808157f76aed009cc45cc6ff8","impliedFormat":1},{"version":"65ff5a0aefd7817a03c1ad04fee85c9cdd3ec415cc3c9efec85d8008d4d5e4ee","impliedFormat":1},{"version":"36a2e4c9a67439aca5f91bb304611d5ae6e20d420503e96c230cf8fcdc948d94","affectsGlobalScope":true,"impliedFormat":1},{"version":"8a8eb4ebffd85e589a1cc7c178e291626c359543403d58c9cd22b81fab5b1fb9","impliedFormat":1},{"version":"b2546f0fbeae6ef5e232c04100e1d8c49d36d1fff8e4755f663a3e3f06e7f2d6","affectsGlobalScope":true,"impliedFormat":1},{"version":"17ed71200119e86ccef2d96b73b02ce8854b76ad6bd21b5021d4269bec527b5f","impliedFormat":1},{"version":"74d5a87c3616cd5d8691059d531504403aa857e09cbaecb1c64dfb9ace0db185","impliedFormat":1},{"version":"104c67f0da1bdf0d94865419247e20eded83ce7f9911a1aa75fc675c077ca66e","impliedFormat":1},{"version":"cc0d0b339f31ce0ab3b7a5b714d8e578ce698f1e13d7f8c60bfb766baeb1d35c","impliedFormat":1},{"version":"f9e22729fa06ed20f8b1fe60670b7c74933fdfd44d869ddfb1919c15a5cf12fb","impliedFormat":1},{"version":"d3f2d715f57df3f04bf7b16dde01dec10366f64fce44503c92b8f78f614c1769","impliedFormat":1},{"version":"b78cd10245a90e27e62d0558564f5d9a16576294eee724a59ae21b91f9269e4a","impliedFormat":1},{"version":"936eb43a381712a8ec1249f2afc819f6fc7ca68f10dfec71762b428dfdc53bf1","impliedFormat":1},{"version":"2f5747b1508ccf83fad0c251ba1e5da2f5a30b78b09ffa1cfaf633045160afed","impliedFormat":1},{"version":"86ea91bfa7fef1eeb958056f30f1db4e0680bc9b5132e5e9d6e9cfd773c0c4fd","affectsGlobalScope":true,"impliedFormat":1},{"version":"689be50b735f145624c6f391042155ae2ff6b90a93bac11ca5712bc866f6010c","impliedFormat":1},{"version":"785b9d575b49124ce01b46f5b9402157c7611e6532effa562ac6aebec0074dfc","impliedFormat":1},{"version":"f3d8c757e148ad968f0d98697987db363070abada5f503da3c06aefd9d4248c1","impliedFormat":1},{"version":"a4a39b5714adfcadd3bbea6698ca2e942606d833bde62ad5fb6ec55f5e438ff8","impliedFormat":1},{"version":"bbc1d029093135d7d9bfa4b38cbf8761db505026cc458b5e9c8b74f4000e5e75","impliedFormat":1},{"version":"1f68ab0e055994eb337b67aa87d2a15e0200951e9664959b3866ee6f6b11a0fe","impliedFormat":1},{"version":"b71c603a539078a5e3a039b20f2b0a0d1708967530cf97dec8850a9ca45baa2b","impliedFormat":1},{"version":"0e13570a7e86c6d83dd92e81758a930f63747483e2cd34ef36fcdb47d1f9726a","impliedFormat":1},{"version":"a45c25e77c911c1f2a04cade78f6f42b4d7d896a3882d4e226efd3a3fcd5f2c4","affectsGlobalScope":true,"impliedFormat":1},{"version":"5c45abf1e13e4463eacfd5dedda06855da8748a6a6cb3334f582b52e219acc04","impliedFormat":1},{"version":"963d59066dd6742da1918a6213a209bcc205b8ee53b1876ee2b4e6d80f97c85e","impliedFormat":1},{"version":"fd326577c62145816fe1acc306c734c2396487f76719d3785d4e825b34540b33","impliedFormat":1},{"version":"afe73051ff6a03a9565cbd8ebb0e956ee3df5e913ad5c1ded64218aabfa3dcb5","impliedFormat":1},{"version":"ee65fe452abe1309389c5f50710f24114e08a302d40708101c4aa950a2a7d044","impliedFormat":1},{"version":"63786b6f821dee19eb898afb385bd58f1846e6cba593a35edcf9631ace09ba25","impliedFormat":1},{"version":"035a5df183489c2e22f3cf59fc1ed2b043d27f357eecc0eb8d8e840059d44245","impliedFormat":1},{"version":"a4809f4d92317535e6b22b01019437030077a76fec1d93b9881c9ed4738fcc54","impliedFormat":1},{"version":"5f53fa0bd22096d2a78533f94e02c899143b8f0f9891a46965294ee8b91a9434","impliedFormat":1},{"version":"8b5402ae709d042c3530ed3506c135a967159f42aed3221267e70c5b7240b577","impliedFormat":1},{"version":"868c78a84ad3530fc1b6e03da4611405da111bbfb0f1480abe45e801cde0b995","impliedFormat":1},{"version":"ddef25f825320de051dcb0e62ffce621b41c67712b5b4105740c32fd83f4c449","impliedFormat":1},{"version":"1b3dffaa4ca8e38ac434856843505af767a614d187fb3a5ef4fcebb023c355aa","impliedFormat":1},{"version":"ab82804a14454734010dcdcd43f564ff7b0389bee4c5692eec76ff5b30d4cf66","impliedFormat":1},{"version":"eb15edfcef078300657e1d5d678e1944b3518c2dd8f26792fdba2fe29f73d32b","impliedFormat":1},{"version":"bae8d023ef6b23df7da26f51cea44321f95817c190342a36882e93b80d07a960","impliedFormat":1},{"version":"26a770cec4bd2e7dbba95c6e536390fffe83c6268b78974a93727903b515c4e7","impliedFormat":1}],"root":[80,[181,183]],"options":{"allowImportingTsExtensions":false,"composite":true,"esModuleInterop":true,"module":1,"outDir":"./dist-electron","rootDir":"./src","skipLibCheck":false,"strict":true,"target":99},"referencedMap":[[186,1],[184,2],[189,3],[185,1],[187,4],[188,1],[193,5],[195,6],[196,2],[197,7],[191,2],[198,8],[194,2],[126,9],[127,9],[128,10],[86,11],[129,12],[130,13],[131,14],[81,2],[84,15],[82,2],[83,2],[132,16],[133,17],[134,18],[135,19],[136,20],[137,21],[138,21],[140,22],[139,23],[141,24],[142,25],[143,26],[125,27],[85,2],[144,28],[145,29],[146,30],[178,31],[147,32],[148,33],[149,34],[150,35],[151,36],[152,37],[153,38],[154,39],[155,40],[156,41],[157,41],[158,42],[159,2],[160,43],[162,44],[161,45],[163,46],[164,47],[165,48],[166,49],[167,50],[168,51],[169,52],[170,53],[171,54],[172,55],[173,56],[174,57],[175,58],[176,59],[177,60],[199,2],[200,2],[204,61],[201,2],[203,62],[192,63],[205,64],[87,2],[202,2],[179,65],[190,22],[180,2],[78,2],[79,2],[13,2],[15,2],[14,2],[2,2],[16,2],[17,2],[18,2],[19,2],[20,2],[21,2],[22,2],[23,2],[3,2],[24,2],[25,2],[4,2],[26,2],[30,2],[27,2],[28,2],[29,2],[31,2],[32,2],[33,2],[5,2],[34,2],[35,2],[36,2],[37,2],[6,2],[41,2],[38,2],[39,2],[40,2],[42,2],[7,2],[43,2],[48,2],[49,2],[44,2],[45,2],[46,2],[47,2],[8,2],[53,2],[50,2],[51,2],[52,2],[54,2],[9,2],[55,2],[56,2],[57,2],[59,2],[58,2],[60,2],[61,2],[10,2],[62,2],[63,2],[64,2],[11,2],[65,2],[66,2],[67,2],[68,2],[69,2],[1,2],[70,2],[71,2],[12,2],[75,2],[73,2],[77,2],[72,2],[76,2],[74,2],[103,66],[113,67],[102,66],[123,68],[94,69],[93,70],[122,71],[116,72],[121,73],[96,74],[110,75],[95,76],[119,77],[91,78],[90,71],[120,79],[92,80],[97,81],[98,2],[101,81],[88,2],[124,82],[114,83],[105,84],[106,85],[108,86],[104,87],[107,88],[117,71],[99,89],[100,90],[109,91],[89,92],[112,83],[111,81],[115,2],[118,93],[80,2],[182,94],[183,95],[181,2],[207,96],[208,97],[214,98],[206,99],[219,100],[218,101],[217,102],[215,2],[213,103],[223,104],[222,103],[225,105],[226,7],[227,2],[220,2],[228,106],[229,2],[230,107],[231,108],[216,2],[209,2],[224,2],[232,71],[211,2],[212,2],[233,2],[210,109],[234,110],[221,111],[235,99],[236,2],[237,112],[238,2],[239,113]],"latestChangedDtsFile":"./dist-electron/preload/index.d.ts","version":"5.8.3"}
+{"fileNames":["./node_modules/typescript/lib/lib.es5.d.ts","./node_modules/typescript/lib/lib.es2015.d.ts","./node_modules/typescript/lib/lib.es2016.d.ts","./node_modules/typescript/lib/lib.es2017.d.ts","./node_modules/typescript/lib/lib.es2018.d.ts","./node_modules/typescript/lib/lib.es2019.d.ts","./node_modules/typescript/lib/lib.es2020.d.ts","./node_modules/typescript/lib/lib.es2021.d.ts","./node_modules/typescript/lib/lib.es2022.d.ts","./node_modules/typescript/lib/lib.es2023.d.ts","./node_modules/typescript/lib/lib.es2024.d.ts","./node_modules/typescript/lib/lib.esnext.d.ts","./node_modules/typescript/lib/lib.dom.d.ts","./node_modules/typescript/lib/lib.es2015.core.d.ts","./node_modules/typescript/lib/lib.es2015.collection.d.ts","./node_modules/typescript/lib/lib.es2015.generator.d.ts","./node_modules/typescript/lib/lib.es2015.iterable.d.ts","./node_modules/typescript/lib/lib.es2015.promise.d.ts","./node_modules/typescript/lib/lib.es2015.proxy.d.ts","./node_modules/typescript/lib/lib.es2015.reflect.d.ts","./node_modules/typescript/lib/lib.es2015.symbol.d.ts","./node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts","./node_modules/typescript/lib/lib.es2016.array.include.d.ts","./node_modules/typescript/lib/lib.es2016.intl.d.ts","./node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts","./node_modules/typescript/lib/lib.es2017.date.d.ts","./node_modules/typescript/lib/lib.es2017.object.d.ts","./node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts","./node_modules/typescript/lib/lib.es2017.string.d.ts","./node_modules/typescript/lib/lib.es2017.intl.d.ts","./node_modules/typescript/lib/lib.es2017.typedarrays.d.ts","./node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts","./node_modules/typescript/lib/lib.es2018.asynciterable.d.ts","./node_modules/typescript/lib/lib.es2018.intl.d.ts","./node_modules/typescript/lib/lib.es2018.promise.d.ts","./node_modules/typescript/lib/lib.es2018.regexp.d.ts","./node_modules/typescript/lib/lib.es2019.array.d.ts","./node_modules/typescript/lib/lib.es2019.object.d.ts","./node_modules/typescript/lib/lib.es2019.string.d.ts","./node_modules/typescript/lib/lib.es2019.symbol.d.ts","./node_modules/typescript/lib/lib.es2019.intl.d.ts","./node_modules/typescript/lib/lib.es2020.bigint.d.ts","./node_modules/typescript/lib/lib.es2020.date.d.ts","./node_modules/typescript/lib/lib.es2020.promise.d.ts","./node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts","./node_modules/typescript/lib/lib.es2020.string.d.ts","./node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts","./node_modules/typescript/lib/lib.es2020.intl.d.ts","./node_modules/typescript/lib/lib.es2020.number.d.ts","./node_modules/typescript/lib/lib.es2021.promise.d.ts","./node_modules/typescript/lib/lib.es2021.string.d.ts","./node_modules/typescript/lib/lib.es2021.weakref.d.ts","./node_modules/typescript/lib/lib.es2021.intl.d.ts","./node_modules/typescript/lib/lib.es2022.array.d.ts","./node_modules/typescript/lib/lib.es2022.error.d.ts","./node_modules/typescript/lib/lib.es2022.intl.d.ts","./node_modules/typescript/lib/lib.es2022.object.d.ts","./node_modules/typescript/lib/lib.es2022.string.d.ts","./node_modules/typescript/lib/lib.es2022.regexp.d.ts","./node_modules/typescript/lib/lib.es2023.array.d.ts","./node_modules/typescript/lib/lib.es2023.collection.d.ts","./node_modules/typescript/lib/lib.es2023.intl.d.ts","./node_modules/typescript/lib/lib.es2024.arraybuffer.d.ts","./node_modules/typescript/lib/lib.es2024.collection.d.ts","./node_modules/typescript/lib/lib.es2024.object.d.ts","./node_modules/typescript/lib/lib.es2024.promise.d.ts","./node_modules/typescript/lib/lib.es2024.regexp.d.ts","./node_modules/typescript/lib/lib.es2024.sharedmemory.d.ts","./node_modules/typescript/lib/lib.es2024.string.d.ts","./node_modules/typescript/lib/lib.esnext.array.d.ts","./node_modules/typescript/lib/lib.esnext.collection.d.ts","./node_modules/typescript/lib/lib.esnext.intl.d.ts","./node_modules/typescript/lib/lib.esnext.disposable.d.ts","./node_modules/typescript/lib/lib.esnext.promise.d.ts","./node_modules/typescript/lib/lib.esnext.decorators.d.ts","./node_modules/typescript/lib/lib.esnext.iterator.d.ts","./node_modules/typescript/lib/lib.esnext.float16.d.ts","./node_modules/typescript/lib/lib.decorators.d.ts","./node_modules/typescript/lib/lib.decorators.legacy.d.ts","./src/main/env.d.ts","./node_modules/@types/node/compatibility/disposable.d.ts","./node_modules/@types/node/compatibility/indexable.d.ts","./node_modules/@types/node/compatibility/iterators.d.ts","./node_modules/@types/node/compatibility/index.d.ts","./node_modules/@types/node/globals.typedarray.d.ts","./node_modules/@types/node/buffer.buffer.d.ts","./node_modules/buffer/index.d.ts","./node_modules/undici-types/header.d.ts","./node_modules/undici-types/readable.d.ts","./node_modules/undici-types/file.d.ts","./node_modules/undici-types/fetch.d.ts","./node_modules/undici-types/formdata.d.ts","./node_modules/undici-types/connector.d.ts","./node_modules/undici-types/client.d.ts","./node_modules/undici-types/errors.d.ts","./node_modules/undici-types/dispatcher.d.ts","./node_modules/undici-types/global-dispatcher.d.ts","./node_modules/undici-types/global-origin.d.ts","./node_modules/undici-types/pool-stats.d.ts","./node_modules/undici-types/pool.d.ts","./node_modules/undici-types/handlers.d.ts","./node_modules/undici-types/balanced-pool.d.ts","./node_modules/undici-types/agent.d.ts","./node_modules/undici-types/mock-interceptor.d.ts","./node_modules/undici-types/mock-agent.d.ts","./node_modules/undici-types/mock-client.d.ts","./node_modules/undici-types/mock-pool.d.ts","./node_modules/undici-types/mock-errors.d.ts","./node_modules/undici-types/proxy-agent.d.ts","./node_modules/undici-types/env-http-proxy-agent.d.ts","./node_modules/undici-types/retry-handler.d.ts","./node_modules/undici-types/retry-agent.d.ts","./node_modules/undici-types/api.d.ts","./node_modules/undici-types/interceptors.d.ts","./node_modules/undici-types/util.d.ts","./node_modules/undici-types/cookies.d.ts","./node_modules/undici-types/patch.d.ts","./node_modules/undici-types/websocket.d.ts","./node_modules/undici-types/eventsource.d.ts","./node_modules/undici-types/filereader.d.ts","./node_modules/undici-types/diagnostics-channel.d.ts","./node_modules/undici-types/content-type.d.ts","./node_modules/undici-types/cache.d.ts","./node_modules/undici-types/index.d.ts","./node_modules/@types/node/globals.d.ts","./node_modules/@types/node/assert.d.ts","./node_modules/@types/node/assert/strict.d.ts","./node_modules/@types/node/async_hooks.d.ts","./node_modules/@types/node/buffer.d.ts","./node_modules/@types/node/child_process.d.ts","./node_modules/@types/node/cluster.d.ts","./node_modules/@types/node/console.d.ts","./node_modules/@types/node/constants.d.ts","./node_modules/@types/node/crypto.d.ts","./node_modules/@types/node/dgram.d.ts","./node_modules/@types/node/diagnostics_channel.d.ts","./node_modules/@types/node/dns.d.ts","./node_modules/@types/node/dns/promises.d.ts","./node_modules/@types/node/domain.d.ts","./node_modules/@types/node/dom-events.d.ts","./node_modules/@types/node/events.d.ts","./node_modules/@types/node/fs.d.ts","./node_modules/@types/node/fs/promises.d.ts","./node_modules/@types/node/http.d.ts","./node_modules/@types/node/http2.d.ts","./node_modules/@types/node/https.d.ts","./node_modules/@types/node/inspector.d.ts","./node_modules/@types/node/module.d.ts","./node_modules/@types/node/net.d.ts","./node_modules/@types/node/os.d.ts","./node_modules/@types/node/path.d.ts","./node_modules/@types/node/perf_hooks.d.ts","./node_modules/@types/node/process.d.ts","./node_modules/@types/node/punycode.d.ts","./node_modules/@types/node/querystring.d.ts","./node_modules/@types/node/readline.d.ts","./node_modules/@types/node/readline/promises.d.ts","./node_modules/@types/node/repl.d.ts","./node_modules/@types/node/sea.d.ts","./node_modules/@types/node/stream.d.ts","./node_modules/@types/node/stream/promises.d.ts","./node_modules/@types/node/stream/consumers.d.ts","./node_modules/@types/node/stream/web.d.ts","./node_modules/@types/node/string_decoder.d.ts","./node_modules/@types/node/test.d.ts","./node_modules/@types/node/timers.d.ts","./node_modules/@types/node/timers/promises.d.ts","./node_modules/@types/node/tls.d.ts","./node_modules/@types/node/trace_events.d.ts","./node_modules/@types/node/tty.d.ts","./node_modules/@types/node/url.d.ts","./node_modules/@types/node/util.d.ts","./node_modules/@types/node/v8.d.ts","./node_modules/@types/node/vm.d.ts","./node_modules/@types/node/wasi.d.ts","./node_modules/@types/node/worker_threads.d.ts","./node_modules/@types/node/zlib.d.ts","./node_modules/@types/node/index.d.ts","./node_modules/electron/electron.d.ts","./node_modules/node-pty/typings/node-pty.d.ts","./src/shared.types.ts","./src/main/index.ts","./src/preload/index.ts","./node_modules/@babel/types/lib/index.d.ts","./node_modules/@types/babel__generator/index.d.ts","./node_modules/@babel/parser/typings/babel-parser.d.ts","./node_modules/@types/babel__template/index.d.ts","./node_modules/@types/babel__traverse/index.d.ts","./node_modules/@types/babel__core/index.d.ts","./node_modules/keyv/src/index.d.ts","./node_modules/@types/http-cache-semantics/index.d.ts","./node_modules/@types/responselike/index.d.ts","./node_modules/@types/cacheable-request/index.d.ts","./node_modules/@types/ms/index.d.ts","./node_modules/@types/debug/index.d.ts","./node_modules/@types/estree/index.d.ts","./node_modules/@types/fs-extra/index.d.ts","./node_modules/@types/keyv/index.d.ts","./node_modules/@types/path-browserify/index.d.ts","./node_modules/@types/prop-types/index.d.ts","./node_modules/@types/react/global.d.ts","./node_modules/csstype/index.d.ts","./node_modules/@types/react/index.d.ts","./node_modules/@types/react-dom/index.d.ts","./node_modules/@types/yauzl/index.d.ts","../node_modules/@types/connect/index.d.ts","../node_modules/@types/body-parser/index.d.ts","../node_modules/@types/bonjour/index.d.ts","../node_modules/@types/mime/index.d.ts","../node_modules/@types/send/index.d.ts","../node_modules/@types/qs/index.d.ts","../node_modules/@types/range-parser/index.d.ts","../node_modules/@types/express-serve-static-core/index.d.ts","../node_modules/@types/connect-history-api-fallback/index.d.ts","../node_modules/@types/estree/index.d.ts","../node_modules/@types/json-schema/index.d.ts","../node_modules/@types/eslint/use-at-your-own-risk.d.ts","../node_modules/@types/eslint/index.d.ts","../node_modules/@types/eslint-scope/index.d.ts","../node_modules/@types/http-errors/index.d.ts","../node_modules/@types/serve-static/index.d.ts","../node_modules/@types/express/node_modules/@types/express-serve-static-core/index.d.ts","../node_modules/@types/express/index.d.ts","../node_modules/@types/minimatch/index.d.ts","../node_modules/@types/glob/index.d.ts","../node_modules/@types/graceful-fs/index.d.ts","../node_modules/@types/html-minifier-terser/index.d.ts","../node_modules/@types/http-proxy/index.d.ts","../node_modules/@types/istanbul-lib-coverage/index.d.ts","../node_modules/@types/istanbul-lib-report/index.d.ts","../node_modules/@types/istanbul-reports/index.d.ts","../node_modules/@types/node-forge/index.d.ts","../node_modules/@types/retry/index.d.ts","../node_modules/@types/serve-index/index.d.ts","../node_modules/@types/sockjs/index.d.ts","../node_modules/@types/stack-utils/index.d.ts","../node_modules/@types/ws/index.d.ts","../node_modules/@types/yargs-parser/index.d.ts","../node_modules/@types/yargs/index.d.ts"],"fileIdsList":[[86,129,184],[86,129],[86,129,184,185,186,187,188],[86,129,184,186],[86,129,141,144,171,178,190,191,192],[86,129,194],[86,129,142,178],[86,129,141,178],[86,126,129],[86,128,129],[129],[86,129,134,163],[86,129,130,135,141,142,149,160,171],[86,129,130,131,141,149],[81,82,83,86,129],[86,129,132,172],[86,129,133,134,142,150],[86,129,134,160,168],[86,129,135,137,141,149],[86,128,129,136],[86,129,137,138],[86,129,141],[86,129,139,141],[86,128,129,141],[86,129,141,142,143,160,171],[86,129,141,142,143,156,160,163],[86,124,129,176],[86,129,137,141,144,149,160,171],[86,129,141,142,144,145,149,160,168,171],[86,129,144,146,160,168,171],[84,85,86,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177],[86,129,141,147],[86,129,148,171,176],[86,129,137,141,149,160],[86,129,150],[86,129,151],[86,128,129,152],[86,126,127,128,129,130,131,132,133,134,135,136,137,138,139,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177],[86,129,154],[86,129,155],[86,129,141,156,157],[86,129,156,158,172,174],[86,129,141,160,161,163],[86,129,162,163],[86,129,160,161],[86,129,163],[86,129,164],[86,126,129,160],[86,129,141,166,167],[86,129,166,167],[86,129,134,149,160,168],[86,129,169],[86,129,149,170],[86,129,144,155,171],[86,129,134,172],[86,129,160,173],[86,129,148,174],[86,129,175],[86,129,134,141,143,152,160,171,174,176],[86,129,160,177],[86,129,203],[86,129,200,201,202],[86,129,144,160,178],[86,129,141,160,178],[86,129,141,142,178],[86,96,100,129,171],[86,96,129,160,171],[86,91,129],[86,93,96,129,168,171],[86,129,149,168],[86,129,178],[86,91,129,178],[86,93,96,129,149,171],[86,88,89,92,95,129,141,160,171],[86,96,103,129],[86,88,94,129],[86,96,117,118,129],[86,92,96,129,163,171,178],[86,117,129,178],[86,90,91,129,178],[86,96,129],[86,90,91,92,93,94,95,96,97,98,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,118,119,120,121,122,123,129],[86,96,111,129],[86,96,103,104,129],[86,94,96,104,105,129],[86,95,129],[86,88,91,96,129],[86,96,100,104,105,129],[86,100,129],[86,94,96,99,129,171],[86,88,93,96,103,129],[86,129,160],[86,91,96,117,129,176,178],[86,129,143,150,151,179,180,181],[86,129,179,181],[86,129,144,178,206],[86,129,135,178],[86,129,171,178,213],[86,129,144,178],[86,129,215,218],[86,129,215,216,217],[86,129,218],[86,129,141,144,178,210,211,212],[86,129,207,211,213,221,222],[86,129,141,142,178,224],[86,129,141,144,146,149,160,171,178],[86,129,229],[86,129,230],[86,129,142,160,178,209],[86,129,142,223],[86,129,144,178,210,220],[86,129,141,144,146,160,168,171,177,178],[86,129,238]],"fileInfos":[{"version":"69684132aeb9b5642cbcd9e22dff7818ff0ee1aa831728af0ecf97d3364d5546","affectsGlobalScope":true,"impliedFormat":1},{"version":"45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4","impliedFormat":1},{"version":"3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75","impliedFormat":1},{"version":"e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962","impliedFormat":1},{"version":"5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8","impliedFormat":1},{"version":"68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7","impliedFormat":1},{"version":"5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4","impliedFormat":1},{"version":"feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569","impliedFormat":1},{"version":"ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2","impliedFormat":1},{"version":"27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10","impliedFormat":1},{"version":"8fd575e12870e9944c7e1d62e1f5a73fcf23dd8d3a321f2a2c74c20d022283fe","impliedFormat":1},{"version":"8bf8b5e44e3c9c36f98e1007e8b7018c0f38d8adc07aecef42f5200114547c70","impliedFormat":1},{"version":"092c2bfe125ce69dbb1223c85d68d4d2397d7d8411867b5cc03cec902c233763","affectsGlobalScope":true,"impliedFormat":1},{"version":"c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671","affectsGlobalScope":true,"impliedFormat":1},{"version":"dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44","affectsGlobalScope":true,"impliedFormat":1},{"version":"515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71","affectsGlobalScope":true,"impliedFormat":1},{"version":"0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3","affectsGlobalScope":true,"impliedFormat":1},{"version":"0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537","affectsGlobalScope":true,"impliedFormat":1},{"version":"ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671","affectsGlobalScope":true,"impliedFormat":1},{"version":"8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0","affectsGlobalScope":true,"impliedFormat":1},{"version":"4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d","affectsGlobalScope":true,"impliedFormat":1},{"version":"936e80ad36a2ee83fc3caf008e7c4c5afe45b3cf3d5c24408f039c1d47bdc1df","affectsGlobalScope":true,"impliedFormat":1},{"version":"d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a","affectsGlobalScope":true,"impliedFormat":1},{"version":"68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618","affectsGlobalScope":true,"impliedFormat":1},{"version":"eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a","affectsGlobalScope":true,"impliedFormat":1},{"version":"38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119","affectsGlobalScope":true,"impliedFormat":1},{"version":"69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e","affectsGlobalScope":true,"impliedFormat":1},{"version":"fef8cfad2e2dc5f5b3d97a6f4f2e92848eb1b88e897bb7318cef0e2820bceaab","affectsGlobalScope":true,"impliedFormat":1},{"version":"2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893","affectsGlobalScope":true,"impliedFormat":1},{"version":"4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc","affectsGlobalScope":true,"impliedFormat":1},{"version":"954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667","affectsGlobalScope":true,"impliedFormat":1},{"version":"ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376","affectsGlobalScope":true,"impliedFormat":1},{"version":"9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb","affectsGlobalScope":true,"impliedFormat":1},{"version":"811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c","affectsGlobalScope":true,"impliedFormat":1},{"version":"717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca","affectsGlobalScope":true,"impliedFormat":1},{"version":"d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2","affectsGlobalScope":true,"impliedFormat":1},{"version":"71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557","affectsGlobalScope":true,"impliedFormat":1},{"version":"576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850","affectsGlobalScope":true,"impliedFormat":1},{"version":"89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6","affectsGlobalScope":true,"impliedFormat":1},{"version":"74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b","affectsGlobalScope":true,"impliedFormat":1},{"version":"d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca","affectsGlobalScope":true,"impliedFormat":1},{"version":"063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df","affectsGlobalScope":true,"impliedFormat":1},{"version":"934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab","affectsGlobalScope":true,"impliedFormat":1},{"version":"52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47","affectsGlobalScope":true,"impliedFormat":1},{"version":"3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6","affectsGlobalScope":true,"impliedFormat":1},{"version":"59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867","affectsGlobalScope":true,"impliedFormat":1},{"version":"639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a","affectsGlobalScope":true,"impliedFormat":1},{"version":"368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1","affectsGlobalScope":true,"impliedFormat":1},{"version":"af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74","affectsGlobalScope":true,"impliedFormat":1},{"version":"995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399","affectsGlobalScope":true,"impliedFormat":1},{"version":"959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a","affectsGlobalScope":true,"impliedFormat":1},{"version":"965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d","affectsGlobalScope":true,"impliedFormat":1},{"version":"3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005","affectsGlobalScope":true,"impliedFormat":1},{"version":"b5ce7a470bc3628408429040c4e3a53a27755022a32fd05e2cb694e7015386c7","affectsGlobalScope":true,"impliedFormat":1},{"version":"8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a","affectsGlobalScope":true,"impliedFormat":1},{"version":"3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004","affectsGlobalScope":true,"impliedFormat":1},{"version":"b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad","affectsGlobalScope":true,"impliedFormat":1},{"version":"df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4","affectsGlobalScope":true,"impliedFormat":1},{"version":"436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a","affectsGlobalScope":true,"impliedFormat":1},{"version":"8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d","affectsGlobalScope":true,"impliedFormat":1},{"version":"87dc0f382502f5bbce5129bdc0aea21e19a3abbc19259e0b43ae038a9fc4e326","affectsGlobalScope":true,"impliedFormat":1},{"version":"b1cb28af0c891c8c96b2d6b7be76bd394fddcfdb4709a20ba05a7c1605eea0f9","affectsGlobalScope":true,"impliedFormat":1},{"version":"2fef54945a13095fdb9b84f705f2b5994597640c46afeb2ce78352fab4cb3279","affectsGlobalScope":true,"impliedFormat":1},{"version":"ac77cb3e8c6d3565793eb90a8373ee8033146315a3dbead3bde8db5eaf5e5ec6","affectsGlobalScope":true,"impliedFormat":1},{"version":"56e4ed5aab5f5920980066a9409bfaf53e6d21d3f8d020c17e4de584d29600ad","affectsGlobalScope":true,"impliedFormat":1},{"version":"4ece9f17b3866cc077099c73f4983bddbcb1dc7ddb943227f1ec070f529dedd1","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a6282c8827e4b9a95f4bf4f5c205673ada31b982f50572d27103df8ceb8013c","affectsGlobalScope":true,"impliedFormat":1},{"version":"1c9319a09485199c1f7b0498f2988d6d2249793ef67edda49d1e584746be9032","affectsGlobalScope":true,"impliedFormat":1},{"version":"e3a2a0cee0f03ffdde24d89660eba2685bfbdeae955a6c67e8c4c9fd28928eeb","affectsGlobalScope":true,"impliedFormat":1},{"version":"811c71eee4aa0ac5f7adf713323a5c41b0cf6c4e17367a34fbce379e12bbf0a4","affectsGlobalScope":true,"impliedFormat":1},{"version":"51ad4c928303041605b4d7ae32e0c1ee387d43a24cd6f1ebf4a2699e1076d4fa","affectsGlobalScope":true,"impliedFormat":1},{"version":"60037901da1a425516449b9a20073aa03386cce92f7a1fd902d7602be3a7c2e9","affectsGlobalScope":true,"impliedFormat":1},{"version":"d4b1d2c51d058fc21ec2629fff7a76249dec2e36e12960ea056e3ef89174080f","affectsGlobalScope":true,"impliedFormat":1},{"version":"22adec94ef7047a6c9d1af3cb96be87a335908bf9ef386ae9fd50eeb37f44c47","affectsGlobalScope":true,"impliedFormat":1},{"version":"4245fee526a7d1754529d19227ecbf3be066ff79ebb6a380d78e41648f2f224d","affectsGlobalScope":true,"impliedFormat":1},{"version":"8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea","affectsGlobalScope":true,"impliedFormat":1},{"version":"782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538","affectsGlobalScope":true,"impliedFormat":1},{"version":"8c51b09def07d64dc1f975abbd73b7017c6e3a377f34f3aaea5abe1cb00779c1","affectsGlobalScope":true},{"version":"70521b6ab0dcba37539e5303104f29b721bfb2940b2776da4cc818c07e1fefc1","affectsGlobalScope":true,"impliedFormat":1},{"version":"ab41ef1f2cdafb8df48be20cd969d875602483859dc194e9c97c8a576892c052","affectsGlobalScope":true,"impliedFormat":1},{"version":"d153a11543fd884b596587ccd97aebbeed950b26933ee000f94009f1ab142848","affectsGlobalScope":true,"impliedFormat":1},{"version":"21d819c173c0cf7cc3ce57c3276e77fd9a8a01d35a06ad87158781515c9a438a","impliedFormat":1},{"version":"a79e62f1e20467e11a904399b8b18b18c0c6eea6b50c1168bf215356d5bebfaf","affectsGlobalScope":true,"impliedFormat":1},{"version":"6b80c6175da9de59bace50a72c2d68490d4ab5b07016ff5367bc7ba33cf2f219","affectsGlobalScope":true,"impliedFormat":1},{"version":"8e9c23ba78aabc2e0a27033f18737a6df754067731e69dc5f52823957d60a4b6","impliedFormat":1},{"version":"5929864ce17fba74232584d90cb721a89b7ad277220627cc97054ba15a98ea8f","impliedFormat":1},{"version":"24bd580b5743dc56402c440dc7f9a4f5d592ad7a419f25414d37a7bfe11e342b","impliedFormat":1},{"version":"25c8056edf4314820382a5fdb4bb7816999acdcb929c8f75e3f39473b87e85bc","impliedFormat":1},{"version":"c464d66b20788266e5353b48dc4aa6bc0dc4a707276df1e7152ab0c9ae21fad8","impliedFormat":1},{"version":"78d0d27c130d35c60b5e5566c9f1e5be77caf39804636bc1a40133919a949f21","impliedFormat":1},{"version":"c6fd2c5a395f2432786c9cb8deb870b9b0e8ff7e22c029954fabdd692bff6195","impliedFormat":1},{"version":"1d6e127068ea8e104a912e42fc0a110e2aa5a66a356a917a163e8cf9a65e4a75","impliedFormat":1},{"version":"5ded6427296cdf3b9542de4471d2aa8d3983671d4cac0f4bf9c637208d1ced43","impliedFormat":1},{"version":"6bdc71028db658243775263e93a7db2fd2abfce3ca569c3cca5aee6ed5eb186d","impliedFormat":1},{"version":"cadc8aced301244057c4e7e73fbcae534b0f5b12a37b150d80e5a45aa4bebcbd","impliedFormat":1},{"version":"385aab901643aa54e1c36f5ef3107913b10d1b5bb8cbcd933d4263b80a0d7f20","impliedFormat":1},{"version":"9670d44354bab9d9982eca21945686b5c24a3f893db73c0dae0fd74217a4c219","impliedFormat":1},{"version":"0b8a9268adaf4da35e7fa830c8981cfa22adbbe5b3f6f5ab91f6658899e657a7","impliedFormat":1},{"version":"11396ed8a44c02ab9798b7dca436009f866e8dae3c9c25e8c1fbc396880bf1bb","impliedFormat":1},{"version":"ba7bc87d01492633cb5a0e5da8a4a42a1c86270e7b3d2dea5d156828a84e4882","impliedFormat":1},{"version":"4893a895ea92c85345017a04ed427cbd6a1710453338df26881a6019432febdd","impliedFormat":1},{"version":"c21dc52e277bcfc75fac0436ccb75c204f9e1b3fa5e12729670910639f27343e","impliedFormat":1},{"version":"13f6f39e12b1518c6650bbb220c8985999020fe0f21d818e28f512b7771d00f9","impliedFormat":1},{"version":"9b5369969f6e7175740bf51223112ff209f94ba43ecd3bb09eefff9fd675624a","impliedFormat":1},{"version":"4fe9e626e7164748e8769bbf74b538e09607f07ed17c2f20af8d680ee49fc1da","impliedFormat":1},{"version":"24515859bc0b836719105bb6cc3d68255042a9f02a6022b3187948b204946bd2","impliedFormat":1},{"version":"ea0148f897b45a76544ae179784c95af1bd6721b8610af9ffa467a518a086a43","impliedFormat":1},{"version":"24c6a117721e606c9984335f71711877293a9651e44f59f3d21c1ea0856f9cc9","impliedFormat":1},{"version":"dd3273ead9fbde62a72949c97dbec2247ea08e0c6952e701a483d74ef92d6a17","impliedFormat":1},{"version":"405822be75ad3e4d162e07439bac80c6bcc6dbae1929e179cf467ec0b9ee4e2e","impliedFormat":1},{"version":"0db18c6e78ea846316c012478888f33c11ffadab9efd1cc8bcc12daded7a60b6","impliedFormat":1},{"version":"4d2b0eb911816f66abe4970898f97a2cfc902bcd743cbfa5017fad79f7ef90d8","impliedFormat":1},{"version":"bd0532fd6556073727d28da0edfd1736417a3f9f394877b6d5ef6ad88fba1d1a","impliedFormat":1},{"version":"89167d696a849fce5ca508032aabfe901c0868f833a8625d5a9c6e861ef935d2","impliedFormat":1},{"version":"e53a3c2a9f624d90f24bf4588aacd223e7bec1b9d0d479b68d2f4a9e6011147f","impliedFormat":1},{"version":"24b8685c62562f5d98615c5a0c1d05f297cf5065f15246edfe99e81ec4c0e011","impliedFormat":1},{"version":"93507c745e8f29090efb99399c3f77bec07db17acd75634249dc92f961573387","impliedFormat":1},{"version":"339dc5265ee5ed92e536a93a04c4ebbc2128f45eeec6ed29f379e0085283542c","impliedFormat":1},{"version":"4732aec92b20fb28c5fe9ad99521fb59974289ed1e45aecb282616202184064f","impliedFormat":1},{"version":"2e85db9e6fd73cfa3d7f28e0ab6b55417ea18931423bd47b409a96e4a169e8e6","impliedFormat":1},{"version":"c46e079fe54c76f95c67fb89081b3e399da2c7d109e7dca8e4b58d83e332e605","impliedFormat":1},{"version":"bf67d53d168abc1298888693338cb82854bdb2e69ef83f8a0092093c2d562107","impliedFormat":1},{"version":"08faa97886e71757779428dd4c69a545c32c85fd629d1116d42710b32c6378bc","affectsGlobalScope":true,"impliedFormat":1},{"version":"6b042aa5d277ad6963e2837179fd2f8fbb01968ac67115b0833c0244e93d1d50","impliedFormat":1},{"version":"7394959e5a741b185456e1ef5d64599c36c60a323207450991e7a42e08911419","impliedFormat":1},{"version":"3d77c73be94570813f8cadd1f05ebc3dc5e2e4fdefe4d340ca20cd018724ee36","impliedFormat":1},{"version":"23cfd70b42094e54cc3c5dab996d81b97e2b6f38ccb24ead85454b8ddfe2fc4f","affectsGlobalScope":true,"impliedFormat":1},{"version":"f3e58c4c18a031cbb17abec7a4ad0bd5ae9fc70c1f4ba1e7fb921ad87c504aca","impliedFormat":1},{"version":"a3e8bafb2af8e850c644f4be7f5156cf7d23b7bfdc3b786bd4d10ed40329649c","impliedFormat":1},{"version":"35ec8b6760fd7138bbf5809b84551e31028fb2ba7b6dc91d95d098bf212ca8b4","affectsGlobalScope":true,"impliedFormat":1},{"version":"5524481e56c48ff486f42926778c0a3cce1cc85dc46683b92b1271865bcf015a","impliedFormat":1},{"version":"4b87f767c7bc841511113c876a6b8bf1fd0cb0b718c888ad84478b372ec486b1","affectsGlobalScope":true,"impliedFormat":1},{"version":"8d04e3640dd9eb67f7f1e5bd3d0bf96c784666f7aefc8ac1537af6f2d38d4c29","impliedFormat":1},{"version":"3c884d9d9ec454bdf0d5a0b8465bf8297d2caa4d853851d92cc417ac6f30b969","impliedFormat":1},{"version":"5a369483ac4cfbdf0331c248deeb36140e6907db5e1daed241546b4a2055f82c","impliedFormat":1},{"version":"e8f5b5cc36615c17d330eaf8eebbc0d6bdd942c25991f96ef122f246f4ff722f","impliedFormat":1},{"version":"f0bd7e6d931657b59605c44112eaf8b980ba7f957a5051ed21cb93d978cf2f45","impliedFormat":1},{"version":"ee1ee365d88c4c6c0c0a5a5701d66ebc27ccd0bcfcfaa482c6e2e7fe7b98edf7","affectsGlobalScope":true,"impliedFormat":1},{"version":"0ada07543808f3b967624645a8e1ccd446f8b01ade47842acf1328aec899fed0","affectsGlobalScope":true,"impliedFormat":1},{"version":"0a37b8d00d03f0381d2db2fe31b0571dc9d7cc0f4b87ca103cc3cd2277690ba0","impliedFormat":1},{"version":"71adf5dbc59568663d252a46179e71e4d544c053978bfc526d11543a3f716f42","impliedFormat":1},{"version":"38bf8ff1b403c861e9052c9ea651cb4f38c1ecc084a34d79f8acc6d6477a7321","impliedFormat":1},{"version":"93bd413918fa921c8729cef45302b24d8b6c7855d72d5bf82d3972595ae8dcbf","impliedFormat":1},{"version":"4ff41188773cbf465807dd2f7059c7494cbee5115608efc297383832a1150c43","impliedFormat":1},{"version":"dccdf1677e531e33f8ac961a68bc537418c9a414797c1ea7e91307501cdc3f5e","impliedFormat":1},{"version":"e184c4b8918ef56c8c9e68bd79f3f3780e2d0d75bf2b8a41da1509a40c2deb46","affectsGlobalScope":true,"impliedFormat":1},{"version":"d206b4baf4ddcc15d9d69a9a2f4999a72a2c6adeaa8af20fa7a9960816287555","impliedFormat":1},{"version":"93f437e1398a4f06a984f441f7fa7a9f0535c04399619b5c22e0b87bdee182cb","impliedFormat":1},{"version":"afbe24ab0d74694372baa632ecb28bb375be53f3be53f9b07ecd7fc994907de5","impliedFormat":1},{"version":"70731d10d5311bd4cf710ef7f6539b62660f4b0bfdbb3f9fbe1d25fe6366a7fa","affectsGlobalScope":true,"impliedFormat":1},{"version":"6b19db3600a17af69d4f33d08cc7076a7d19fb65bb36e442cac58929ec7c9482","affectsGlobalScope":true,"impliedFormat":1},{"version":"9e043a1bc8fbf2a255bccf9bf27e0f1caf916c3b0518ea34aa72357c0afd42ec","impliedFormat":1},{"version":"137c2894e8f3e9672d401cc0a305dc7b1db7c69511cf6d3970fb53302f9eae09","impliedFormat":1},{"version":"3bc2f1e2c95c04048212c569ed38e338873f6a8593930cf5a7ef24ffb38fc3b6","impliedFormat":1},{"version":"8145e07aad6da5f23f2fcd8c8e4c5c13fb26ee986a79d03b0829b8fce152d8b2","impliedFormat":1},{"version":"f9d9d753d430ed050dc1bf2667a1bab711ccbb1c1507183d794cc195a5b085cc","impliedFormat":1},{"version":"9eece5e586312581ccd106d4853e861aaaa1a39f8e3ea672b8c3847eedd12f6e","impliedFormat":1},{"version":"ba1f814c22fd970255ddd60d61fb7e00c28271c933ab5d5cc19cd3ca66b8f57c","impliedFormat":1},{"version":"37ba7b45141a45ce6e80e66f2a96c8a5ab1bcef0fc2d0f56bb58df96ec67e972","impliedFormat":1},{"version":"125d792ec6c0c0f657d758055c494301cc5fdb327d9d9d5960b3f129aff76093","impliedFormat":1},{"version":"295f068af94245ee9d780555351bef98adfd58f8baf0b9dadbc31a489b881f8b","affectsGlobalScope":true,"impliedFormat":1},{"version":"1851a3b4db78664f83901bb9cac9e45e03a37bb5933cc5bf37e10bb7e91ab4eb","impliedFormat":1},{"version":"09d479208911ac3ac6a7c2fe86217fc1abe6c4f04e2d52e4890e500699eeab32","affectsGlobalScope":true,"impliedFormat":1},{"version":"12ed4559eba17cd977aa0db658d25c4047067444b51acfdcbf38470630642b23","affectsGlobalScope":true,"impliedFormat":1},{"version":"f3ffabc95802521e1e4bcba4c88d8615176dc6e09111d920c7a213bdda6e1d65","impliedFormat":1},{"version":"4f029899f9bae07e225c43aef893590541b2b43267383bf5e32e3a884d219ed5","impliedFormat":1},{"version":"ae56f65caf3be91108707bd8dfbccc2a57a91feb5daabf7165a06a945545ed26","impliedFormat":1},{"version":"a136d5de521da20f31631a0a96bf712370779d1c05b7015d7019a9b2a0446ca9","impliedFormat":1},{"version":"5b566927cad2ed2139655d55d690ffa87df378b956e7fe1c96024c4d9f75c4cf","affectsGlobalScope":true,"impliedFormat":1},{"version":"bce947017cb7a2deebcc4f5ba04cead891ce6ad1602a4438ae45ed9aa1f39104","affectsGlobalScope":true,"impliedFormat":1},{"version":"d3dffd70e6375b872f0b4e152de4ae682d762c61a24881ecc5eb9f04c5caf76f","impliedFormat":1},{"version":"e2c72c065a36bc9ab2a00ac6a6f51e71501619a72c0609defd304d46610487a4","impliedFormat":1},{"version":"d91a7d8b5655c42986f1bdfe2105c4408f472831c8f20cf11a8c3345b6b56c8c","impliedFormat":1},{"version":"616075a6ac578cf5a013ee12964188b4412823796ce0b202c6f1d2e4ca8480d7","affectsGlobalScope":true,"impliedFormat":1},{"version":"e8a979b8af001c9fc2e774e7809d233c8ca955a28756f52ee5dee88ccb0611d2","impliedFormat":1},{"version":"cac793cc47c29e26e4ac3601dcb00b4435ebed26203485790e44f2ad8b6ad847","impliedFormat":1},{"version":"deecdc1f3f5ea9548ef73774f412c7af489afeb7dca1c394b5add10e929aff42","affectsGlobalScope":true,"impliedFormat":1},{"version":"f0bb8c099438ad08fc589906658b01e8745b5d836d0bb95b1c70a232ed7340cd","impliedFormat":1},{"version":"55cecc2684158898adf489c3e21778a5de83371499804cc8fd16ffe1bfa86952","signature":"e6dbac159b975f1ffec3f0b71d44df83838e9934c0f8d6e27a84f99a11aef197"},{"version":"fe26f0e1bf9e794321626350e6a4e39bc5bf35600dbeffa36f7491de2a679061","signature":"8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"},{"version":"9d63a9b562c7f877bba620cb4775dd77332c7944c27bf7ab98415449062431bf","signature":"59c8fede0ec9c34ee69a4e8c992babc705c17208784415ad1ac8991a0f507cd5"},{"version":"d50ab0815120231ab511558a753c33b2806b42cabe006356fb0bb763fc30e865","impliedFormat":1},{"version":"b6d03c9cfe2cf0ba4c673c209fcd7c46c815b2619fd2aad59fc4229aaef2ed43","impliedFormat":1},{"version":"32ddc6ad753ae79571bbf28cebff7a383bf7f562ac5ef5d25c94ef7f71609d49","impliedFormat":1},{"version":"670a76db379b27c8ff42f1ba927828a22862e2ab0b0908e38b671f0e912cc5ed","impliedFormat":1},{"version":"81df92841a7a12d551fcbc7e4e83dbb7d54e0c73f33a82162d13e9ae89700079","impliedFormat":1},{"version":"069bebfee29864e3955378107e243508b163e77ab10de6a5ee03ae06939f0bb9","impliedFormat":1},{"version":"42baf4ca38c38deaf411ea73f37bc39ff56c6e5c761a968b64ac1b25c92b5cd8","impliedFormat":1},{"version":"d7dbe0ad36bdca8a6ecf143422a48e72cc8927bab7b23a1a2485c2f78a7022c6","impliedFormat":1},{"version":"8718fa41d7cf4aa91de4e8f164c90f88e0bf343aa92a1b9b725a9c675c64e16b","impliedFormat":1},{"version":"f992cd6cc0bcbaa4e6c810468c90f2d8595f8c6c3cf050c806397d3de8585562","impliedFormat":1},{"version":"fb893a0dfc3c9fb0f9ca93d0648694dd95f33cbad2c0f2c629f842981dfd4e2e","impliedFormat":1},{"version":"3eb11dbf3489064a47a2e1cf9d261b1f100ef0b3b50ffca6c44dd99d6dd81ac1","impliedFormat":1},{"version":"e2b48abff5a8adc6bb1cd13a702b9ef05e6045a98e7cfa95a8779b53b6d0e69d","impliedFormat":1},{"version":"ed19da84b7dbf00952ad0b98ce5c194f1903bcf7c94d8103e8e0d63b271543ae","impliedFormat":1},{"version":"fec943fdb3275eb6e006b35e04a8e2e99e9adf3f4b969ddf15315ac7575a93e4","impliedFormat":1},{"version":"9ef3570c3cc75e652dc75c94908ff9df95ed73b808157f76aed009cc45cc6ff8","impliedFormat":1},{"version":"65ff5a0aefd7817a03c1ad04fee85c9cdd3ec415cc3c9efec85d8008d4d5e4ee","impliedFormat":1},{"version":"36a2e4c9a67439aca5f91bb304611d5ae6e20d420503e96c230cf8fcdc948d94","affectsGlobalScope":true,"impliedFormat":1},{"version":"8a8eb4ebffd85e589a1cc7c178e291626c359543403d58c9cd22b81fab5b1fb9","impliedFormat":1},{"version":"b2546f0fbeae6ef5e232c04100e1d8c49d36d1fff8e4755f663a3e3f06e7f2d6","affectsGlobalScope":true,"impliedFormat":1},{"version":"17ed71200119e86ccef2d96b73b02ce8854b76ad6bd21b5021d4269bec527b5f","impliedFormat":1},{"version":"74d5a87c3616cd5d8691059d531504403aa857e09cbaecb1c64dfb9ace0db185","impliedFormat":1},{"version":"104c67f0da1bdf0d94865419247e20eded83ce7f9911a1aa75fc675c077ca66e","impliedFormat":1},{"version":"cc0d0b339f31ce0ab3b7a5b714d8e578ce698f1e13d7f8c60bfb766baeb1d35c","impliedFormat":1},{"version":"f9e22729fa06ed20f8b1fe60670b7c74933fdfd44d869ddfb1919c15a5cf12fb","impliedFormat":1},{"version":"d3f2d715f57df3f04bf7b16dde01dec10366f64fce44503c92b8f78f614c1769","impliedFormat":1},{"version":"b78cd10245a90e27e62d0558564f5d9a16576294eee724a59ae21b91f9269e4a","impliedFormat":1},{"version":"936eb43a381712a8ec1249f2afc819f6fc7ca68f10dfec71762b428dfdc53bf1","impliedFormat":1},{"version":"2f5747b1508ccf83fad0c251ba1e5da2f5a30b78b09ffa1cfaf633045160afed","impliedFormat":1},{"version":"86ea91bfa7fef1eeb958056f30f1db4e0680bc9b5132e5e9d6e9cfd773c0c4fd","affectsGlobalScope":true,"impliedFormat":1},{"version":"689be50b735f145624c6f391042155ae2ff6b90a93bac11ca5712bc866f6010c","impliedFormat":1},{"version":"785b9d575b49124ce01b46f5b9402157c7611e6532effa562ac6aebec0074dfc","impliedFormat":1},{"version":"f3d8c757e148ad968f0d98697987db363070abada5f503da3c06aefd9d4248c1","impliedFormat":1},{"version":"a4a39b5714adfcadd3bbea6698ca2e942606d833bde62ad5fb6ec55f5e438ff8","impliedFormat":1},{"version":"bbc1d029093135d7d9bfa4b38cbf8761db505026cc458b5e9c8b74f4000e5e75","impliedFormat":1},{"version":"1f68ab0e055994eb337b67aa87d2a15e0200951e9664959b3866ee6f6b11a0fe","impliedFormat":1},{"version":"b71c603a539078a5e3a039b20f2b0a0d1708967530cf97dec8850a9ca45baa2b","impliedFormat":1},{"version":"0e13570a7e86c6d83dd92e81758a930f63747483e2cd34ef36fcdb47d1f9726a","impliedFormat":1},{"version":"a45c25e77c911c1f2a04cade78f6f42b4d7d896a3882d4e226efd3a3fcd5f2c4","affectsGlobalScope":true,"impliedFormat":1},{"version":"5c45abf1e13e4463eacfd5dedda06855da8748a6a6cb3334f582b52e219acc04","impliedFormat":1},{"version":"963d59066dd6742da1918a6213a209bcc205b8ee53b1876ee2b4e6d80f97c85e","impliedFormat":1},{"version":"fd326577c62145816fe1acc306c734c2396487f76719d3785d4e825b34540b33","impliedFormat":1},{"version":"afe73051ff6a03a9565cbd8ebb0e956ee3df5e913ad5c1ded64218aabfa3dcb5","impliedFormat":1},{"version":"ee65fe452abe1309389c5f50710f24114e08a302d40708101c4aa950a2a7d044","impliedFormat":1},{"version":"63786b6f821dee19eb898afb385bd58f1846e6cba593a35edcf9631ace09ba25","impliedFormat":1},{"version":"035a5df183489c2e22f3cf59fc1ed2b043d27f357eecc0eb8d8e840059d44245","impliedFormat":1},{"version":"a4809f4d92317535e6b22b01019437030077a76fec1d93b9881c9ed4738fcc54","impliedFormat":1},{"version":"5f53fa0bd22096d2a78533f94e02c899143b8f0f9891a46965294ee8b91a9434","impliedFormat":1},{"version":"8b5402ae709d042c3530ed3506c135a967159f42aed3221267e70c5b7240b577","impliedFormat":1},{"version":"868c78a84ad3530fc1b6e03da4611405da111bbfb0f1480abe45e801cde0b995","impliedFormat":1},{"version":"ddef25f825320de051dcb0e62ffce621b41c67712b5b4105740c32fd83f4c449","impliedFormat":1},{"version":"1b3dffaa4ca8e38ac434856843505af767a614d187fb3a5ef4fcebb023c355aa","impliedFormat":1},{"version":"ab82804a14454734010dcdcd43f564ff7b0389bee4c5692eec76ff5b30d4cf66","impliedFormat":1},{"version":"eb15edfcef078300657e1d5d678e1944b3518c2dd8f26792fdba2fe29f73d32b","impliedFormat":1},{"version":"bae8d023ef6b23df7da26f51cea44321f95817c190342a36882e93b80d07a960","impliedFormat":1},{"version":"26a770cec4bd2e7dbba95c6e536390fffe83c6268b78974a93727903b515c4e7","impliedFormat":1}],"root":[80,[181,183]],"options":{"allowImportingTsExtensions":false,"composite":true,"esModuleInterop":true,"module":1,"outDir":"./dist-electron","rootDir":"./src","skipLibCheck":false,"strict":true,"target":99},"referencedMap":[[186,1],[184,2],[189,3],[185,1],[187,4],[188,1],[193,5],[195,6],[196,2],[197,7],[191,2],[198,8],[194,2],[126,9],[127,9],[128,10],[86,11],[129,12],[130,13],[131,14],[81,2],[84,15],[82,2],[83,2],[132,16],[133,17],[134,18],[135,19],[136,20],[137,21],[138,21],[140,22],[139,23],[141,24],[142,25],[143,26],[125,27],[85,2],[144,28],[145,29],[146,30],[178,31],[147,32],[148,33],[149,34],[150,35],[151,36],[152,37],[153,38],[154,39],[155,40],[156,41],[157,41],[158,42],[159,2],[160,43],[162,44],[161,45],[163,46],[164,47],[165,48],[166,49],[167,50],[168,51],[169,52],[170,53],[171,54],[172,55],[173,56],[174,57],[175,58],[176,59],[177,60],[199,2],[200,2],[204,61],[201,2],[203,62],[192,63],[205,64],[87,2],[202,2],[179,65],[190,22],[180,2],[78,2],[79,2],[13,2],[15,2],[14,2],[2,2],[16,2],[17,2],[18,2],[19,2],[20,2],[21,2],[22,2],[23,2],[3,2],[24,2],[25,2],[4,2],[26,2],[30,2],[27,2],[28,2],[29,2],[31,2],[32,2],[33,2],[5,2],[34,2],[35,2],[36,2],[37,2],[6,2],[41,2],[38,2],[39,2],[40,2],[42,2],[7,2],[43,2],[48,2],[49,2],[44,2],[45,2],[46,2],[47,2],[8,2],[53,2],[50,2],[51,2],[52,2],[54,2],[9,2],[55,2],[56,2],[57,2],[59,2],[58,2],[60,2],[61,2],[10,2],[62,2],[63,2],[64,2],[11,2],[65,2],[66,2],[67,2],[68,2],[69,2],[1,2],[70,2],[71,2],[12,2],[75,2],[73,2],[77,2],[72,2],[76,2],[74,2],[103,66],[113,67],[102,66],[123,68],[94,69],[93,70],[122,71],[116,72],[121,73],[96,74],[110,75],[95,76],[119,77],[91,78],[90,71],[120,79],[92,80],[97,81],[98,2],[101,81],[88,2],[124,82],[114,83],[105,84],[106,85],[108,86],[104,87],[107,88],[117,71],[99,89],[100,90],[109,91],[89,92],[112,83],[111,81],[115,2],[118,93],[80,2],[182,94],[183,95],[181,2],[207,96],[208,97],[214,98],[206,99],[219,100],[218,101],[217,102],[215,2],[213,103],[223,104],[222,103],[225,105],[226,7],[227,2],[220,2],[228,106],[229,2],[230,107],[231,108],[216,2],[209,2],[224,2],[232,71],[211,2],[212,2],[233,2],[210,109],[234,110],[221,111],[235,99],[236,2],[237,112],[238,2],[239,113]],"latestChangedDtsFile":"./dist-electron/shared.types.d.ts","version":"5.8.3"}
 --- END FILE: tsconfig.node.tsbuildinfo ---
 
 --- START FILE: tsconfig.json ---
@@ -482,25 +482,25 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
 
     const openFile = useCallback(async (filePath: string) => {
         console.log(`EditorContext: Request to open file - ${filePath}`);
-        setIsLoading(true);
+        setIsLoading(true); // <<< SET LOADING TRUE
+        console.log('EditorContext: isLoading set to TRUE (openFile start)'); // <<< ADD LOG
         setError(null);
         setIsDirty(false); // Reset dirty state on open
         setCurrentFilePath(filePath);
-        setCurrentFileContent('');
+        setCurrentFileContent(''); // Clear content immediately
 
         try {
             const response: ReadFileResponse = await window.electronAPI.fs_readFile(filePath);
             if (response.success) {
                 console.log(`EditorContext: File loaded successfully - ${filePath}`);
                 setCurrentFileContent(response.content);
-                // Reset dirty again after successful load, in case of race conditions
-                setIsDirty(false);
+                setIsDirty(false); // Reset dirty again after successful load
             } else {
                 console.error(`EditorContext: Failed to read file ${filePath}:`, response.error);
                 setError(`Error loading file: ${response.error}`);
                 setCurrentFileContent(`// Error loading file: ${response.error}`);
                 setCurrentFilePath(null);
-                setIsDirty(false); // Not dirty if load failed
+                setIsDirty(false);
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
@@ -508,28 +508,23 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
             setError(`IPC Error: ${errorMsg}`);
             setCurrentFileContent(`// IPC Error loading file: ${errorMsg}`);
             setCurrentFilePath(null);
-            setIsDirty(false); // Not dirty if IPC failed
+            setIsDirty(false);
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // <<< SET LOADING FALSE
+            console.log('EditorContext: isLoading set to FALSE (openFile finally)'); // <<< ADD LOG
         }
     }, []); // Dependencies are empty
 
-    // --- NEW: Function to explicitly set dirty state ---
     const markAsDirty = useCallback((dirty: boolean) => {
-        // Only mark as dirty if not already dirty, to avoid unnecessary re-renders
-        // Or always update if caller explicitly sets to false (e.g., after save)
          if (dirty !== isDirty) {
             console.log(`EditorContext: Setting dirty state to ${dirty}`);
             setIsDirty(dirty);
          }
-
     }, [isDirty]); // Dependency on isDirty
 
-    // --- NEW: Function to save the current file ---
     const saveCurrentFile = useCallback(async (content: string) => {
         if (!currentFilePath) {
             console.warn("EditorContext: Cannot save, no file path specified.");
-            // TODO: Implement "Save As..." functionality later
             setError("Cannot save: No file is currently open.");
             return;
         }
@@ -539,14 +534,15 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         }
 
         console.log(`EditorContext: Request to save file - ${currentFilePath}`);
-        setIsLoading(true); // Show loading state during save
+        setIsLoading(true); // <<< SET LOADING TRUE
+        console.log('EditorContext: isLoading set to TRUE (saveCurrentFile start)'); // <<< ADD LOG
         setError(null);
 
         try {
             const response: SaveFileResponse = await window.electronAPI.fs_saveFile(currentFilePath, content);
             if (response.success) {
                 console.log(`EditorContext: File saved successfully - ${currentFilePath}`);
-                setCurrentFileContent(content); // Update context content to match saved state
+                setCurrentFileContent(content);
                 setIsDirty(false); // Mark as not dirty after successful save
             } else {
                 console.error(`EditorContext: Failed to save file ${currentFilePath}:`, response.error);
@@ -559,7 +555,8 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
             setError(`IPC Error saving file: ${errorMsg}`);
             // Keep isDirty true because save failed
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // <<< SET LOADING FALSE
+            console.log('EditorContext: isLoading set to FALSE (saveCurrentFile finally)'); // <<< ADD LOG
         }
     }, [currentFilePath, isDirty]); // Dependencies for save function
 
@@ -570,12 +567,12 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         openFile,
         isLoading,
         error,
-        isDirty,        // Expose isDirty state
-        markAsDirty,    // Expose function to set dirty state
-        saveCurrentFile // Expose save function
+        isDirty,
+        markAsDirty,
+        saveCurrentFile
     }), [
         currentFilePath, currentFileContent, openFile, isLoading, error,
-        isDirty, markAsDirty, saveCurrentFile // Include new values in dependencies
+        isDirty, markAsDirty, saveCurrentFile
     ]);
 
     return (
@@ -2173,18 +2170,19 @@ export default TerminalPanel;
 
 --- START FILE: src/renderer/components/Sidebar.tsx ---
 // --- START FILE: src/renderer/components/Sidebar.tsx ---
-import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
-import path from 'path-browserify'; // Use browser-compatible path module
+import React, { useState, useEffect, useCallback } from 'react';
+import path from 'path-browserify';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
 import { useEditor } from '../contexts/EditorContext';
 import CustomSelect from './CustomSelect';
-import FileTreeNode from './FileTreeNode'; // Import the new component
+import FileTreeNode from './FileTreeNode';
 import type { DirectoryEntry } from '../../shared.types';
+import { FaFolderOpen, FaLevelUpAlt } from 'react-icons/fa'; // Correct icons
 
-// Define the options for the custom select - ADD NEW THEMES HERE
+// (Keep themeOptions definition as before)
 const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark (VS Code)' },
+  { value: 'dark', label: 'Dark' },
   { value: 'win95', label: 'Windows 95' },
   { value: 'pipboy', label: 'Pip-Boy' },
   { value: 'mirc', label: 'mIRC' },
@@ -2196,26 +2194,25 @@ const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'bw_tv', label: 'B&W TV' },
 ];
 
+
 const Sidebar: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const { openFile } = useEditor(); // Get openFile function from context
+  const { openFile } = useEditor();
   const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
   const [rootDirectoryEntries, setRootDirectoryEntries] = useState<DirectoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  // NEW: State to track expanded folders (path -> boolean)
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
 
   const handleOpenFolder = async () => {
     console.log('Requesting to open directory...');
-    setError(null); // Clear previous errors
-    setExpandedFolders({}); // Reset expanded state when opening a new root
+    setError(null);
+    setExpandedFolders({});
     try {
       const folderPath = await window.electronAPI.dialog_openDirectory();
       if (folderPath) {
         console.log(`Folder selected: ${folderPath}`);
         setCurrentFolderPath(folderPath);
-        // Directory reading will be triggered by the useEffect below
       } else {
         console.log('Folder selection cancelled.');
       }
@@ -2225,8 +2222,8 @@ const Sidebar: React.FC = () => {
     }
   };
 
-  // Effect to read the ROOT directory contents when folder path changes
-  useEffect(() => {
+  // (Keep useEffect for reading directory as before)
+   useEffect(() => {
     if (currentFolderPath) {
       console.log(`Reading ROOT directory: ${currentFolderPath}`);
       setIsLoading(true);
@@ -2250,50 +2247,43 @@ const Sidebar: React.FC = () => {
           setIsLoading(false);
         });
     } else {
-      // Clear entries if no folder is selected
       setRootDirectoryEntries([]);
     }
-    // Only depends on the root folder path
   }, [currentFolderPath]);
 
-  // --- NEW: Toggle Folder Expansion ---
+
+  // (Keep toggleFolderExpansion as before)
   const toggleFolderExpansion = useCallback((folderPath: string) => {
     setExpandedFolders(prev => ({
       ...prev,
-      [folderPath]: !prev[folderPath], // Toggle the specific path
+      [folderPath]: !prev[folderPath],
     }));
-  }, []); // No dependencies, it only uses the callback form of setState
+  }, []);
 
-  // --- NEW: Navigate Up ---
+  // (Keep handleGoUp as before)
   const handleGoUp = () => {
     if (currentFolderPath) {
-        // Use path-browserify for dirname
         const parentPath = path.dirname(currentFolderPath);
-        // Basic check to prevent going above root (e.g., '/' or 'C:\')
-        // This might need refinement depending on OS specifics if path.dirname('/') behaves differently
         if (parentPath !== currentFolderPath) {
             console.log(`Navigating up to: ${parentPath}`);
             setCurrentFolderPath(parentPath);
-            setExpandedFolders({}); // Collapse all when going up for simplicity
+            setExpandedFolders({});
         } else {
              console.log("Already at root, cannot go up further.");
         }
     }
   };
 
-
-  // Click handler passed down to nodes
-  const handleEntryClick = useCallback((entry: DirectoryEntry) => {
+  // (Keep handleEntryClick as before)
+   const handleEntryClick = useCallback((entry: DirectoryEntry) => {
     if (entry.isDirectory) {
-      // Toggle expansion when a directory is clicked
       toggleFolderExpansion(entry.path);
     } else {
-      // Open file when a file is clicked
       openFile(entry.path).catch(err => {
           console.error("Error returned from openFile call:", err);
       });
     }
-  }, [toggleFolderExpansion, openFile]); // Dependencies
+  }, [toggleFolderExpansion, openFile]);
 
 
   return (
@@ -2301,71 +2291,74 @@ const Sidebar: React.FC = () => {
       {/* Header and Open Folder Button */}
       <div className="sidebar-header">
         <h2>Files</h2>
-        <button onClick={handleOpenFolder} title="Open Folder...">
-           📂 Open...
+        {/* *** Add text back, keep icon, adjust padding/style via CSS *** */}
+        <button
+          onClick={handleOpenFolder}
+          title="Open Folder..."
+          aria-label="Open Folder"
+          className="open-folder-button" // Add specific class for styling
+        >
+          <FaFolderOpen />
+          <span style={{ marginLeft: 'var(--spacing-xs)' }}>Open...</span> {/* Add text with space */}
         </button>
       </div>
 
-      {/* --- NEW: Up Button and Current Path --- */}
+      {/* Navigation Controls */}
       {currentFolderPath && (
         <div className="navigation-controls">
+           {/* *** Use FaLevelUpAlt Icon, style as icon-only via CSS *** */}
            <button
              onClick={handleGoUp}
-             // Disable if parent is same as current (simple root check)
              disabled={!currentFolderPath || path.dirname(currentFolderPath) === currentFolderPath}
              title="Go Up One Level"
-             className="up-button"
+             aria-label="Go Up One Level"
+             className="up-button icon-button" // Add specific class for icon-only styling
            >
-             ⬆️ Up
+             <FaLevelUpAlt />
            </button>
            <div className="current-folder-path" title={currentFolderPath}>
-             {/* Display only the base name of the current folder for brevity? Or full path? */}
-             {/* <small>{path.basename(currentFolderPath)}</small> */}
-              <small>{currentFolderPath}</small> {/* Show full path for now */}
+              <small>{currentFolderPath}</small>
            </div>
         </div>
       )}
 
-      {/* --- MODIFIED: File Tree Area --- */}
+      {/* File Tree Area */}
       <div className="file-tree">
         {isLoading && <p>Loading root...</p>}
         {error && <p className="error-message">Error: {error}</p>}
         {!isLoading && !error && rootDirectoryEntries.length === 0 && !currentFolderPath && (
-          <p className="placeholder-message">Click "Open..." to browse files.</p>
+           <p className="placeholder-message">Click the <FaFolderOpen style={{ verticalAlign: 'middle', margin: '0 2px'}} /> <span style={{ verticalAlign: 'middle' }}>Open...</span> button to browse files.</p>
         )}
         {!isLoading && !error && rootDirectoryEntries.length === 0 && currentFolderPath && (
           <p className="placeholder-message">Folder is empty.</p>
         )}
-        {/* Use FileTreeNode for rendering */}
         <ul>
           {rootDirectoryEntries.map((entry) => (
             <FileTreeNode
               key={entry.path}
               entry={entry}
-              // Pass down the expanded state for *this specific* node
               isExpanded={!!expandedFolders[entry.path]}
-              // Pass down the *entire* map for child lookups
               allExpandedFolders={expandedFolders}
-              onToggleExpand={toggleFolderExpansion} // Can be used by node too if needed later
-              onEntryClick={handleEntryClick} // Pass click handler
-              level={0} // Starting level
+              onToggleExpand={toggleFolderExpansion}
+              onEntryClick={handleEntryClick}
+              level={0}
             />
           ))}
         </ul>
       </div>
 
-      {/* Theme Switcher Section - At the bottom */}
+      {/* (Keep Theme Switcher as before) */}
       <div className="theme-switcher">
-        <label id="theme-select-label" htmlFor="theme-select">
-          Theme:
-        </label>
-        <CustomSelect<ThemeName>
-          labelId="theme-select-label"
-          options={themeOptions}
-          value={theme}
-          onChange={(newTheme) => setTheme(newTheme)}
-        />
-      </div>
+         <label id="theme-select-label" htmlFor="theme-select">
+           Theme:
+         </label>
+         <CustomSelect<ThemeName>
+           labelId="theme-select-label"
+           options={themeOptions}
+           value={theme}
+           onChange={(newTheme) => setTheme(newTheme)}
+         />
+       </div>
     </div>
   );
 };
@@ -2577,11 +2570,11 @@ export default FileTreeNode;
 
 --- START FILE: src/renderer/components/EditorPanel.tsx ---
 // --- START FILE: src/renderer/components/EditorPanel.tsx ---
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'; // Import useMemoimport MonacoEditor from 'react-monaco-editor';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react'; // Removed useState
+import MonacoEditor from 'react-monaco-editor';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
 import { useEditor } from '../contexts/EditorContext';
-import MonacoEditor from 'react-monaco-editor';
 
 // Helper function to safely get and parse font size from CSS variable
 const getEditorFontSize = (): number => {
@@ -2637,23 +2630,25 @@ const EditorPanel: React.FC = () => {
     const { theme } = useTheme();
     const {
         currentFilePath,
-        currentFileContent,
+        currentFileContent, // This is the "canonical" content from the file
         isLoading,
-        error: editorContextError, // Renamed to avoid conflict
+        error: editorContextError,
         isDirty,
         markAsDirty,
         saveCurrentFile,
     } = useEditor();
 
-    const [editorValue, setEditorValue] = useState<string>(
-        '// Welcome to CodeCraft IDE!\n// Click "Open..." or a file in the sidebar.'
-    );
+    // REMOVED: const [editorValue, setEditorValue] = useState<string>(...);
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoRef = useRef<typeof monaco | null>(null);
-    const initialContentLoadedRef = useRef<boolean>(false);
+    // Keep track if the editor model has been initialized with file content
+    const isModelInitialized = useRef<boolean>(false);
+    // Ref to store the change listener disposable to clean it up
+    const changeListenerDisposable = useRef<monaco.IDisposable | null>(null);
+
 
     // Map app theme names to Monaco theme names
-     const getMonacoThemeName = useCallback((currentTheme: ThemeName): string => {
+    const getMonacoThemeName = useCallback((currentTheme: ThemeName): string => {
         switch (currentTheme) {
             case 'light': return 'vs';
             case 'dark': return 'vs-dark';
@@ -2668,28 +2663,36 @@ const EditorPanel: React.FC = () => {
             case 'bw_tv': return 'bw-tv-monaco-theme';
             default: return 'vs-dark';
         }
-    }, []); // No dependencies needed
+    }, []);
 
     const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
         selectOnLineNumbers: true,
-        automaticLayout: true, // Recalculates layout on container resize
+        automaticLayout: true,
         fontFamily: 'var(--font-family-mono)',
-        fontSize: getEditorFontSize(), // Recalculate on theme change potentially
+        fontSize: getEditorFontSize(),
         minimap: { enabled: true },
         wordWrap: 'on',
         scrollBeyondLastLine: false,
-        readOnly: isLoading, // Update readOnly state based on loading
-        // Theme is set dynamically in useEffect
-    }), [isLoading]); // fontSize could be added if needed, but CSS var change triggers redraw anyway
+        readOnly: isLoading,
+        // --- Ensure 'value' is NOT set here ---
+    }), [isLoading]);
 
 
-    const handleEditorChange = useCallback((newValue: string) => {
-        setEditorValue(newValue);
-        // Check ref *before* comparing content to avoid marking dirty during initial load
-        if (initialContentLoadedRef.current && newValue !== currentFileContent) {
-             markAsDirty(true);
+    // --- Modified onChange Handler Logic ---
+    // This is the function called BY the editor's internal change event
+    const handleInternalChange = useCallback(() => {
+        const editor = editorRef.current;
+        // Check if the editor exists, the model is initialized, and we have canonical content
+        if (editor && isModelInitialized.current && currentFileContent !== null) {
+            const currentEditorValue = editor.getValue();
+            const shouldBeDirty = currentEditorValue !== currentFileContent;
+            // Only call markAsDirty if the state needs to change
+            if (shouldBeDirty !== isDirty) {
+                 console.log(`handleInternalChange: Setting dirty state to ${shouldBeDirty}`);
+                 markAsDirty(shouldBeDirty);
+            }
         }
-    }, [currentFileContent, markAsDirty]);
+    }, [currentFileContent, markAsDirty, isDirty]); // Depends on context content and dirty state
 
 
     const editorDidMount = useCallback((
@@ -2699,16 +2702,24 @@ const EditorPanel: React.FC = () => {
         console.log('Editor mounted!');
         editorRef.current = editor;
         monacoRef.current = monacoInstance;
-        initialContentLoadedRef.current = false;
+        isModelInitialized.current = false; // Model not initialized yet
 
-        // Helper to define Monaco themes using CSS variables (ensure getCssVar is used)
-        const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
+        // --- Dispose previous listener if component remounts unexpectedly ---
+        if (changeListenerDisposable.current) {
+            console.warn("Remount detected, disposing previous change listener.");
+            changeListenerDisposable.current.dispose();
+            changeListenerDisposable.current = null;
+        }
+
+
+        // Define themes ...
+         const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
              try {
                  monacoInstance.editor.defineTheme(name, {
                      base: base,
                      inherit: true,
-                     rules: [], // Keep rules empty for simplicity, inherit from base
-                     colors: { // Use getCssVar for colors
+                     rules: [],
+                     colors: {
                          'editor.background': getCssVar(`--${cssVarPrefix}-bg`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
                          'editor.foreground': getCssVar(`--${cssVarPrefix}-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
                          'editorCursor.foreground': getCssVar(`--${cssVarPrefix}-accent`, base === 'vs' ? '#000000' : '#aeafad'),
@@ -2724,13 +2735,11 @@ const EditorPanel: React.FC = () => {
                          ...colorsOverride
                      }
                  });
-                 console.log(`Defined Monaco theme: ${name}`);
+                 // console.log(`Defined Monaco theme: ${name}`); // Less verbose log
              } catch (error) {
                  console.error(`Failed to define Monaco theme '${name}':`, error);
              }
          };
-
-        // --- Define Custom Monaco Themes (using getCssVar via defineTheme) ---
         defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f'), 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
         defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff'), });
         defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff'), });
@@ -2742,83 +2751,133 @@ const EditorPanel: React.FC = () => {
         defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv', { 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), 'editor.selectionForeground': getCssVar('--bw-black', '#000000'), });
 
 
-        // Apply the initial theme
-        const initialThemeName = getMonacoThemeName(theme);
-        monacoInstance.editor.setTheme(initialThemeName);
-        console.log("Initial Monaco theme set to:", initialThemeName);
-
-        // Apply initial font size
+        // Apply the initial theme & font size
+        monacoInstance.editor.setTheme(getMonacoThemeName(theme));
         editor.updateOptions({ fontSize: getEditorFontSize() });
 
-        // Set initial content carefully
+        // Set initial value DIRECTLY in Monaco model (if context provides it)
+        // This avoids triggering the change listener unnecessarily
         if (currentFileContent !== null) {
-             editor.setValue(currentFileContent);
-             setEditorValue(currentFileContent); // Sync local state
-             initialContentLoadedRef.current = true;
-             const initialLanguage = getLanguageFromPath(currentFilePath);
-             monacoInstance.editor.setModelLanguage(editor.getModel()!, initialLanguage);
-             markAsDirty(false);
+            console.log("EditorDidMount: Setting initial model value from context.");
+            editor.setValue(currentFileContent);
+            isModelInitialized.current = true;
+            const initialLanguage = getLanguageFromPath(currentFilePath);
+            // Correct usage for setting initial language
+            monacoInstance.editor.setModelLanguage(editor.getModel()!, initialLanguage);
+            markAsDirty(false); // Start clean
         } else {
-             editor.setValue(editorValue); // Use placeholder from state
-             initialContentLoadedRef.current = false;
-             markAsDirty(false);
+            console.log("EditorDidMount: No initial context content, setting placeholder.");
+            editor.setValue('// Welcome to CodeCraft IDE!\n// Click "Open..." or a file in the sidebar.');
+            isModelInitialized.current = false;
+            markAsDirty(false); // Start clean
         }
+        // Reset undo stack after potentially setting initial value
+        editor.getModel()?.pushStackElement();
 
-         // Add keyboard shortcut for saving
-         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-             console.log('Save shortcut pressed (Ctrl/Cmd + S)');
-             // Use editorValue (local state) which reflects current unsaved content
-             const contentToSave = editor.getValue();
-             if (currentFilePath && (isDirty || contentToSave !== currentFileContent)) { // Save if dirty or if local differs from context (edge case)
+
+        // --- Attach the SINGLE onChange listener ---
+        // Store the disposable to remove the listener on unmount
+        changeListenerDisposable.current = editor.onDidChangeModelContent(() => {
+            // Call the memoized handler function
+            handleInternalChange();
+        });
+        console.log("EditorDidMount: Attached onDidChangeModelContent listener.");
+
+
+        // Add keyboard shortcut for saving
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+             const editorInstance = editorRef.current;
+             if (!editorInstance) return;
+
+             const contentToSave = editorInstance.getValue();
+             if (currentFilePath && isDirty) { // Use the isDirty flag from context
+                 console.log("Ctrl+S: Saving dirty file...");
                  saveCurrentFile(contentToSave)
                      .catch(err => console.error("Error during save operation:", err));
              } else if (!isDirty) {
-                 console.log("Save shortcut ignored: No changes detected.");
+                 console.log("Ctrl+S: No changes to save.");
              } else {
-                  console.log("Save shortcut ignored: No file path.");
+                 console.log("Ctrl+S: No file path to save to.");
              }
          });
 
         editor.focus();
-    // Add theme dependency for theme name calculation, markAsDirty for setting initial state
-    }, [theme, currentFileContent, currentFilePath, markAsDirty, getMonacoThemeName, saveCurrentFile, editorValue, isDirty]);
+
+        // Cleanup function for this effect
+        return () => {
+             console.log("Editor unmounting, disposing change listener.");
+             if (changeListenerDisposable.current) {
+                changeListenerDisposable.current.dispose();
+                changeListenerDisposable.current = null;
+             }
+             // Reset editor ref on unmount
+             editorRef.current = null;
+             monacoRef.current = null;
+        };
+    // Dependencies: Only include things that fundamentally change how the editor is SETUP
+    // or how its listeners behave. Avoid context values that change frequently.
+    }, [theme, getMonacoThemeName, saveCurrentFile, handleInternalChange, markAsDirty, isDirty, currentFileContent, currentFilePath]); // Added context values needed for initial setup
 
 
-    // Effect to update editor when file content/path changes in context (external load)
+    // --- Effect to update editor ONLY when context content/path changes (external load/save) ---
     useEffect(() => {
         const editor = editorRef.current;
         const monaco = monacoRef.current;
 
-        if (editor && monaco && currentFileContent !== null && currentFileContent !== editor.getValue()) {
-            console.log("EditorContext changed (external load/save), updating editor value and language.");
-            editor.setValue(currentFileContent);
-            setEditorValue(currentFileContent); // Sync local state
-            initialContentLoadedRef.current = true; // Mark content loaded
+        if (!editor || !monaco) return;
 
+        // --- Condition 1: Context has NEW valid content ---
+        // Check if context has content AND (model isn't initialized OR context differs from model)
+        if (currentFileContent !== null && (!isModelInitialized.current || currentFileContent !== editor.getValue())) {
+            console.log("Context content changed externally OR initial load. Updating editor model.");
+
+            // Store cursor position before setting value
+            const currentPosition = editor.getPosition();
+
+            editor.setValue(currentFileContent); // Update the editor's internal model
+
+            // Try to restore cursor position after setting value
+            if (currentPosition && isModelInitialized.current) { // Only restore if not initial load
+                // Enqueue restoration to run after Monaco processes setValue
+                setTimeout(() => {
+                     editorRef.current?.setPosition(currentPosition);
+                }, 0);
+            }
+
+            isModelInitialized.current = true; // Mark model as initialized
+
+            // Update language model
             const newLanguage = getLanguageFromPath(currentFilePath);
             const model = editor.getModel();
-            if (model) {
-                monaco.editor.setModelLanguage(model, newLanguage);
+            // Check if model exists AND its current language ID is different
+            if (model && model.getLanguageId() !== newLanguage) { // <<< CORRECTED CHECK
+                monaco.editor.setModelLanguage(model, newLanguage); // Use setModelLanguage here
                 console.log(`Editor language set to: ${newLanguage}`);
             }
-            // Reset undo stack for the new file (or after save)
-            editor.getModel()?.pushStackElement();
-            markAsDirty(false); // Explicitly mark as not dirty after external load/save
-        } else if (editor && monaco && currentFileContent === null && currentFilePath === null && initialContentLoadedRef.current) {
-             // Context cleared after a file was loaded
-             const placeholder = "// No file open or error occurred.";
-             editor.setValue(placeholder);
-             setEditorValue(placeholder);
+
+
+            // Reset undo stack & mark clean ONLY if it wasn't just the initial load
+            if (isModelInitialized.current) {
+                editor.getModel()?.pushStackElement();
+            }
+            markAsDirty(false);
+        }
+        // --- Condition 2: Context was cleared (e.g., error, close file) ---
+        else if (currentFileContent === null && currentFilePath === null && isModelInitialized.current) {
+             console.log("Context cleared. Resetting editor to placeholder.");
+             editor.setValue("// No file open or error occurred.");
              monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
-             initialContentLoadedRef.current = false;
+             isModelInitialized.current = false;
              markAsDirty(false);
         }
 
-        // Update readOnly state (handled in editorOptions and re-evaluated via useMemo)
-        if (editor) {
-            editor.updateOptions({ readOnly: isLoading });
+        // --- Condition 3: Update readOnly based on isLoading ---
+        if (editor.getOption(monaco.editor.EditorOption.readOnly) !== isLoading) {
+             console.log(`Updating editor readOnly state to: ${isLoading}`);
+             editor.updateOptions({ readOnly: isLoading });
         }
 
+    // React ONLY to external context changes
     }, [currentFilePath, currentFileContent, isLoading, markAsDirty]);
 
 
@@ -2827,38 +2886,27 @@ const EditorPanel: React.FC = () => {
         const editor = editorRef.current;
         const monaco = monacoRef.current;
         if (editor && monaco) {
-            const newThemeName = getMonacoThemeName(theme);
-            monaco.editor.setTheme(newThemeName);
-            editor.updateOptions({ fontSize: getEditorFontSize() }); // Update font size too
+            monaco.editor.setTheme(getMonacoThemeName(theme));
+            editor.updateOptions({ fontSize: getEditorFontSize() });
         }
-    }, [theme, getMonacoThemeName]); // Add getMonacoThemeName dependency
-
-
-    // Effect for logging dirty state (no changes needed here)
-    useEffect(() => {
-        if (isDirty) {
-            console.log("Editor state: Dirty (unsaved changes)");
-        } else {
-             console.log("Editor state: Clean (no unsaved changes)");
-        }
-    }, [isDirty]);
+    }, [theme, getMonacoThemeName]);
 
 
     return (
         <div className="editor-panel">
-            {/* Simple error display from context */}
+            {/* Display Context Error */}
             {editorContextError && <div style={{ position: 'absolute', top: '25px', left:'10px', color: 'var(--color-text-error)', background: 'var(--color-bg-main)', padding: '2px 5px', zIndex: 1, border: '1px solid var(--color-text-error)', borderRadius: '3px', fontSize: '11px'}}>Error: {editorContextError}</div>}
+            {/* Display Dirty Indicator (driven by context's isDirty) */}
             {isDirty && <span style={{ position: 'absolute', top: '5px', right: '10px', color: 'var(--color-text-accent)', fontSize: '10px', zIndex: 1 }}>● Unsaved</span>}
+
             <MonacoEditor
                 width="100%"
                 height="100%"
-                // Determine language based on currentFilePath from context
-                language={getLanguageFromPath(currentFilePath)}
-                // Use local editorValue state for the editor's content
-                value={editorValue}
-                options={editorOptions} // Use memoized options
-                onChange={handleEditorChange} // Use callback version
-                editorDidMount={editorDidMount} // Use callback version
+                language={getLanguageFromPath(currentFilePath)} // Needed for initial setup
+                // value prop REMOVED
+                options={editorOptions}
+                // onChange prop REMOVED
+                editorDidMount={editorDidMount} // Sets up editor and internal listener
             />
         </div>
     );
@@ -3056,232 +3104,252 @@ export default CustomSelect;
 /* src/renderer/App.css */
 
 .app-container {
-  /* REMOVE display: flex; */
-  height: 100%;  /* Crucial: Take full viewport height */
-  width: 100%;
-  background-color: var(--color-bg-app);
-  overflow: hidden; /* Prevent body scrollbars */
-}
-
-.sidebar {
-  /* REMOVE width: var(--sidebar-width); */
-  /* REMOVE flex-shrink: 0; */
-  background-color: var(--color-bg-sidebar);
-  /* REMOVE border-right: var(--border-standard); */ /* Allotment sash will overlay this */
-  /* padding: var(--spacing-md); */ /* Move padding to inner elements if needed */
-  height: 100%; /* Still needed to fill the Allotment.Pane vertically */
-  color: var(--color-text-primary);
-  display: flex; /* Still needed for internal layout (stacking elements) */
-  flex-direction: column; /* Stack elements vertically */
-  overflow: hidden; /* Hide overflow, internal elements scroll */
-}
-
-/* Sidebar Header */
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md); /* Add padding here */
-  border-bottom: var(--border-standard);
-  flex-shrink: 0; /* Prevent header from shrinking */
-}
-
-.sidebar-header h2 {
-  margin: 0; /* Remove default margin */
-  font-size: var(--font-size-lg);
-  color: var(--color-text-heading);
-}
-
-.sidebar-header button {
-   font-size: var(--font-size-sm);
-   padding: var(--spacing-xxs) var(--spacing-xs); /* Smaller button */
-}
-
-/* Navigation Controls */
-.navigation-controls {
+    height: 100%;
+    width: 100%;
+    background-color: var(--color-bg-app);
+    overflow: hidden;
+  }
+  
+  .sidebar {
+    background-color: var(--color-bg-sidebar);
+    height: 100%;
+    color: var(--color-text-primary);
     display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* Sidebar Header */
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-xs) var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md); /* Adjusted padding slightly */
     border-bottom: var(--border-standard);
-    flex-shrink: 0; /* Prevent shrinking */
-    gap: var(--spacing-sm); /* Add gap between button and path */
-    min-height: 30px; /* Ensure it has some height */
-}
-
-.navigation-controls .up-button {
-    padding: var(--spacing-xxs) var(--spacing-xs);
-    font-size: var(--font-size-sm);
     flex-shrink: 0;
-    /* Use theme button styles */
-    background-color: var(--color-bg-button);
-    border: var(--border-button);
-    color: var(--color-text-button);
-    border-radius: var(--border-radius-sm);
-}
-.navigation-controls .up-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background-color: var(--color-bg-button); /* Keep bg consistent when disabled */
-}
-/* Apply theme-specific button styles if needed (like Win95 bevels) */
-.theme-win95 .navigation-controls .up-button,
-.theme-mirc .navigation-controls .up-button {
-   /* Add specific bevel styles if you have them defined elsewhere for buttons */
-}
-
-
-.navigation-controls .current-folder-path {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-tertiary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex-grow: 1; /* Allow path to take remaining space */
-    padding: 0;
-    border-bottom: none;
-}
-
-
-/* File Tree Styling */
-.file-tree {
-    flex-grow: 1; /* Allow tree to fill remaining vertical space */
-    overflow-y: auto; /* Enable scrolling for the tree */
-    min-height: 50px;
-    padding: var(--spacing-xs) 0; /* Less top/bottom container padding */
-    font-size: var(--font-size-sm);
-}
-
-.file-tree ul {
-    list-style: none;
-    padding: 0;
+  }
+  
+  .sidebar-header h2 {
     margin: 0;
-}
-
-.file-tree-node {
-    /* Base list item */
-}
-
-/* Style for the clickable content row within a node */
-.file-tree-node .node-content {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: var(--spacing-xxs) var(--spacing-md);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    user-select: none;
-    position: relative;
-}
-
-.file-tree-node .node-content:hover {
-    background-color: var(--color-bg-hover);
-}
-
-/* Style for the expand/collapse icon span container */
-.file-tree-node .toggle-icon {
-    width: 1.5em; /* Reserve space for icon/spacer */
-    display: inline-flex; /* Use flex for centering SVG icon */
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    line-height: 1;
-    vertical-align: middle; /* Align container with text */
-}
-.file-tree-node .toggle-icon.spacer {
-    visibility: hidden;
-}
-
-/* Style for the expand/collapse SVG icon itself */
-.file-tree-node .expand-icon {
-    /* *** REMOVE font-family override *** */
-    /* font-family: ... */
-    font-size: 0.9em; /* Adjust size if needed */
-    color: var(--color-text-tertiary);
-    display: inline-block; /* Allow sizing */
-    vertical-align: middle; /* Align icon */
-}
-
-
-/* Style for the file/folder SVG icon */
-.file-tree-node .file-icon {
-    margin-right: var(--spacing-xs);
-    display: inline-flex; /* Use flex for centering SVG icon */
-    align-items: center;
-    flex-shrink: 0;
-    vertical-align: middle; /* Align container with text */
-    /* *** REMOVE font-family override *** */
-    /* font-family: ... */
-    /* Set color for icons if needed, or let it inherit */
-    color: var(--color-text-accent); /* Example: Use accent color */
-    font-size: 1.1em; /* Slightly larger file/folder icons */
-}
-
-
-/* Style for the node name */
-.file-tree-node .node-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: middle;
-    margin-left: var(--spacing-xxs); /* Small space after icon */
-}
-
-/* Style for loading spinner */
-.file-tree-node .loading-spinner {
-    display: inline-block;
-    animation: spin 1s linear infinite;
-    font-size: 0.9em;
-    vertical-align: middle;
-    color: var(--color-text-tertiary);
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* Style for error message or empty folder message */
-.file-tree-node .error-message,
-.file-tree-node .empty-folder-message {
-    color: var(--color-text-tertiary);
-    font-style: italic;
-    padding: var(--spacing-xxs) 0;
-    margin: 0;
-    list-style: none;
-    user-select: none;
-}
-.file-tree-node .error-message {
-    color: var(--color-text-error);
-    font-style: normal;
-}
-
-
-/* Style for the initial placeholder message */
-.file-tree .placeholder-message {
-    color: var(--color-text-tertiary);
-    padding: var(--spacing-md);
-    font-style: italic;
-}
-
-/* (Keep Theme switcher styles) */
-.sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
-.sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-
-/* (Keep Main Panel styles) */
-.main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
-.editor-panel { background-color: var(--color-bg-editor); overflow: hidden; color: var(--color-text-secondary); font-size: var(--font-size-md); position: relative; height: 100%; width: 100%; display: flex; }
-.terminal-panel-container { flex-shrink: 0; background-color: var(--color-bg-terminal); color: var(--color-text-terminal); overflow: hidden; font-family: var(--font-family-mono); font-size: var(--font-size-terminal); position: relative; height: 100%; width: 100%; display: flex; padding: var(--spacing-xs); }
-.terminal-panel-container > div { width: 100%; height: 100%; }
-.terminal-panel-container .terminal.xterm { height: 100% !important; width: 100% !important; }
-.terminal-panel-container .xterm-screen { width: 100% !important; height: 100% !important; }
-.terminal-panel-container p { display: none; }
-
-/* Ensure editor dirty indicator/error show above Monaco elements if needed */
-.editor-panel .error-message { z-index: 2; }
-.editor-panel span[style*="absolute"] { z-index: 2; }
-
-/* --- END FILE: src/renderer/App.css --- */
+    font-size: var(--font-size-lg);
+    color: var(--color-text-heading);
+  }
+  
+  /* *** MODIFIED: Style for the "Open Folder" button in the header *** */
+  .sidebar-header button.open-folder-button {
+     font-size: var(--font-size-sm);
+     padding: var(--spacing-xs) var(--spacing-sm); /* Standard button padding */
+     /* Inherit default button styles (background, border) from general button rules */
+     display: inline-flex; /* Align icon and text */
+     align-items: center;
+     justify-content: center;
+     line-height: 1; /* Ensure consistent height */
+  }
+  
+  /* Navigation Controls */
+  .navigation-controls {
+      display: flex;
+      align-items: center;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-bottom: var(--border-standard);
+      flex-shrink: 0;
+      gap: var(--spacing-sm);
+      min-height: 30px;
+  }
+  
+  /* *** NEW: Base style for icon-only buttons *** */
+  .icon-button {
+      background: none; /* Remove background */
+      border: none; /* Remove border */
+      padding: var(--spacing-xs); /* Add some padding around the icon */
+      color: var(--color-text-secondary); /* Use secondary text color */
+      cursor: pointer;
+      border-radius: var(--border-radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: var(--font-size-md); /* Adjust icon size if needed */
+  }
+  
+  .icon-button:hover {
+      background-color: var(--color-bg-hover); /* Subtle background on hover */
+      color: var(--color-text-primary); /* Make icon primary color on hover */
+  }
+  
+  .icon-button:active {
+      background-color: var(--color-bg-button-active); /* Use button active color */
+  }
+  
+  .icon-button:disabled {
+      opacity: 0.4; /* Lower opacity for disabled */
+      cursor: not-allowed;
+      background-color: transparent; /* Ensure no background when disabled */
+      color: var(--color-text-tertiary);
+  }
+  
+  /* Specific styles for the Up button */
+  .navigation-controls .up-button {
+      /* Inherits from .icon-button */
+      flex-shrink: 0; /* Prevent shrinking */
+  }
+  
+  /* Override Win95/mIRC bevels for icon buttons if needed */
+  .theme-win95 .icon-button,
+  .theme-mirc .icon-button {
+     box-shadow: none; /* Remove bevel */
+     padding: var(--spacing-xs); /* Re-apply padding if bevel changed it */
+  }
+  .theme-win95 .icon-button:active,
+  .theme-mirc .icon-button:active {
+     box-shadow: none; /* Remove pressed bevel */
+     /* Add subtle pressed effect if desired */
+     /* transform: translate(1px, 1px); */
+  }
+  
+  
+  .navigation-controls .current-folder-path {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-tertiary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-grow: 1;
+      padding: 0;
+      border-bottom: none;
+  }
+  
+  /* Ensure no borders are added directly to SVG elements within the sidebar */
+  .sidebar svg {
+      border: none; /* Explicitly remove border from SVG */
+      vertical-align: middle; /* Helps with alignment */
+  }
+  
+  
+  /* (Keep File Tree Styling as before) */
+  .file-tree {
+      flex-grow: 1;
+      overflow-y: auto;
+      min-height: 50px;
+      padding: var(--spacing-xs) 0;
+      font-size: var(--font-size-sm);
+  }
+  
+  .file-tree ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+  }
+  
+  .file-tree-node {
+      /* Base list item */
+  }
+  
+  .file-tree-node .node-content {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      padding: var(--spacing-xxs) var(--spacing-md);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      user-select: none;
+      position: relative;
+  }
+  
+  .file-tree-node .node-content:hover {
+      background-color: var(--color-bg-hover);
+  }
+  
+  .file-tree-node .toggle-icon {
+      width: 1.5em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      line-height: 1;
+      vertical-align: middle;
+  }
+  .file-tree-node .toggle-icon.spacer {
+      visibility: hidden;
+  }
+  
+  .file-tree-node .expand-icon {
+      font-size: 0.9em;
+      color: var(--color-text-tertiary);
+      display: inline-block;
+      vertical-align: middle;
+  }
+  
+  .file-tree-node .file-icon {
+      margin-right: var(--spacing-xs);
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      vertical-align: middle;
+      color: var(--color-text-accent);
+      font-size: 1.1em;
+  }
+  
+  .file-tree-node .node-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: middle;
+      margin-left: var(--spacing-xxs);
+  }
+  
+  .file-tree-node .loading-spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      font-size: 0.9em;
+      vertical-align: middle;
+      color: var(--color-text-tertiary);
+  }
+  
+  @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+  }
+  
+  .file-tree-node .error-message,
+  .file-tree-node .empty-folder-message {
+      color: var(--color-text-tertiary);
+      font-style: italic;
+      padding: var(--spacing-xxs) 0;
+      margin: 0;
+      list-style: none;
+      user-select: none;
+  }
+  .file-tree-node .error-message {
+      color: var(--color-text-error);
+      font-style: normal;
+  }
+  
+  .file-tree .placeholder-message {
+      color: var(--color-text-tertiary);
+      padding: var(--spacing-md);
+      font-style: italic;
+      line-height: 1.5; /* Improve readability with icon */
+  }
+  
+  /* (Keep Theme switcher styles as before) */
+  .sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
+  .sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+  
+  /* (Keep Main Panel, Editor, Terminal styles as before) */
+  .main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
+  .editor-panel { background-color: var(--color-bg-editor); overflow: hidden; color: var(--color-text-secondary); font-size: var(--font-size-md); position: relative; height: 100%; width: 100%; display: flex; }
+  .terminal-panel-container { flex-shrink: 0; background-color: var(--color-bg-terminal); color: var(--color-text-terminal); overflow: hidden; font-family: var(--font-family-mono); font-size: var(--font-size-terminal); position: relative; height: 100%; width: 100%; display: flex; padding: var(--spacing-xs); }
+  .terminal-panel-container > div { width: 100%; height: 100%; }
+  .terminal-panel-container .terminal.xterm { height: 100% !important; width: 100% !important; }
+  .terminal-panel-container .xterm-screen { width: 100% !important; height: 100% !important; }
+  .terminal-panel-container p { display: none; }
+  .editor-panel .error-message { z-index: 2; }
+  .editor-panel span[style*="absolute"] { z-index: 2; }
+  
+  
+  /* --- END FILE: src/renderer/App.css --- */
 --- END FILE: src/renderer/App.css ---
 
 --- START FILE: src/main/env.d.ts ---

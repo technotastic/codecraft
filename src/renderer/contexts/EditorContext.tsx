@@ -36,25 +36,25 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
 
     const openFile = useCallback(async (filePath: string) => {
         console.log(`EditorContext: Request to open file - ${filePath}`);
-        setIsLoading(true);
+        setIsLoading(true); // <<< SET LOADING TRUE
+        console.log('EditorContext: isLoading set to TRUE (openFile start)'); // <<< ADD LOG
         setError(null);
         setIsDirty(false); // Reset dirty state on open
         setCurrentFilePath(filePath);
-        setCurrentFileContent('');
+        setCurrentFileContent(''); // Clear content immediately
 
         try {
             const response: ReadFileResponse = await window.electronAPI.fs_readFile(filePath);
             if (response.success) {
                 console.log(`EditorContext: File loaded successfully - ${filePath}`);
                 setCurrentFileContent(response.content);
-                // Reset dirty again after successful load, in case of race conditions
-                setIsDirty(false);
+                setIsDirty(false); // Reset dirty again after successful load
             } else {
                 console.error(`EditorContext: Failed to read file ${filePath}:`, response.error);
                 setError(`Error loading file: ${response.error}`);
                 setCurrentFileContent(`// Error loading file: ${response.error}`);
                 setCurrentFilePath(null);
-                setIsDirty(false); // Not dirty if load failed
+                setIsDirty(false);
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
@@ -62,28 +62,23 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
             setError(`IPC Error: ${errorMsg}`);
             setCurrentFileContent(`// IPC Error loading file: ${errorMsg}`);
             setCurrentFilePath(null);
-            setIsDirty(false); // Not dirty if IPC failed
+            setIsDirty(false);
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // <<< SET LOADING FALSE
+            console.log('EditorContext: isLoading set to FALSE (openFile finally)'); // <<< ADD LOG
         }
     }, []); // Dependencies are empty
 
-    // --- NEW: Function to explicitly set dirty state ---
     const markAsDirty = useCallback((dirty: boolean) => {
-        // Only mark as dirty if not already dirty, to avoid unnecessary re-renders
-        // Or always update if caller explicitly sets to false (e.g., after save)
          if (dirty !== isDirty) {
             console.log(`EditorContext: Setting dirty state to ${dirty}`);
             setIsDirty(dirty);
          }
-
     }, [isDirty]); // Dependency on isDirty
 
-    // --- NEW: Function to save the current file ---
     const saveCurrentFile = useCallback(async (content: string) => {
         if (!currentFilePath) {
             console.warn("EditorContext: Cannot save, no file path specified.");
-            // TODO: Implement "Save As..." functionality later
             setError("Cannot save: No file is currently open.");
             return;
         }
@@ -93,14 +88,15 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         }
 
         console.log(`EditorContext: Request to save file - ${currentFilePath}`);
-        setIsLoading(true); // Show loading state during save
+        setIsLoading(true); // <<< SET LOADING TRUE
+        console.log('EditorContext: isLoading set to TRUE (saveCurrentFile start)'); // <<< ADD LOG
         setError(null);
 
         try {
             const response: SaveFileResponse = await window.electronAPI.fs_saveFile(currentFilePath, content);
             if (response.success) {
                 console.log(`EditorContext: File saved successfully - ${currentFilePath}`);
-                setCurrentFileContent(content); // Update context content to match saved state
+                setCurrentFileContent(content);
                 setIsDirty(false); // Mark as not dirty after successful save
             } else {
                 console.error(`EditorContext: Failed to save file ${currentFilePath}:`, response.error);
@@ -113,7 +109,8 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
             setError(`IPC Error saving file: ${errorMsg}`);
             // Keep isDirty true because save failed
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // <<< SET LOADING FALSE
+            console.log('EditorContext: isLoading set to FALSE (saveCurrentFile finally)'); // <<< ADD LOG
         }
     }, [currentFilePath, isDirty]); // Dependencies for save function
 
@@ -124,12 +121,12 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         openFile,
         isLoading,
         error,
-        isDirty,        // Expose isDirty state
-        markAsDirty,    // Expose function to set dirty state
-        saveCurrentFile // Expose save function
+        isDirty,
+        markAsDirty,
+        saveCurrentFile
     }), [
         currentFilePath, currentFileContent, openFile, isLoading, error,
-        isDirty, markAsDirty, saveCurrentFile // Include new values in dependencies
+        isDirty, markAsDirty, saveCurrentFile
     ]);
 
     return (

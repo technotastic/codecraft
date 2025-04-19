@@ -1,15 +1,12 @@
 // --- START FILE: src/renderer/components/MainPanel.tsx ---
 import React from 'react';
-import { Allotment } from 'allotment'; // Make sure Allotment is installed
+import { Allotment } from 'allotment';
 import EditorPanel from './EditorPanel';
 import TerminalPanel from './TerminalPanel';
-// Removed useTheme import as it's not strictly needed here anymore
+import TabContainer from './TabContainer'; // Import the new TabContainer
 
-const MainPanel: React.FC = () => {
-
-  // Helper function to get initial terminal size hint from CSS variable
-  const getTerminalInitialSize = (): number => {
-    // Check if running in a browser environment before accessing document/window
+// Helper function to get initial terminal size hint from CSS variable
+const getTerminalInitialSize = (): number => {
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       try {
         const heightValue = getComputedStyle(document.documentElement)
@@ -17,36 +14,35 @@ const MainPanel: React.FC = () => {
         if (heightValue) {
           return parseInt(heightValue.replace('px', ''), 10) || 200;
         }
-      } catch (e) {
-        console.error("Error getting terminal height CSS variable:", e);
-      }
+      } catch (e) { console.error("Error getting terminal height CSS variable:", e); }
     }
-    // Fallback if not in browser or variable not found/parsable
     return 200;
-  };
+};
 
+const MainPanel: React.FC = () => {
   return (
-    <div className="main-panel"> {/* Container with flex-grow: 1, flex-direction: column */}
-      {/*
-        Allotment handles the resizable split.
-        The 'vertical' prop means the separator moves up/down.
-        The sizes array provides initial proportional distribution or fixed sizes.
-        Giving the terminal pane a fixed initial size based on CSS var.
-      */}
-      <Allotment vertical>
-        <Allotment.Pane>
-          {/* Editor takes up the remaining space initially */}
-          <EditorPanel />
-        </Allotment.Pane>
-        <Allotment.Pane
-          preferredSize={getTerminalInitialSize()} // Use helper function for initial size
-          minSize={50} // Prevent terminal from becoming too small
-          // maxSize={600} // Optional: Limit terminal max height
-          snap // Enable snapping when near the edges or minimum/maximum size
-        >
-          <TerminalPanel />
-        </Allotment.Pane>
-      </Allotment>
+    // Container now needs to allow TabContainer AND Allotment
+    <div className="main-panel">
+      {/* 1. Render the Tab Container */}
+      <TabContainer />
+
+      {/* 2. Allotment for Editor/Terminal Split */}
+      {/* Make Allotment take remaining space */}
+      <div style={{ flexGrow: 1, overflow: 'hidden' }}>
+        <Allotment vertical>
+          <Allotment.Pane>
+            {/* Editor takes up the remaining space initially */}
+            <EditorPanel />
+          </Allotment.Pane>
+          <Allotment.Pane
+            preferredSize={getTerminalInitialSize()}
+            minSize={50}
+            snap
+          >
+            <TerminalPanel />
+          </Allotment.Pane>
+        </Allotment>
+      </div>
     </div>
   );
 };

@@ -33,7 +33,7 @@
     color: var(--color-text-heading);
   }
 
-  /* *** MODIFIED: Style for the "Open Folder" button in the header *** */
+  /* Style for the "Open Folder" button in the header */
   .sidebar-header button.open-folder-button {
      font-size: var(--font-size-sm);
      padding: var(--spacing-xs) var(--spacing-sm); /* Standard button padding */
@@ -55,7 +55,7 @@
       min-height: 30px;
   }
 
-  /* *** NEW: Base style for icon-only buttons *** */
+  /* Base style for icon-only buttons */
   .icon-button {
       background: none; /* Remove background */
       border: none; /* Remove border */
@@ -124,7 +124,7 @@
   }
 
 
-  /* (Keep File Tree Styling as before) */
+  /* File Tree Styling */
   .file-tree {
       flex-grow: 1;
       overflow-y: auto;
@@ -212,7 +212,7 @@
       color: var(--color-text-tertiary);
   }
 
-  /* *** NEW: CSS animation for the spinner *** */
+  /* CSS animation for the spinner */
   .spin-animation {
       animation: spin 1.5s linear infinite;
   }
@@ -244,20 +244,84 @@
       line-height: 1.5; /* Improve readability with icon */
   }
 
-  /* (Keep Theme switcher styles as before) */
-  .sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
-  .sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+  /* Theme switcher styles */
+  .sidebar .theme-switcher {
+      margin-top: auto;
+      padding: var(--spacing-md);
+      border-top: var(--border-standard);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 5;
+  }
+  .sidebar .theme-switcher label {
+      display: block;
+      margin-bottom: var(--spacing-xs);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+   }
 
-  /* (Keep Main Panel, Editor, Terminal styles as before) */
-  .main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
-  .editor-panel { background-color: var(--color-bg-editor); overflow: hidden; color: var(--color-text-secondary); font-size: var(--font-size-md); position: relative; height: 100%; width: 100%; display: flex; }
-  .terminal-panel-container { flex-shrink: 0; background-color: var(--color-bg-terminal); color: var(--color-text-terminal); overflow: hidden; font-family: var(--font-family-mono); font-size: var(--font-size-terminal); position: relative; height: 100%; width: 100%; display: flex; padding: var(--spacing-xs); }
+  /* Main Panel, Editor, Terminal Base Styles */
+  .main-panel {
+      display: flex;
+      flex-direction: column; /* Stack TabContainer and Allotment vertically */
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--color-bg-main);
+  }
+
+  .editor-panel {
+      background-color: var(--color-bg-editor);
+      overflow: hidden;
+      position: relative; /* Needed for absolute positioning of indicators */
+      height: 100%;
+      width: 100%;
+      display: flex;
+      /* Add padding if needed, or let Monaco handle it */
+      /* padding: var(--spacing-xs); */
+  }
+
+  .terminal-panel-container {
+      flex-shrink: 0;
+      background-color: var(--color-bg-terminal);
+      color: var(--color-text-terminal);
+      overflow: hidden;
+      font-family: var(--font-family-mono);
+      font-size: var(--font-size-terminal);
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      padding: var(--spacing-xs);
+  }
   .terminal-panel-container > div { width: 100%; height: 100%; }
   .terminal-panel-container .terminal.xterm { height: 100% !important; width: 100% !important; }
   .terminal-panel-container .xterm-screen { width: 100% !important; height: 100% !important; }
-  .terminal-panel-container p { display: none; }
-  .editor-panel .error-message { z-index: 2; }
-  .editor-panel span[style*="absolute"] { z-index: 2; }
+  .terminal-panel-container p { display: none; } /* Hide potential Xterm paragraphs */
+
+  /* Editor Panel Overlay Indicators */
+  .editor-context-error,
+  .editor-loading-indicator {
+      position: absolute;
+      top: var(--spacing-xs);
+      left: var(--spacing-sm);
+      background-color: color-mix(in srgb, var(--color-bg-editor) 90%, black); /* Slightly transparent background */
+      padding: var(--spacing-xxs) var(--spacing-xs);
+      border-radius: var(--border-radius-sm);
+      font-size: var(--font-size-sm);
+      z-index: 10; /* Ensure it's above the editor content */
+      box-shadow: var(--box-shadow-sm);
+      max-width: 80%;
+  }
+
+  .editor-context-error {
+      color: var(--color-text-error);
+      border: 1px solid var(--color-text-error);
+  }
+
+  .editor-loading-indicator {
+      color: var(--color-text-secondary);
+      border: 1px solid var(--color-border-accent);
+  }
 
 
 /* --- END FILE: src/renderer/App.css --- */

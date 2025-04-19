@@ -1,0 +1,172 @@
+/* --- START FILE: src/renderer/components/TabContainer.css --- */
+/* src/renderer/components/TabContainer.css */
+
+.tab-container {
+    display: flex;
+    flex-wrap: nowrap; /* Prevent wrapping */
+    overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
+    background-color: var(--color-bg-sidebar); /* Use sidebar bg or a dedicated tab bg */
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-xxs) var(--spacing-xs) 0 var(--spacing-xs); /* Padding around tabs, no bottom padding */
+    flex-shrink: 0; /* Prevent container from shrinking */
+    min-height: 30px; /* Ensure a minimum height */
+
+    /* Thin scrollbar styling */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg); /* Firefox */
+}
+
+/* Basic Scrollbar Styling for Webkit (Chrome, Safari, Edge) */
+.tab-container::-webkit-scrollbar {
+    height: 6px; /* Height of horizontal scrollbar */
+}
+.tab-container::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-bg);
+}
+.tab-container::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: 3px;
+}
+.tab-container::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black);
+}
+
+
+.tab {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-bottom: none; /* Remove bottom border initially */
+    background-color: var(--color-bg-button); /* Use a subtle background */
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    margin-right: var(--spacing-xxs);
+    border-top-left-radius: var(--border-radius-sm);
+    border-top-right-radius: var(--border-radius-sm);
+    white-space: nowrap; /* Prevent filename wrapping */
+    position: relative; /* For positioning dirty indicator and active state*/
+    max-width: 200px; /* Limit tab width */
+    transition: background-color 0.15s ease, color 0.15s ease;
+    z-index: 1; /* Default z-index */
+    /* Pull tab slightly down to overlap container border */
+    margin-bottom: -1px;
+    padding-bottom: calc(var(--spacing-xs) + 1px); /* Compensate for margin-bottom */
+}
+
+.tab:hover {
+    background-color: var(--color-bg-button-hover);
+    color: var(--color-text-primary);
+    z-index: 2; /* Bring hovered tab slightly forward */
+}
+
+.tab.active {
+    background-color: var(--color-bg-editor); /* Match editor background */
+    color: var(--color-text-primary);
+    border-color: var(--color-border); /* Ensure border matches */
+    /* Make active tab visually connect with editor */
+    border-bottom-color: var(--color-bg-editor); /* Hide bottom border by matching bg */
+    z-index: 3; /* Bring active tab to the very front */
+}
+
+.tab-filename {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: var(--spacing-sm); /* Space before close button */
+    font-size: var(--font-size-sm);
+}
+
+.tab-dirty-indicator {
+    color: var(--color-text-accent);
+    font-size: 10px;
+    margin-right: var(--spacing-xs);
+    line-height: 1;
+}
+
+.tab-close-button {
+    background: none;
+    border: none;
+    color: var(--color-text-tertiary);
+    padding: 0;
+    margin-left: auto; /* Push to the right */
+    cursor: pointer;
+    font-size: 0.8em; /* Make icon smaller */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    flex-shrink: 0; /* Prevent shrinking */
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.tab-close-button:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-error); /* Red on hover */
+}
+
+.tab.active .tab-close-button {
+    color: var(--color-text-secondary); /* Slightly more visible on active tab */
+}
+.tab.active .tab-close-button:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-error);
+}
+
+/* Win95/mIRC specific overrides */
+.theme-win95 .tab-container,
+.theme-mirc .tab-container {
+    background-color: var(--color-bg-app); /* Match main app bg */
+    padding-left: 0;
+    padding-right: 0;
+    border-bottom: none; /* Remove container border */
+}
+.theme-win95 .tab,
+.theme-mirc .tab {
+    border-radius: 0;
+    border: none; /* Remove default border */
+    box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent), /* left */
+                 inset 1px 1px var(--win95-bevel-shadow-light, transparent), /* top/right */
+                 inset 0px -1px var(--win95-bevel-shadow-darker, transparent); /* bottom line */
+    background-color: var(--color-bg-button);
+    color: var(--color-text-button);
+    margin-right: 0;
+    margin-bottom: 0; /* Reset margin */
+    padding-bottom: var(--spacing-xs); /* Reset padding */
+     padding-top: calc(var(--spacing-xs) + 1px); /* Adjust for bevel */
+     border-bottom: 1px solid var(--win95-bevel-shadow-darker); /* Ensure consistent bottom line */
+}
+.theme-win95 .tab.active,
+.theme-mirc .tab.active {
+    box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent),
+                inset 1px 1px var(--win95-bevel-shadow-light, transparent);
+                /* No bottom shadow for active tab */
+    background-color: var(--color-bg-main); /* Match editor bg */
+    color: var(--color-text-primary);
+    border-bottom-color: transparent; /* Hide bottom border */
+    position: relative;
+    z-index: 3; /* Bring active tab forward */
+    margin-bottom: -1px; /* Overlap the bottom border */
+    padding-bottom: calc(var(--spacing-xs) + 1px); /* Add back padding */
+}
+.theme-win95 .tab-close-button,
+.theme-mirc .tab-close-button {
+    color: var(--color-text-button);
+    font-family: system-ui, sans-serif; /* Use a font more likely to have 'x' */
+    font-size: 0.9em;
+    width: auto; height: auto; border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    line-height: 1;
+    padding: 1px 3px; /* Small padding */
+}
+.theme-win95 .tab-close-button:hover,
+.theme-mirc .tab-close-button:hover {
+    background-color: transparent;
+    color: var(--color-text-error);
+}
+
+
+/* --- END FILE: src/renderer/components/TabContainer.css --- */

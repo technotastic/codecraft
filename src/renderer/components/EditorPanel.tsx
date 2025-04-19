@@ -7,7 +7,7 @@ import { useEditor } from '../contexts/EditorContext';
 
 // Helper function to safely get and parse font size from CSS variable
 const getEditorFontSize = (): number => {
-    if (typeof document === 'undefined') return 13; // Default if SSR or other env
+    if (typeof document === 'undefined') return 13;
     try {
         const fontSizeValue = getComputedStyle(document.documentElement).getPropertyValue('--font-size-editor');
         return parseInt(fontSizeValue?.replace('px', '').trim() || '13', 10);
@@ -27,13 +27,14 @@ const getCssVar = (varName: string, fallback: string): string => {
               return fallback;
          }
     }
-    return fallback; // Return fallback if not in browser
+    return fallback;
 };
 
 // Language Mapping Utility
 const getLanguageFromPath = (filePath: string | null): string => {
     if (!filePath) return 'plaintext';
     const extension = filePath.split('.').pop()?.toLowerCase();
+    // Add more mappings as needed
     switch (extension) {
         case 'js': case 'jsx': return 'javascript';
         case 'ts': case 'tsx': return 'typescript';
@@ -58,23 +59,24 @@ const getLanguageFromPath = (filePath: string | null): string => {
 const EditorPanel: React.FC = () => {
     const { theme } = useTheme();
     const {
-        currentFilePath,
-        currentFileContent, // This is the "canonical" content from the file
-        isLoading,
-        error: editorContextError,
-        isDirty,
-        markAsDirty,
-        saveCurrentFile,
+        activeFilePath, // Get active path from context
+        getActiveFile, // Get the active file data object
+        updateActiveFileDirtyState, // Function to update context's dirty state flag
+        saveActiveFile, // Function to trigger save IPC for active file (expects content)
     } = useEditor();
 
-    // REMOVED: const [editorValue, setEditorValue] = useState<string>(...);
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoRef = useRef<typeof monaco | null>(null);
-    // Keep track if the editor model has been initialized with file content
-    const isModelInitialized = useRef<boolean>(false);
-    // Ref to store the change listener disposable to clean it up
+    // Store the active file's path when the model was last set
+    // to prevent unnecessary updates when switching tabs
+    const lastSetModelPath = useRef<string | null>(null);
     const changeListenerDisposable = useRef<monaco.IDisposable | null>(null);
+    // Keep track of the current view state (scroll position, cursor) for the inactive file
+    const viewStateCache = useRef<Map<string, monaco.editor.ICodeEditorViewState | null>>(new Map());
 
+
+    // Get the data for the currently active file
+    const activeFile = useMemo(() => getActiveFile(), [getActiveFile]);
 
     // Map app theme names to Monaco theme names
     const getMonacoThemeName = useCallback((currentTheme: ThemeName): string => {
@@ -94,36 +96,37 @@ const EditorPanel: React.FC = () => {
         }
     }, []);
 
-    const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
+
+    const editorOptions = useMemo((): monaco.editor.IStandaloneEditorConstructionOptions => ({
         selectOnLineNumbers: true,
-        automaticLayout: true,
+        automaticLayout: true, // Crucial for resizing within Allotment
         fontFamily: 'var(--font-family-mono)',
         fontSize: getEditorFontSize(),
         minimap: { enabled: true },
         wordWrap: 'on',
         scrollBeyondLastLine: false,
-        readOnly: isLoading,
-        // --- Ensure 'value' is NOT set here ---
-    }), [isLoading]);
+        readOnly: activeFile?.isLoading ?? !activeFile, // Readonly if loading OR no file active
+        // Value is now managed dynamically, not set here
+    }), [activeFile]); // Depends on activeFile status
 
 
-    // --- Modified onChange Handler Logic ---
-    // This is the function called BY the editor's internal change event
+    // --- Editor Change Handler ---
+    // Called BY the editor's internal change event
     const handleInternalChange = useCallback(() => {
         const editor = editorRef.current;
-        // Check if the editor exists, the model is initialized, and we have canonical content
-        if (editor && isModelInitialized.current && currentFileContent !== null) {
-            const currentEditorValue = editor.getValue();
-            const shouldBeDirty = currentEditorValue !== currentFileContent;
-            // Only call markAsDirty if the state needs to change
-            if (shouldBeDirty !== isDirty) {
-                 console.log(`handleInternalChange: Setting dirty state to ${shouldBeDirty}`);
-                 markAsDirty(shouldBeDirty);
-            }
+        const currentModelValue = editor?.getValue();
+        const activeFileNow = getActiveFile(); // Get current active file state
+
+        if (editor && activeFileNow && !activeFileNow.isLoading && currentModelValue !== undefined) {
+            // Compare editor value with the CONTEXT's last known saved content
+            const shouldBeDirty = currentModelValue !== activeFileNow.content;
+            // Notify context ONLY if dirty status changes
+            updateActiveFileDirtyState(shouldBeDirty);
         }
-    }, [currentFileContent, markAsDirty, isDirty]); // Depends on context content and dirty state
+    }, [getActiveFile, updateActiveFileDirtyState]);
 
 
+    // --- Editor Mount Logic ---
     const editorDidMount = useCallback((
         editor: monaco.editor.IStandaloneCodeEditor,
         monacoInstance: typeof monaco
@@ -131,186 +134,205 @@ const EditorPanel: React.FC = () => {
         console.log('Editor mounted!');
         editorRef.current = editor;
         monacoRef.current = monacoInstance;
-        isModelInitialized.current = false; // Model not initialized yet
+        lastSetModelPath.current = null; // Reset marker
+        viewStateCache.current.clear(); // Clear view state cache on mount
 
-        // --- Dispose previous listener if component remounts unexpectedly ---
+        // Dispose previous listener if remounts occur
         if (changeListenerDisposable.current) {
-            console.warn("Remount detected, disposing previous change listener.");
             changeListenerDisposable.current.dispose();
-            changeListenerDisposable.current = null;
         }
 
-
-        // Define themes ...
-         const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
+        // Define custom themes
+        const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
              try {
                  monacoInstance.editor.defineTheme(name, {
-                     base: base,
-                     inherit: true,
-                     rules: [],
-                     colors: {
-                         'editor.background': getCssVar(`--${cssVarPrefix}-bg`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
-                         'editor.foreground': getCssVar(`--${cssVarPrefix}-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
-                         'editorCursor.foreground': getCssVar(`--${cssVarPrefix}-accent`, base === 'vs' ? '#000000' : '#aeafad'),
-                         'editorLineNumber.foreground': getCssVar(`--${cssVarPrefix}-tertiary`, '#858585'),
-                         'editorLineNumber.activeForeground': getCssVar(`--${cssVarPrefix}-secondary`, '#c6c6c6'),
-                         'editor.selectionBackground': getCssVar(`--${cssVarPrefix}-selected-bg`, '#add6ff'),
-                         'editor.selectionForeground': getCssVar(`--${cssVarPrefix}-selected-text`, '#000000'),
-                         'editorWidget.background': getCssVar(`--${cssVarPrefix}-widget-bg`, base === 'vs' ? '#f3f3f3' : '#252526'),
-                         'editorWidget.border': getCssVar(`--${cssVarPrefix}-border`, '#c8c8c8'),
-                         'input.background': getCssVar(`--${cssVarPrefix}-input-bg`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
-                         'input.foreground': getCssVar(`--${cssVarPrefix}-input-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
-                         'input.border': getCssVar(`--${cssVarPrefix}-input-border`, '#bebebe'),
-                         ...colorsOverride
-                     }
+                    base: base,
+                    inherit: true,
+                    rules: [], // Add token rules later if needed
+                    colors: {
+                        'editor.background': getCssVar(`--${cssVarPrefix}-bg`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
+                        'editor.foreground': getCssVar(`--${cssVarPrefix}-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                        'editorCursor.foreground': getCssVar(`--${cssVarPrefix}-accent`, base === 'vs' ? '#000000' : '#aeafad'),
+                        'editorLineNumber.foreground': getCssVar(`--${cssVarPrefix}-tertiary`, '#858585'),
+                        'editorLineNumber.activeForeground': getCssVar(`--${cssVarPrefix}-secondary`, '#c6c6c6'),
+                        'editor.selectionBackground': getCssVar(`--${cssVarPrefix}-selected-bg`, '#add6ff'),
+                        'editor.selectionForeground': getCssVar(`--${cssVarPrefix}-selected-text`, '#000000'), // Use appropriate contrast
+                        'editorWidget.background': getCssVar(`--${cssVarPrefix}-widget-bg`, base === 'vs' ? '#f3f3f3' : '#252526'),
+                        'editorWidget.border': getCssVar(`--${cssVarPrefix}-border`, '#c8c8c8'),
+                        'input.background': getCssVar(`--${cssVarPrefix}-input-bg`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
+                        'input.foreground': getCssVar(`--${cssVarPrefix}-input-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                        'input.border': getCssVar(`--${cssVarPrefix}-input-border`, '#bebebe'),
+                        // Ensure high contrast selection for specific themes
+                         ...(name === 'win95-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
+                         ...(name === 'mirc-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
+                         ...(name === 'pipboy-monaco-theme' && { 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f') }),
+                         ...(name === 'qbasic-monaco-theme' && { 'editor.selectionForeground': getCssVar('--qbasic-white', '#FFFFFF') }),
+                         ...(name === 'orange-monaco-theme' && { 'editor.selectionForeground': getCssVar('--orange-dark', '#201500') }),
+                         ...(name === 'cga-monaco-theme' && { 'editor.selectionForeground': getCssVar('--cga-black', '#000000') }),
+                         ...(name === 'atari-monaco-theme' && { 'editor.selectionForeground': getCssVar('--atari-black', '#000000') }),
+                         ...(name === 'snes-monaco-theme' && { 'editor.selectionForeground': getCssVar('--snes-bg', '#2F2F4F') }),
+                         ...(name === 'bw-tv-monaco-theme' && { 'editor.selectionForeground': getCssVar('--bw-black', '#000000') }),
+                        ...colorsOverride
+                    }
                  });
-                 // console.log(`Defined Monaco theme: ${name}`); // Less verbose log
-             } catch (error) {
-                 console.error(`Failed to define Monaco theme '${name}':`, error);
-             }
+             } catch (error) { console.error(`Failed to define Monaco theme '${name}':`, error); }
          };
-        defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f'), 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
-        defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff'), });
-        defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff'), });
-        defineTheme('qbasic-monaco-theme', 'vs-dark', 'qbasic', { 'editor.background': getCssVar('--qbasic-blue', '#0000AA'), 'editor.foreground': getCssVar('--qbasic-yellow', '#FFFF55'), 'editorCursor.foreground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--qbasic-dark-gray', '#555555'), 'editor.selectionForeground': getCssVar('--qbasic-white', '#FFFFFF'), });
-        defineTheme('orange-monaco-theme', 'vs-dark', 'orange', { 'editor.background': getCssVar('--orange-dark', '#201500'), 'editor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editorCursor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editor.selectionBackground': getCssVar('--orange-medium', '#D98C00'), 'editor.selectionForeground': getCssVar('--orange-dark', '#201500'), });
-        defineTheme('cga-monaco-theme', 'vs-dark', 'cga', { 'editor.background': getCssVar('--cga-black', '#000000'), 'editor.foreground': getCssVar('--cga-cyan', '#55FFFF'), 'editorCursor.foreground': getCssVar('--cga-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--cga-cyan', '#55FFFF'), 'editor.selectionForeground': getCssVar('--cga-black', '#000000'), });
-        defineTheme('atari-monaco-theme', 'vs-dark', 'atari', { 'editor.background': getCssVar('--atari-black', '#000000'), 'editor.foreground': getCssVar('--atari-cyan', '#3FFFCF'), 'editorCursor.foreground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionBackground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionForeground': getCssVar('--atari-black', '#000000'), });
-        defineTheme('snes-monaco-theme', 'vs-dark', 'snes', { 'editor.background': getCssVar('--snes-bg', '#2F2F4F'), 'editor.foreground': getCssVar('--snes-text', '#E0E0FF'), 'editorCursor.foreground': getCssVar('--snes-accent4', '#E0E040'), 'editor.selectionBackground': getCssVar('--snes-accent1', '#8080FF'), 'editor.selectionForeground': getCssVar('--snes-bg', '#2F2F4F'), });
-        defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv', { 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), 'editor.selectionForeground': getCssVar('--bw-black', '#000000'), });
+        // Define all themes...
+        defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), /* selectionForeground handled above */ 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
+        defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
+        defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
+        defineTheme('qbasic-monaco-theme', 'vs-dark', 'qbasic', { 'editor.background': getCssVar('--qbasic-blue', '#0000AA'), 'editor.foreground': getCssVar('--qbasic-yellow', '#FFFF55'), 'editorCursor.foreground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--qbasic-dark-gray', '#555555'), /* selectionForeground handled above */ });
+        defineTheme('orange-monaco-theme', 'vs-dark', 'orange', { 'editor.background': getCssVar('--orange-dark', '#201500'), 'editor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editorCursor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editor.selectionBackground': getCssVar('--orange-medium', '#D98C00'), /* selectionForeground handled above */ });
+        defineTheme('cga-monaco-theme', 'vs-dark', 'cga', { 'editor.background': getCssVar('--cga-black', '#000000'), 'editor.foreground': getCssVar('--cga-cyan', '#55FFFF'), 'editorCursor.foreground': getCssVar('--cga-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--cga-cyan', '#55FFFF'), /* selectionForeground handled above */ });
+        defineTheme('atari-monaco-theme', 'vs-dark', 'atari', { 'editor.background': getCssVar('--atari-black', '#000000'), 'editor.foreground': getCssVar('--atari-cyan', '#3FFFCF'), 'editorCursor.foreground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionBackground': getCssVar('--atari-orange', '#D87050'), /* selectionForeground handled above */ });
+        defineTheme('snes-monaco-theme', 'vs-dark', 'snes', { 'editor.background': getCssVar('--snes-bg', '#2F2F4F'), 'editor.foreground': getCssVar('--snes-text', '#E0E0FF'), 'editorCursor.foreground': getCssVar('--snes-accent4', '#E0E040'), 'editor.selectionBackground': getCssVar('--snes-accent1', '#8080FF'), /* selectionForeground handled above */ });
+        defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv', { 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), /* selectionForeground handled above */ });
 
 
-        // Apply the initial theme & font size
+        // Apply initial theme/font size
         monacoInstance.editor.setTheme(getMonacoThemeName(theme));
         editor.updateOptions({ fontSize: getEditorFontSize() });
 
-        // Set initial value DIRECTLY in Monaco model (if context provides it)
-        // This avoids triggering the change listener unnecessarily
-        if (currentFileContent !== null) {
-            console.log("EditorDidMount: Setting initial model value from context.");
-            editor.setValue(currentFileContent);
-            isModelInitialized.current = true;
-            const initialLanguage = getLanguageFromPath(currentFilePath);
-            // Correct usage for setting initial language
-            monacoInstance.editor.setModelLanguage(editor.getModel()!, initialLanguage);
-            markAsDirty(false); // Start clean
+        // --- Logic to load INITIAL active file content (if any) ---
+        // Use the value from the context hook directly
+        const initialActiveFile = getActiveFile(); // Needs getActiveFile from context
+        if (initialActiveFile && initialActiveFile.content !== null) {
+            console.log(`EditorDidMount: Setting initial model value for ${initialActiveFile.path}`);
+            editor.setValue(initialActiveFile.content);
+            lastSetModelPath.current = initialActiveFile.path; // Mark this path as set
+            monacoInstance.editor.setModelLanguage(editor.getModel()!, getLanguageFromPath(initialActiveFile.path));
         } else {
-            console.log("EditorDidMount: No initial context content, setting placeholder.");
-            editor.setValue('// Welcome to CodeCraft IDE!\n// Click "Open..." or a file in the sidebar.');
-            isModelInitialized.current = false;
-            markAsDirty(false); // Start clean
+            editor.setValue('// Open a file from the sidebar or File > Open Folder...');
+            lastSetModelPath.current = null;
+            monacoInstance.editor.setModelLanguage(editor.getModel()!, 'plaintext');
         }
-        // Reset undo stack after potentially setting initial value
-        editor.getModel()?.pushStackElement();
+        editor.getModel()?.pushStackElement(); // Reset undo stack
 
 
-        // --- Attach the SINGLE onChange listener ---
-        // Store the disposable to remove the listener on unmount
+        // Attach the onChange listener - uses the state setter
         changeListenerDisposable.current = editor.onDidChangeModelContent(() => {
             // Call the memoized handler function
             handleInternalChange();
         });
         console.log("EditorDidMount: Attached onDidChangeModelContent listener.");
 
-
-        // Add keyboard shortcut for saving
+        // Add Ctrl+S Command
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-             const editorInstance = editorRef.current;
-             if (!editorInstance) return;
+            const currentContent = editorRef.current?.getValue(); // Get current value directly
+            const activeFileNow = getActiveFile(); // Re-check active file state
 
-             const contentToSave = editorInstance.getValue();
-             if (currentFilePath && isDirty) { // Use the isDirty flag from context
-                 console.log("Ctrl+S: Saving dirty file...");
-                 saveCurrentFile(contentToSave)
-                     .catch(err => console.error("Error during save operation:", err));
-             } else if (!isDirty) {
-                 console.log("Ctrl+S: No changes to save.");
-             } else {
-                 console.log("Ctrl+S: No file path to save to.");
-             }
+            // Check if there's an active file and if it's dirty (or has content to save initially)
+            if (activeFileNow && currentContent !== undefined && activeFileNow.isDirty) {
+                 console.log(`Ctrl+S: Saving dirty file ${activeFileNow.path}...`);
+                 // Pass the CURRENT EDITOR content to the context save function
+                 saveActiveFile(currentContent)
+                    .catch(err => {
+                        console.error(`Ctrl+S: Error during save operation for ${activeFileNow.path}:`, err);
+                        // Optionally display error to the user in the UI
+                    });
+            } else if (activeFileNow && !activeFileNow.isDirty) {
+                console.log(`Ctrl+S: No changes to save for ${activeFileNow.path}.`);
+            } else {
+                console.log("Ctrl+S: No active/dirty file to save or content unavailable.");
+            }
          });
 
         editor.focus();
 
-        // Cleanup function for this effect
+        // Cleanup
         return () => {
-             console.log("Editor unmounting, disposing change listener.");
+             console.log("Editor unmounting, disposing listener.");
              if (changeListenerDisposable.current) {
-                changeListenerDisposable.current.dispose();
-                changeListenerDisposable.current = null;
+                 changeListenerDisposable.current.dispose();
+                 changeListenerDisposable.current = null;
              }
-             // Reset editor ref on unmount
+             // Persist view state just before unmount? Or when switching tabs?
+             // Let's do it when switching tabs (in the update effect)
              editorRef.current = null;
              monacoRef.current = null;
         };
-    // Dependencies: Only include things that fundamentally change how the editor is SETUP
-    // or how its listeners behave. Avoid context values that change frequently.
-    }, [theme, getMonacoThemeName, saveCurrentFile, handleInternalChange, markAsDirty, isDirty, currentFileContent, currentFilePath]); // Added context values needed for initial setup
+    // Dependencies: Include functions from context, theme, and helpers
+    }, [theme, getMonacoThemeName, getActiveFile, handleInternalChange, saveActiveFile, updateActiveFileDirtyState]); // Added context functions
 
 
-    // --- Effect to update editor ONLY when context content/path changes (external load/save) ---
+    // --- Effect to UPDATE editor content when ACTIVE file changes ---
     useEffect(() => {
         const editor = editorRef.current;
         const monaco = monacoRef.current;
 
-        if (!editor || !monaco) return;
-
-        // --- Condition 1: Context has NEW valid content ---
-        // Check if context has content AND (model isn't initialized OR context differs from model)
-        if (currentFileContent !== null && (!isModelInitialized.current || currentFileContent !== editor.getValue())) {
-            console.log("Context content changed externally OR initial load. Updating editor model.");
-
-            // Store cursor position before setting value
-            const currentPosition = editor.getPosition();
-
-            editor.setValue(currentFileContent); // Update the editor's internal model
-
-            // Try to restore cursor position after setting value
-            if (currentPosition && isModelInitialized.current) { // Only restore if not initial load
-                // Enqueue restoration to run after Monaco processes setValue
-                setTimeout(() => {
-                     editorRef.current?.setPosition(currentPosition);
-                }, 0);
-            }
-
-            isModelInitialized.current = true; // Mark model as initialized
-
-            // Update language model
-            const newLanguage = getLanguageFromPath(currentFilePath);
-            const model = editor.getModel();
-            // Check if model exists AND its current language ID is different
-            if (model && model.getLanguageId() !== newLanguage) { // <<< CORRECTED CHECK
-                monaco.editor.setModelLanguage(model, newLanguage); // Use setModelLanguage here
-                console.log(`Editor language set to: ${newLanguage}`);
-            }
-
-
-            // Reset undo stack & mark clean ONLY if it wasn't just the initial load
-            if (isModelInitialized.current) {
-                editor.getModel()?.pushStackElement();
-            }
-            markAsDirty(false);
-        }
-        // --- Condition 2: Context was cleared (e.g., error, close file) ---
-        else if (currentFileContent === null && currentFilePath === null && isModelInitialized.current) {
-             console.log("Context cleared. Resetting editor to placeholder.");
-             editor.setValue("// No file open or error occurred.");
-             monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
-             isModelInitialized.current = false;
-             markAsDirty(false);
+        // --- Save View State of the PREVIOUS file ---
+        const previousPath = lastSetModelPath.current;
+        if (editor && previousPath && previousPath !== activeFile?.path) {
+            const currentState = editor.saveViewState();
+            viewStateCache.current.set(previousPath, currentState);
+            console.log(`Saved view state for ${previousPath}`);
         }
 
-        // --- Condition 3: Update readOnly based on isLoading ---
-        if (editor.getOption(monaco.editor.EditorOption.readOnly) !== isLoading) {
-             console.log(`Updating editor readOnly state to: ${isLoading}`);
-             editor.updateOptions({ readOnly: isLoading });
+        // --- Handle the NEW active file ---
+        if (!editor || !monaco ) {
+             console.log("Editor not ready, skipping active file update.");
+             return;
         }
 
-    // React ONLY to external context changes
-    }, [currentFilePath, currentFileContent, isLoading, markAsDirty]);
+        // If no file is active, clear the editor
+        if (!activeFile) {
+            if (lastSetModelPath.current !== null) {
+                console.log("No active file, clearing editor.");
+                editor.setValue('');
+                lastSetModelPath.current = null;
+                monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
+                editor.updateOptions({ readOnly: true }); // Make readonly when no file
+            }
+            return;
+        }
 
 
-    // Effect to update theme and font size when theme context changes
+        // Only update the editor's model if the active file path has actually changed
+        // AND the file is not currently loading and has content
+        if (activeFile.path !== lastSetModelPath.current && activeFile.content !== null && !activeFile.isLoading) {
+            console.log(`Active file changed to ${activeFile.path}. Updating editor model.`);
+
+            editor.setValue(activeFile.content);
+            lastSetModelPath.current = activeFile.path; // Mark this path as the one displayed
+
+             // Restore View State for the NEW active file
+             const previousViewState = viewStateCache.current.get(activeFile.path);
+             if (previousViewState) {
+                 console.log(`Restoring view state for ${activeFile.path}`);
+                 editor.restoreViewState(previousViewState);
+             } else {
+                  console.log(`No view state found for ${activeFile.path}, using default.`);
+                  // Optionally reset scroll/cursor position if no state saved
+                  editor.setScrollPosition({ scrollTop: 0, scrollLeft: 0 });
+                  editor.setPosition({ lineNumber: 1, column: 1 });
+             }
+
+
+             // Update language model
+             const newLanguage = getLanguageFromPath(activeFile.path);
+             const model = editor.getModel();
+             if (model && model.getLanguageId() !== newLanguage) {
+                 monaco.editor.setModelLanguage(model, newLanguage);
+                 console.log(`Editor language set to: ${newLanguage}`);
+             }
+
+             // Reset undo stack only if needed? Maybe not, let undo persist across tabs for now.
+             // editor.getModel()?.pushStackElement();
+             editor.focus(); // Focus editor when tab changes
+        }
+
+        // Update readOnly state based on active file's loading status or if no file is active
+        const shouldBeReadOnly = activeFile.isLoading || !activeFile;
+        if (editor.getOption(monaco.editor.EditorOption.readOnly) !== shouldBeReadOnly) {
+             console.log(`Updating editor readOnly state to: ${shouldBeReadOnly}`);
+             editor.updateOptions({ readOnly: shouldBeReadOnly });
+        }
+
+    // This effect now primarily reacts to the activeFile object changing
+    }, [activeFile]);
+
+
+    // Effect to update theme and font size
     useEffect(() => {
         const editor = editorRef.current;
         const monaco = monacoRef.current;
@@ -322,20 +344,24 @@ const EditorPanel: React.FC = () => {
 
 
     return (
-        <div className="editor-panel">
-            {/* Display Context Error */}
-            {editorContextError && <div style={{ position: 'absolute', top: '25px', left:'10px', color: 'var(--color-text-error)', background: 'var(--color-bg-main)', padding: '2px 5px', zIndex: 1, border: '1px solid var(--color-text-error)', borderRadius: '3px', fontSize: '11px'}}>Error: {editorContextError}</div>}
-            {/* Display Dirty Indicator (driven by context's isDirty) */}
-            {isDirty && <span style={{ position: 'absolute', top: '5px', right: '10px', color: 'var(--color-text-accent)', fontSize: '10px', zIndex: 1 }}>● Unsaved</span>}
+        <div className="editor-panel" id="editor-panel-main"> {/* Added ID for potential aria-controls */}
+            {/* Display Active File Error / Loading - Use CSS for styling */}
+            {activeFile?.error && <div className="editor-context-error">Error: {activeFile.error}</div>}
+            {activeFile?.isLoading && <div className="editor-loading-indicator">Loading...</div>}
+            {/* Dirty indicator is now on the tab */}
 
             <MonacoEditor
+                key={activeFilePath || 'no-file'} // Change key when file path changes to help reset state if needed? Careful.
                 width="100%"
                 height="100%"
-                language={getLanguageFromPath(currentFilePath)} // Needed for initial setup
-                // value prop REMOVED
+                // Language is now dynamically set in the effect
+                language={getLanguageFromPath(activeFilePath)} // Still useful for initial hint
+                theme={getMonacoThemeName(theme)} // Theme set dynamically
                 options={editorOptions}
-                // onChange prop REMOVED
-                editorDidMount={editorDidMount} // Sets up editor and internal listener
+                // Initial value when component mounts, if activeFile is available then
+                value={activeFile?.content ?? ''}
+                onChange={() => { handleInternalChange()}} // Let the handler read value from ref
+                editorDidMount={editorDidMount}
             />
         </div>
     );

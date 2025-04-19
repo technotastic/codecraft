@@ -2,31 +2,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import path from 'path-browserify';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
-import { useEditor } from '../contexts/EditorContext';
+import { useEditor } from '../contexts/EditorContext'; // Import the hook
 import CustomSelect from './CustomSelect';
 import FileTreeNode from './FileTreeNode';
 import type { DirectoryEntry } from '../../shared.types';
-import { FaFolderOpen, FaLevelUpAlt } from 'react-icons/fa'; // Correct icons
+import { FaFolderOpen, FaLevelUpAlt } from 'react-icons/fa';
 
-// (Keep themeOptions definition as before)
+// Theme options (keep as before)
 const themeOptions: { value: ThemeName; label: string }[] = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'win95', label: 'Windows 95' },
-  { value: 'pipboy', label: 'Pip-Boy' },
-  { value: 'mirc', label: 'mIRC' },
-  { value: 'qbasic', label: 'QBasic' },
-  { value: 'orange', label: 'Orange CRT' },
-  { value: 'cga', label: 'CGA (Cyan)' },
-  { value: 'atari', label: 'Atari 2600' },
-  { value: 'snes', label: 'SNES' },
+  { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' },
+  { value: 'win95', label: 'Windows 95' }, { value: 'pipboy', label: 'Pip-Boy' },
+  { value: 'mirc', label: 'mIRC' }, { value: 'qbasic', label: 'QBasic' },
+  { value: 'orange', label: 'Orange CRT' }, { value: 'cga', label: 'CGA (Cyan)' },
+  { value: 'atari', label: 'Atari 2600' }, { value: 'snes', label: 'SNES' },
   { value: 'bw_tv', label: 'B&W TV' },
 ];
 
 
 const Sidebar: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const { openFile } = useEditor();
+  // *** Use the new context function ***
+  const { openOrFocusFile } = useEditor(); // Get openOrFocusFile from context
   const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
   const [rootDirectoryEntries, setRootDirectoryEntries] = useState<DirectoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -51,13 +47,14 @@ const Sidebar: React.FC = () => {
     }
   };
 
-  // (Keep useEffect for reading directory as before)
+  // Effect to read root directory (keep as before)
    useEffect(() => {
     if (currentFolderPath) {
       console.log(`Reading ROOT directory: ${currentFolderPath}`);
       setIsLoading(true);
       setError(null);
-      setRootDirectoryEntries([]); // Clear previous root entries
+      setRootDirectoryEntries([]);
+      setExpandedFolders({}); // Reset expanded state when root changes
 
       window.electronAPI.fs_readDirectory(currentFolderPath)
         .then(response => {
@@ -81,7 +78,6 @@ const Sidebar: React.FC = () => {
   }, [currentFolderPath]);
 
 
-  // (Keep toggleFolderExpansion as before)
   const toggleFolderExpansion = useCallback((folderPath: string) => {
     setExpandedFolders(prev => ({
       ...prev,
@@ -89,30 +85,33 @@ const Sidebar: React.FC = () => {
     }));
   }, []);
 
-  // (Keep handleGoUp as before)
   const handleGoUp = () => {
     if (currentFolderPath) {
         const parentPath = path.dirname(currentFolderPath);
+        // Prevent going up from the root itself (e.g., '/')
         if (parentPath !== currentFolderPath) {
             console.log(`Navigating up to: ${parentPath}`);
             setCurrentFolderPath(parentPath);
-            setExpandedFolders({});
+            // No need to clear expandedFolders here, keep state if returning
         } else {
              console.log("Already at root, cannot go up further.");
         }
     }
   };
 
-  // (Keep handleEntryClick as before)
+   // *** UPDATED: Use openOrFocusFile for files ***
    const handleEntryClick = useCallback((entry: DirectoryEntry) => {
     if (entry.isDirectory) {
+      // Toggle expansion for directories
       toggleFolderExpansion(entry.path);
     } else {
-      openFile(entry.path).catch(err => {
-          console.error("Error returned from openFile call:", err);
+      // Open or focus the file using the context function
+      openOrFocusFile(entry.path).catch(err => {
+          console.error("Error returned from openOrFocusFile call:", err);
+          // Optionally show an error to the user
       });
     }
-  }, [toggleFolderExpansion, openFile]);
+  }, [toggleFolderExpansion, openOrFocusFile]); // Use context function
 
 
   return (
@@ -120,28 +119,27 @@ const Sidebar: React.FC = () => {
       {/* Header and Open Folder Button */}
       <div className="sidebar-header">
         <h2>Files</h2>
-        {/* *** Add text back, keep icon, adjust padding/style via CSS *** */}
         <button
           onClick={handleOpenFolder}
           title="Open Folder..."
           aria-label="Open Folder"
-          className="open-folder-button" // Add specific class for styling
+          className="open-folder-button"
         >
           <FaFolderOpen />
-          <span style={{ marginLeft: 'var(--spacing-xs)' }}>Open...</span> {/* Add text with space */}
+          <span style={{ marginLeft: 'var(--spacing-xs)' }}>Open...</span>
         </button>
       </div>
 
       {/* Navigation Controls */}
       {currentFolderPath && (
         <div className="navigation-controls">
-           {/* *** Use FaLevelUpAlt Icon, style as icon-only via CSS *** */}
            <button
              onClick={handleGoUp}
+             // Disable if parent is the same as current (e.g., at root '/')
              disabled={!currentFolderPath || path.dirname(currentFolderPath) === currentFolderPath}
              title="Go Up One Level"
              aria-label="Go Up One Level"
-             className="up-button icon-button" // Add specific class for icon-only styling
+             className="up-button icon-button"
            >
              <FaLevelUpAlt />
            </button>
@@ -153,30 +151,28 @@ const Sidebar: React.FC = () => {
 
       {/* File Tree Area */}
       <div className="file-tree">
-        {isLoading && <p>Loading root...</p>}
+        {isLoading && <p>Loading...</p>} {/* Simplified loading text */}
         {error && <p className="error-message">Error: {error}</p>}
         {!isLoading && !error && rootDirectoryEntries.length === 0 && !currentFolderPath && (
            <p className="placeholder-message">Click the <FaFolderOpen style={{ verticalAlign: 'middle', margin: '0 2px'}} /> <span style={{ verticalAlign: 'middle' }}>Open...</span> button to browse files.</p>
         )}
-        {!isLoading && !error && rootDirectoryEntries.length === 0 && currentFolderPath && (
-          <p className="placeholder-message">Folder is empty.</p>
-        )}
+         {/* Removed the specific "Folder is empty" message from here, FileTreeNode handles it */}
         <ul>
           {rootDirectoryEntries.map((entry) => (
             <FileTreeNode
               key={entry.path}
               entry={entry}
               isExpanded={!!expandedFolders[entry.path]}
-              allExpandedFolders={expandedFolders}
-              onToggleExpand={toggleFolderExpansion}
-              onEntryClick={handleEntryClick}
+              allExpandedFolders={expandedFolders} // Pass the whole map down
+              onToggleExpand={toggleFolderExpansion} // Passed down for child nodes
+              onEntryClick={handleEntryClick} // Passed down for child nodes
               level={0}
             />
           ))}
         </ul>
       </div>
 
-      {/* (Keep Theme Switcher as before) */}
+      {/* Theme Switcher */}
       <div className="theme-switcher">
          <label id="theme-select-label" htmlFor="theme-select">
            Theme:

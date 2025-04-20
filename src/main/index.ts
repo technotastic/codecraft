@@ -8,12 +8,18 @@ import * as pty from 'node-pty';
 import fs from 'node:fs/promises'; // Import fs promises
 
 // Import shared types (ensure paths are correct in your tsconfig for build)
-import type { DirectoryEntry, ReadDirectoryResponse, ReadFileResponse, SaveFileResponse } from '../shared.types';
+import type {
+    DirectoryEntry, ReadDirectoryResponse, ReadFileResponse, SaveFileResponse,
+    PtyCreateOptions, PtyResizeOptions, PtyCreateResponse // Import terminal types
+} from '../shared.types';
 
 // --- Global Variables ---
 app.disableHardwareAcceleration();
 const shellPath = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-let ptyProcess: pty.IPty | null = null;
+// --- Terminal Management ---
+// Use a Map to store multiple PTY processes, keyed by their unique ID
+const ptyInstances = new Map<string, pty.IPty>();
+// let ptyProcess: pty.IPty | null = null; // OLD: single pty process
 let mainWindow: BrowserWindow | null = null;
 
 
@@ -24,7 +30,7 @@ if (app.isPackaged && process.platform === 'win32') {
     }
 }
 
-// *** NEW: Function to create the application menu ***
+// *** Function to create the application menu *** (NO CHANGES NEEDED HERE)
 function createApplicationMenu() {
     const isMac = process.platform === 'darwin';
 
@@ -134,7 +140,7 @@ function createApplicationMenu() {
 }
 
 
-// --- Main Window Creation Function ---
+// --- Main Window Creation Function --- (NO CHANGES NEEDED HERE)
 function createWindow() {
   console.log('Creating main window...');
   mainWindow = new BrowserWindow({
@@ -186,15 +192,36 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     console.log('Main window closed.');
-    if (ptyProcess) {
-        console.log('Killing PTY process due to window close.');
-        ptyProcess.kill();
-        ptyProcess = null;
-    }
+    // Kill ALL remaining PTY processes when the main window closes
+    console.log(`Main window closed. Killing ${ptyInstances.size} PTY process(es).`);
+    ptyInstances.forEach((pty, id) => {
+        console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
+        try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); }
+    });
+    ptyInstances.clear(); // Clear the map
     mainWindow = null;
   });
 
 }
+
+// --- Function to Kill a Specific PTY Process ---
+function killPtyProcess(id: string) {
+    const ptyProcess = ptyInstances.get(id);
+    if (ptyProcess) {
+        console.log(`Killing PTY process ID: ${id} (PID: ${ptyProcess.pid})`);
+        try {
+            ptyProcess.kill();
+        } catch (e) {
+             console.warn(`Error killing PTY ID ${id}:`, e);
+        } finally {
+             ptyInstances.delete(id); // Remove from map even if kill throws
+             console.log(`PTY process ID: ${id} removed from map.`);
+        }
+    } else {
+        console.warn(`Attempted to kill PTY process ID: ${id}, but it was not found in the map.`);
+    }
+}
+
 
 // --- Function to Setup IPC Handlers ---
 function setupIpcHandlers() {
@@ -203,105 +230,142 @@ function setupIpcHandlers() {
     // Basic Ping Example
     ipcMain.handle('ping', () => 'pong from main!');
 
-    // --- PTY Handlers ---
-    ipcMain.handle('pty-create', async (_event, options: { cols: number; rows: number }) => {
+    // --- PTY Handlers (MODIFIED FOR MULTIPLE INSTANCES) ---
+
+    // Create a new PTY instance associated with an ID
+    ipcMain.handle('pty-create', async (_event, options: PtyCreateOptions): Promise<PtyCreateResponse> => {
         if (!mainWindow) {
             console.error("Cannot create PTY: mainWindow is not available.");
             return { success: false, error: "Main window not available." };
         }
         const targetWebContents = mainWindow.webContents;
+        const { id, cols, rows } = options;
 
-        if (ptyProcess) {
-            console.log('Existing PTY process found. Killing it before creating a new one.');
-            ptyProcess.kill();
-            ptyProcess = null;
+        if (!id) {
+            console.error("Cannot create PTY: Missing required 'id'.");
+            return { success: false, error: "Missing terminal ID." };
         }
-        console.log(`Creating PTY process with shell: ${shellPath}, cols: ${options.cols}, rows: ${options.rows}`);
+
+        if (ptyInstances.has(id)) {
+            console.warn(`PTY process with ID ${id} already exists. Killing old one.`);
+            killPtyProcess(id); // Ensure old one is gone before creating new
+        }
+
+        console.log(`Creating PTY process for ID: ${id}, shell: ${shellPath}, cols: ${cols}, rows: ${rows}`);
         try {
             const cwd = process.env.HOME || process.env.USERPROFILE || process.cwd();
-            console.log(`PTY current working directory: ${cwd}`);
-            ptyProcess = pty.spawn(shellPath, [], {
+            console.log(`PTY (ID: ${id}) current working directory: ${cwd}`);
+            const newPtyProcess = pty.spawn(shellPath, [], {
                 name: 'xterm-color',
-                cols: options.cols || 80,
-                rows: options.rows || 24,
+                cols: cols || 80,
+                rows: rows || 24,
                 cwd: cwd,
                 env: { ...process.env },
             });
-            console.log(`PTY process created successfully (PID: ${ptyProcess.pid}).`);
 
-            // Handle Data Output
-            ptyProcess.onData(data => {
+            console.log(`PTY process created successfully for ID: ${id} (PID: ${newPtyProcess.pid}). Storing in map.`);
+            ptyInstances.set(id, newPtyProcess); // Store the new PTY process in the map
+
+            // Handle Data Output for this specific PTY
+            newPtyProcess.onData(data => {
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    targetWebContents.send('pty-data', data);
+                    // Send data back WITH THE ID
+                    targetWebContents.send('pty-data', id, data);
                  }
             });
 
-            // Handle Process Exit (Covers normal exit and many errors)
-            ptyProcess.onExit(({ exitCode, signal }) => {
-                console.log(`PTY process (PID: ${ptyProcess?.pid}) exited with code: ${exitCode}, signal: ${signal}`);
-                // Optionally send error to renderer if exit code/signal indicates an issue
+            // Handle Process Exit for this specific PTY
+            newPtyProcess.onExit(({ exitCode, signal }) => {
+                console.log(`PTY process ID: ${id} (PID: ${newPtyProcess.pid}) exited with code: ${exitCode}, signal: ${signal}`);
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    // Send exit code regardless
-                    targetWebContents.send('pty-exit', exitCode);
-                    // If exit was likely due to an error, maybe send an additional message
+                    // Send exit signal back WITH THE ID
+                    targetWebContents.send('pty-exit', id, exitCode);
+                    // Optionally send error if exit was abnormal
                     if (exitCode !== 0 || signal) {
-                         targetWebContents.send('pty-error', `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
+                         targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
                     }
                  }
-                 ptyProcess = null; // Mark as no longer active
+                 ptyInstances.delete(id); // Remove from map on exit
+                 console.log(`PTY process ID: ${id} removed from map due to exit.`);
             });
 
-            // Errors during spawn are caught by the try/catch block below.
-            // Errors during write/resize are caught in their respective handlers.
-            // Other PTY internal errors usually lead to onExit being called.
+            // Handle Potential Errors for this specific PTY (though many manifest as onExit)
+            // newPtyProcess.onError is not a standard event in node-pty's typings, errors usually trigger exit
+            // If specific error handling IS needed, it would be attached here.
 
             return { success: true };
 
         } catch (error) {
-            console.error('Failed to create PTY process:', error);
-            // Send error back to renderer if it happens during creation
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error(`Failed to create PTY process for ID ${id}:`, error);
             if (targetWebContents && !targetWebContents.isDestroyed()) {
-                targetWebContents.send('pty-error', `Failed to spawn PTY: ${error instanceof Error ? error.message : String(error)}`);
+                 // Send error back WITH THE ID
+                targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`);
             }
-            ptyProcess = null;
-            return { success: false, error: error instanceof Error ? error.message : String(error) };
+            // Ensure it's not left in the map if spawn failed
+            if (ptyInstances.has(id)) {
+                ptyInstances.delete(id);
+            }
+            return { success: false, error: errorMsg };
         }
     });
 
-    // Handle Input from Renderer
-    ipcMain.on('pty-input', (_event, data: string) => {
+    // Handle Input from Renderer for a specific PTY ID
+    ipcMain.on('pty-input', (_event, id: string, data: string) => {
+        const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
              try {
                  ptyProcess.write(data);
              } catch (error) {
-                 console.error(`Error writing to PTY (PID: ${ptyProcess?.pid}):`, error);
-                 // Optionally notify the renderer
-                 mainWindow?.webContents.send('pty-error', `Write Error: ${error instanceof Error ? error.message : String(error)}`);
-                 // Consider killing the PTY if writes consistently fail?
-                 // ptyProcess.kill();
-                 // ptyProcess = null;
+                 const errorMsg = error instanceof Error ? error.message : String(error);
+                 console.error(`Error writing to PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
+                 mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`);
+                 // Optional: killPtyProcess(id); ? Depends on error handling strategy
              }
+        } else {
+            // console.warn(`Received input for unknown/exited PTY ID: ${id}`); // Can be noisy
         }
     });
 
-    // Handle Resize from Renderer
-    ipcMain.on('pty-resize', (_event, options: { cols: number; rows: number }) => {
+    // Handle Resize from Renderer for a specific PTY ID
+    ipcMain.on('pty-resize', (_event, id: string, options: PtyResizeOptions) => {
+        const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
             if (options.cols > 0 && options.rows > 0) {
                 try {
                     ptyProcess.resize(options.cols, options.rows);
                 } catch (error) {
-                     console.error(`Failed to resize PTY (PID: ${ptyProcess?.pid}):`, error);
-                     // Optionally notify the renderer
-                     mainWindow?.webContents.send('pty-error', `Resize Error: ${error instanceof Error ? error.message : String(error)}`);
+                     const errorMsg = error instanceof Error ? error.message : String(error);
+                     console.error(`Failed to resize PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
+                     mainWindow?.webContents.send('pty-error', id, `Resize Error: ${errorMsg}`);
                 }
             } else {
-                console.warn(`Received invalid resize dimensions: cols=${options.cols}, rows=${options.rows}`);
+                console.warn(`Received invalid resize dimensions for PTY ID ${id}: cols=${options.cols}, rows=${options.rows}`);
             }
+        } else {
+             // console.warn(`Received resize for unknown/exited PTY ID: ${id}`); // Can be noisy
         }
     });
 
-    // --- Dialog Handler ---
+    // NEW: Handle Kill request from Renderer for a specific PTY ID
+    ipcMain.handle('pty-kill', async (_event, id: string) => {
+         console.log(`IPC Request: Kill PTY ID: ${id}`);
+         if (!id) {
+            console.error("Cannot kill PTY: Missing required 'id'.");
+            return { success: false, error: "Missing terminal ID." };
+         }
+         try {
+             killPtyProcess(id); // Use the helper function
+             return { success: true };
+         } catch(error) {
+             const errorMsg = error instanceof Error ? error.message : String(error);
+             console.error(`Error processing kill request for PTY ID ${id}:`, error);
+             return { success: false, error: errorMsg };
+         }
+     });
+
+
+    // --- Dialog Handler --- (NO CHANGES NEEDED)
     ipcMain.handle('dialog:openDirectory', async () => {
         if (!mainWindow) return null;
         const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -315,7 +379,7 @@ function setupIpcHandlers() {
         }
     });
 
-    // --- File System Handlers ---
+    // --- File System Handlers --- (NO CHANGES NEEDED)
 
     // Read Directory Handler
     ipcMain.handle('fs:readDirectory', async (_event, folderPath: string): Promise<ReadDirectoryResponse> => {
@@ -408,7 +472,7 @@ function setupIpcHandlers() {
          }
      });
 
-    // *** NEW: IPC Handlers for App/Window Control ***
+    // --- App/Window Control Handlers --- (NO CHANGES NEEDED)
     ipcMain.handle('app:quit', () => {
         console.log("IPC: Received app:quit request.");
         app.quit();
@@ -432,10 +496,9 @@ function setupIpcHandlers() {
             console.warn("IPC: Cannot toggle DevTools, mainWindow not found.");
         }
     });
-    // *** END NEW IPC Handlers ***
 
 
-    console.log('IPC Handlers registered (including app/window controls).');
+    console.log('IPC Handlers registered (including multi-PTY support and app/window controls).');
 }
 
 // --- App Lifecycle Events ---
@@ -466,12 +529,13 @@ app.on('window-all-closed', () => {
 });
 
 app.on('will-quit', () => {
-    // This is a good place to kill the PTY process if it's still running
-    console.log('App will quit. Killing PTY process if exists.');
-    if (ptyProcess) {
-        ptyProcess.kill();
-        ptyProcess = null;
-    }
+    // Kill ALL remaining PTY processes on quit
+    console.log(`App will quit. Killing ${ptyInstances.size} PTY process(es).`);
+    ptyInstances.forEach((pty, id) => {
+        console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
+         try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); }
+    });
+    ptyInstances.clear();
 });
 
 process.on('uncaughtException', (error: Error) => {

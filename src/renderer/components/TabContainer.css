@@ -11,6 +11,7 @@
     padding: var(--spacing-xxs) var(--spacing-xs) 0 var(--spacing-xs); /* Padding around tabs, no bottom padding */
     flex-shrink: 0; /* Prevent container from shrinking */
     min-height: 30px; /* Ensure a minimum height */
+    position: relative; /* For positioning add button */
 
     /* Thin scrollbar styling */
     scrollbar-width: thin; /* Firefox */
@@ -54,6 +55,7 @@
     /* Pull tab slightly down to overlap container border */
     margin-bottom: -1px;
     padding-bottom: calc(var(--spacing-xs) + 1px); /* Compensate for margin-bottom */
+    flex-shrink: 0; /* Prevent tabs from shrinking too easily */
 }
 
 .tab:hover {
@@ -63,13 +65,21 @@
 }
 
 .tab.active {
-    background-color: var(--color-bg-editor); /* Match editor background */
+    /* Match editor background for editor tabs, terminal bg for terminal tabs */
+    background-color: var(--color-bg-editor); /* Default for editor */
     color: var(--color-text-primary);
     border-color: var(--color-border); /* Ensure border matches */
-    /* Make active tab visually connect with editor */
+    /* Make active tab visually connect with panel */
     border-bottom-color: var(--color-bg-editor); /* Hide bottom border by matching bg */
     z-index: 3; /* Bring active tab to the very front */
 }
+
+/* Specific override for active TERMINAL tabs */
+.terminal-tab-container .tab.active {
+     background-color: var(--color-bg-terminal);
+     border-bottom-color: var(--color-bg-terminal);
+}
+
 
 .tab-filename {
     overflow: hidden;
@@ -117,6 +127,38 @@
     color: var(--color-text-error);
 }
 
+/* Style for Terminal Tabs specifically if needed */
+.terminal-tab {
+    /* Inherits .tab styles */
+}
+
+/* Style for exited/loading states on terminal tabs */
+.terminal-tab.exited {
+    opacity: 0.7;
+    font-style: italic;
+}
+.terminal-tab.loading {
+    opacity: 0.8;
+    cursor: default;
+}
+.tab-loading-spinner {
+     margin-right: var(--spacing-xs);
+     font-size: 0.9em;
+}
+
+/* Add Tab Button */
+.add-tab-button {
+    /* Inherits .icon-button styles */
+    margin-left: var(--spacing-xs); /* Space from last tab */
+    /* Pull it down slightly to align visually with tab tops */
+    position: relative;
+    top: 1px;
+    padding: 3px; /* Smaller padding */
+    font-size: 0.9em; /* Smaller icon */
+     align-self: center; /* Center vertically within the tab bar */
+     margin-bottom: var(--spacing-xxs); /* Align bottom edge */
+}
+
 /* Win95/mIRC specific overrides */
 .theme-win95 .tab-container,
 .theme-mirc .tab-container {
@@ -145,7 +187,7 @@
     box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent),
                 inset 1px 1px var(--win95-bevel-shadow-light, transparent);
                 /* No bottom shadow for active tab */
-    background-color: var(--color-bg-main); /* Match editor bg */
+    /* background-color: var(--color-bg-main); // Editor default */
     color: var(--color-text-primary);
     border-bottom-color: transparent; /* Hide bottom border */
     position: relative;
@@ -153,6 +195,11 @@
     margin-bottom: -1px; /* Overlap the bottom border */
     padding-bottom: calc(var(--spacing-xs) + 1px); /* Add back padding */
 }
+/* Win95/mIRC Active Tab Backgrounds */
+.theme-win95 .tab.active, .theme-mirc .tab.active { background-color: var(--color-bg-editor); }
+.theme-win95 .terminal-tab-container .tab.active, .theme-mirc .terminal-tab-container .tab.active { background-color: var(--color-bg-terminal); }
+
+
 .theme-win95 .tab-close-button,
 .theme-mirc .tab-close-button {
     color: var(--color-text-button);
@@ -168,6 +215,13 @@
 .theme-mirc .tab-close-button:hover {
     background-color: transparent;
     color: var(--color-text-error);
+}
+
+.theme-win95 .add-tab-button,
+.theme-mirc .add-tab-button {
+    box-shadow: none;
+    top: 0px; /* Adjust vertical alignment if needed */
+    margin-bottom: 0px;
 }
 
 

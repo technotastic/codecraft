@@ -22,7 +22,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md); /* Adjusted padding slightly */
+    padding: var(--spacing-sm) var(--spacing-md);
     border-bottom: var(--border-standard);
     flex-shrink: 0;
   }
@@ -31,21 +31,15 @@
     margin: 0;
     font-size: var(--font-size-lg);
     color: var(--color-text-heading);
-    /* Add ellipsis if title is too long for narrow sidebar */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex-grow: 1; /* Allow title to take space */
-    margin-right: var(--spacing-sm); /* Space between title and button */
+    flex-grow: 1;
+    margin-right: var(--spacing-sm);
   }
 
-  /* Style for the "Open Folder" button - Ensure it uses icon-button styles */
   .sidebar-header button.open-folder-button {
-    /* Primarily relies on .icon-button styles now */
-    flex-shrink: 0; /* Prevent button from shrinking */
-    /* Override specific padding/size if needed for header context */
-    /* padding: var(--spacing-xs); */
-    /* font-size: var(--font-size-lg); /* Maybe make icon slightly larger? */
+    flex-shrink: 0;
   }
 
   /* Navigation Controls */
@@ -61,54 +55,44 @@
 
   /* Base style for icon-only buttons */
   .icon-button {
-      background: none; /* Remove background */
-      border: none; /* Remove border */
-      padding: var(--spacing-xs); /* Add some padding around the icon */
-      color: var(--color-text-secondary); /* Use secondary text color */
+      background: none;
+      border: none;
+      padding: var(--spacing-xs);
+      color: var(--color-text-secondary);
       cursor: pointer;
       border-radius: var(--border-radius-sm);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       line-height: 1;
-      font-size: var(--font-size-md); /* Adjust icon size if needed */
+      font-size: var(--font-size-md);
   }
 
   .icon-button:hover {
-      background-color: var(--color-bg-hover); /* Subtle background on hover */
-      color: var(--color-text-primary); /* Make icon primary color on hover */
+      background-color: var(--color-bg-hover);
+      color: var(--color-text-primary);
   }
-
   .icon-button:active {
-      background-color: var(--color-bg-button-active); /* Use button active color */
+      background-color: var(--color-bg-button-active);
   }
-
   .icon-button:disabled {
-      opacity: 0.4; /* Lower opacity for disabled */
+      opacity: 0.4;
       cursor: not-allowed;
-      background-color: transparent; /* Ensure no background when disabled */
+      background-color: transparent;
       color: var(--color-text-tertiary);
   }
 
-  /* Specific styles for the Up button */
   .navigation-controls .up-button {
-      /* Inherits from .icon-button */
-      flex-shrink: 0; /* Prevent shrinking */
+      flex-shrink: 0;
   }
 
-  /* Override Win95/mIRC bevels for icon buttons if needed */
-  .theme-win95 .icon-button,
-  .theme-mirc .icon-button {
-     box-shadow: none; /* Remove bevel */
-     padding: var(--spacing-xs); /* Re-apply padding if bevel changed it */
+  /* Win95/mIRC Icon Button Overrides */
+  .theme-win95 .icon-button, .theme-mirc .icon-button {
+     box-shadow: none; padding: var(--spacing-xs);
   }
-  .theme-win95 .icon-button:active,
-  .theme-mirc .icon-button:active {
-     box-shadow: none; /* Remove pressed bevel */
-     /* Add subtle pressed effect if desired */
-     /* transform: translate(1px, 1px); */
+  .theme-win95 .icon-button:active, .theme-mirc .icon-button:active {
+     box-shadow: none;
   }
-
 
   .navigation-controls .current-folder-path {
       font-size: var(--font-size-sm);
@@ -121,12 +105,10 @@
       border-bottom: none;
   }
 
-  /* Ensure no borders are added directly to SVG elements within the sidebar */
   .sidebar svg {
-      border: none; /* Explicitly remove border from SVG */
-      vertical-align: middle; /* Helps with alignment */
+      border: none;
+      vertical-align: middle;
   }
-
 
   /* File Tree Styling */
   .file-tree {
@@ -136,196 +118,117 @@
       padding: var(--spacing-xs) 0;
       font-size: var(--font-size-sm);
   }
-
-  .file-tree ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-  }
-
-  .file-tree-node {
-      /* Base list item */
-  }
-
-  /* Style the node when loading */
-  .file-tree-node.loading > .node-content {
-      opacity: 0.7;
-      cursor: default; /* Indicate not interactive while loading */
-  }
-
-  .file-tree-node .node-content {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      padding: var(--spacing-xxs) var(--spacing-md);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      user-select: none;
-      position: relative;
-  }
-
-  .file-tree-node .node-content:hover {
-      background-color: var(--color-bg-hover);
-  }
-
-  .file-tree-node .toggle-icon {
-      width: 1.5em; /* Adjust width if needed */
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      line-height: 1;
-      vertical-align: middle;
-      color: var(--color-text-tertiary); /* Default color for icons in this slot */
-  }
-  .file-tree-node .toggle-icon.spacer {
-      visibility: hidden;
-  }
-
-  .file-tree-node .expand-icon {
-      font-size: 0.9em;
-      display: inline-block;
-      vertical-align: middle;
-  }
-
-  .file-tree-node .file-icon {
-      margin-right: var(--spacing-xs);
-      display: inline-flex;
-      align-items: center;
-      flex-shrink: 0;
-      vertical-align: middle;
-      color: var(--color-text-accent);
-      font-size: 1.1em;
-  }
-
-  .file-tree-node .node-name {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      vertical-align: middle;
-      margin-left: var(--spacing-xxs);
-  }
-
-  .file-tree-node .loading-spinner {
-      display: inline-flex; /* Use flex for centering */
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9em; /* Control size via font-size */
-      vertical-align: middle;
-      color: var(--color-text-tertiary);
-  }
-
-  /* CSS animation for the spinner */
-  .spin-animation {
-      animation: spin 1.5s linear infinite;
-  }
-
-  @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-  }
-
-  .file-tree-node .error-message,
-  .file-tree-node .empty-folder-message {
-      color: var(--color-text-tertiary);
-      font-style: italic;
-      padding: var(--spacing-xxs) 0;
-      margin: 0;
-      list-style: none;
-      user-select: none;
-      font-size: 0.9em; /* Slightly smaller */
-  }
-  .file-tree-node .error-message {
-      color: var(--color-text-error);
-      font-style: normal;
-  }
-
-  .file-tree .placeholder-message {
-      color: var(--color-text-tertiary);
-      padding: var(--spacing-md);
-      font-style: italic;
-      line-height: 1.5; /* Improve readability with icon */
-  }
+  .file-tree ul { list-style: none; padding: 0; margin: 0; }
+  .file-tree-node.loading > .node-content { opacity: 0.7; cursor: default; }
+  .file-tree-node .node-content { display: flex; align-items: center; cursor: pointer; padding: var(--spacing-xxs) var(--spacing-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; position: relative; }
+  .file-tree-node .node-content:hover { background-color: var(--color-bg-hover); }
+  .file-tree-node .toggle-icon { width: 1.5em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; vertical-align: middle; color: var(--color-text-tertiary); }
+  .file-tree-node .toggle-icon.spacer { visibility: hidden; }
+  .file-tree-node .expand-icon { font-size: 0.9em; display: inline-block; vertical-align: middle; }
+  .file-tree-node .file-icon { margin-right: var(--spacing-xs); display: inline-flex; align-items: center; flex-shrink: 0; vertical-align: middle; color: var(--color-text-accent); font-size: 1.1em; }
+  .file-tree-node .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; margin-left: var(--spacing-xxs); }
+  .file-tree-node .loading-spinner { display: inline-flex; align-items: center; justify-content: center; font-size: 0.9em; vertical-align: middle; color: var(--color-text-tertiary); }
+  .spin-animation { animation: spin 1.5s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .file-tree-node .error-message, .file-tree-node .empty-folder-message { color: var(--color-text-tertiary); font-style: italic; padding: var(--spacing-xxs) 0; margin: 0; list-style: none; user-select: none; font-size: 0.9em; }
+  .file-tree-node .error-message { color: var(--color-text-error); font-style: normal; }
+  .file-tree .placeholder-message { color: var(--color-text-tertiary); padding: var(--spacing-md); font-style: italic; line-height: 1.5; }
 
   /* Theme switcher styles */
-  .sidebar .theme-switcher {
-      margin-top: auto;
-      padding: var(--spacing-md);
-      border-top: var(--border-standard);
-      flex-shrink: 0;
-      position: relative;
-      z-index: 5;
-  }
-  .sidebar .theme-switcher label {
-      display: block;
-      margin-bottom: var(--spacing-xs);
-      font-size: var(--font-size-sm);
-      color: var(--color-text-secondary);
-   }
+  .sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
+  .sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
 
   /* Main Panel, Editor, Terminal Base Styles */
-  .main-panel {
-      display: flex;
-      flex-direction: column; /* Stack TabContainer and Allotment vertically */
-      height: 100%;
-      overflow: hidden;
-      background-color: var(--color-bg-main);
-  }
+  .main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
+  .editor-panel { background-color: var(--color-bg-editor); overflow: hidden; position: relative; height: 100%; width: 100%; display: flex; }
 
-  .editor-panel {
-      background-color: var(--color-bg-editor);
-      overflow: hidden;
-      position: relative; /* Needed for absolute positioning of indicators */
+  /* Wrapper for Terminal Tabs + Panel Area */
+  .terminal-area-container {
+      display: flex;
+      flex-direction: column;
       height: 100%;
       width: 100%;
-      display: flex;
-      /* Add padding if needed, or let Monaco handle it */
-      /* padding: var(--spacing-xs); */
+      overflow: hidden;
+      background-color: var(--color-bg-terminal);
   }
 
-  .terminal-panel-container {
-      flex-shrink: 0;
+  /* Wrapper for the absolutely positioned terminal panel instances */
+  .terminal-panels-wrapper {
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--color-bg-terminal);
+  }
+
+  /* Terminal Panel Instance Styling (Absolute Positioning) */
+  .terminal-panel-instance {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      /* --- Visibility Control --- */
+      visibility: hidden; /* Hidden by default */
+      opacity: 0;
+      z-index: 1;
+      transition: opacity 0.05s ease-out, visibility 0s linear 0.05s; /* Faster hide transition */
+      /* --- Content Styling --- */
+      display: flex; /* Needed for inner mount point to fill space */
+      overflow: hidden;
+      /* Padding applied to inner mount point now */
       background-color: var(--color-bg-terminal);
       color: var(--color-text-terminal);
-      overflow: hidden;
       font-family: var(--font-family-mono);
       font-size: var(--font-size-terminal);
-      position: relative;
-      height: 100%;
-      width: 100%;
-      display: flex;
-      padding: var(--spacing-xs);
   }
-  .terminal-panel-container > div { width: 100%; height: 100%; }
-  .terminal-panel-container .terminal.xterm { height: 100% !important; width: 100% !important; }
-  .terminal-panel-container .xterm-screen { width: 100% !important; height: 100% !important; }
-  .terminal-panel-container p { display: none; } /* Hide potential Xterm paragraphs */
+
+  /* Style for the ACTIVE terminal panel */
+  .terminal-panel-instance.active {
+      visibility: visible;
+      opacity: 1;
+      z-index: 2;
+      transition: opacity 0.05s ease-in, visibility 0s linear; /* Faster show transition */
+  }
+
+  /* The actual mount point for xterm INSIDE the instance wrapper */
+  .terminal-mount-point {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      padding: var(--spacing-xs); /* Apply padding HERE */
+  }
+
+
+  /* Placeholder for when no terminal is active/open */
+  .terminal-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-tertiary);
+      padding: var(--spacing-md);
+      font-style: italic;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-color: var(--color-bg-terminal);
+      z-index: 0;
+  }
+
+  /* Ensure xterm fills its container (.terminal-mount-point) */
+  .terminal-mount-point > div { width: 100%; height: 100%; }
+  .terminal-mount-point .terminal.xterm { height: 100% !important; width: 100% !important; }
+  .terminal-mount-point .xterm-screen { width: 100% !important; height: 100% !important; }
+  .terminal-mount-point .xterm-viewport { width: 100% !important; }
+  .terminal-mount-point .xterm .xterm-screen canvas { width: 100% !important; height: 100% !important; }
+  .terminal-mount-point p { display: none; }
 
   /* Editor Panel Overlay Indicators */
-  .editor-context-error,
-  .editor-loading-indicator {
-      position: absolute;
-      top: var(--spacing-xs);
-      left: var(--spacing-sm);
-      background-color: color-mix(in srgb, var(--color-bg-editor) 90%, black); /* Slightly transparent background */
-      padding: var(--spacing-xxs) var(--spacing-xs);
-      border-radius: var(--border-radius-sm);
-      font-size: var(--font-size-sm);
-      z-index: 10; /* Ensure it's above the editor content */
-      box-shadow: var(--box-shadow-sm);
-      max-width: 80%;
+  .editor-context-error, .editor-loading-indicator {
+      position: absolute; top: var(--spacing-xs); left: var(--spacing-sm);
+      background-color: color-mix(in srgb, var(--color-bg-editor) 90%, black);
+      padding: var(--spacing-xxs) var(--spacing-xs); border-radius: var(--border-radius-sm);
+      font-size: var(--font-size-sm); z-index: 10; box-shadow: var(--box-shadow-sm); max-width: 80%;
   }
+  .editor-context-error { color: var(--color-text-error); border: 1px solid var(--color-text-error); }
+  .editor-loading-indicator { color: var(--color-text-secondary); border: 1px solid var(--color-border-accent); }
 
-  .editor-context-error {
-      color: var(--color-text-error);
-      border: 1px solid var(--color-text-error);
-  }
-
-  .editor-loading-indicator {
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-border-accent);
-  }
-
-
-/* --- END FILE: src/renderer/App.css --- */
+/* --- END FINAL FILE: src/renderer/App.css --- */

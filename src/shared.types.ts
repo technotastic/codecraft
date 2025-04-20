@@ -4,6 +4,7 @@
 // This file can be used to define types that are shared
 // between the main process, preload script, and renderer process.
 
+// --- Filesystem Types ---
 export interface DirectoryEntry {
     name: string;       // File or folder name (e.g., 'index.ts', 'components')
     path: string;       // Full absolute path
@@ -31,6 +32,23 @@ export type ReadFileResponse = {
 
 // Define the expected response structure for saving a file
 export type SaveFileResponse = {
+    success: boolean;
+    error?: string;
+};
+
+// --- Terminal Types ---
+export interface PtyCreateOptions {
+    id: string; // Unique identifier for the terminal session
+    cols: number;
+    rows: number;
+}
+
+export interface PtyResizeOptions {
+    cols: number;
+    rows: number;
+}
+
+export type PtyCreateResponse = {
     success: boolean;
     error?: string;
 };

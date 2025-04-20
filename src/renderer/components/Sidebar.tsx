@@ -11,9 +11,9 @@ import { FaFolderOpen, FaLevelUpAlt } from 'react-icons/fa';
 // Theme options
 const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' },
-  { value: 'win95', label: 'Windows 95' }, { value: 'pipboy', label: 'Pip-Boy' },
+  { value: 'win95', label: 'Win95' }, { value: 'pipboy', label: 'Pip-Boy' },
   { value: 'mirc', label: 'mIRC' }, { value: 'qbasic', label: 'QBasic' },
-  { value: 'orange', label: 'Orange CRT' }, { value: 'cga', label: 'CGA (Cyan)' },
+  { value: 'orange', label: 'Amber' }, { value: 'cga', label: 'CGA' },
   { value: 'atari', label: 'Atari 2600' }, { value: 'snes', label: 'SNES' },
   { value: 'bw_tv', label: 'B&W TV' },
 ];

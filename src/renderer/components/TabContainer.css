@@ -3,78 +3,67 @@
 
 .tab-container {
     display: flex;
-    flex-wrap: nowrap; /* Prevent wrapping */
-    overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
-    overflow-y: hidden; /* <<< HIDE potential vertical scrollbar <<< */
-    background-color: var(--color-bg-sidebar); /* Use sidebar bg or a dedicated tab bg */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background-color: var(--color-bg-sidebar);
     border-bottom: 1px solid var(--color-border);
-    padding: var(--spacing-xxs) var(--spacing-xs) 0 var(--spacing-xs); /* Padding around tabs, no bottom padding */
-    flex-shrink: 0; /* Prevent container from shrinking */
-    min-height: 30px; /* Ensure a minimum height */
-    position: relative; /* For positioning add button */
+    padding: var(--spacing-xxs) var(--spacing-xs) 0 var(--spacing-xs);
+    flex-shrink: 0;
+    /* --- ADJUSTED min-height --- */
+    min-height: 24px; /* Reduce container min height */
+    position: relative;
 
-    /* Thin scrollbar styling */
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg); /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg);
 }
 
-/* Basic Scrollbar Styling for Webkit (Chrome, Safari, Edge) */
-.tab-container::-webkit-scrollbar {
-    height: 6px; /* Height of horizontal scrollbar */
-    /* We don't need to define width as overflow-y is hidden */
-}
-.tab-container::-webkit-scrollbar-track {
-    background: var(--scrollbar-track-bg);
-}
-.tab-container::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb-bg);
-    border-radius: 3px;
-}
-.tab-container::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black);
-}
+/* Scrollbar Styling */
+.tab-container::-webkit-scrollbar { height: 6px; }
+.tab-container::-webkit-scrollbar-track { background: var(--scrollbar-track-bg); }
+.tab-container::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb-bg); border-radius: 3px; }
+.tab-container::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black); }
 
 
 .tab {
     display: flex;
     align-items: center;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    /* --- ADJUSTED vertical padding --- */
+    padding: var(--spacing-xxs) var(--spacing-sm); /* Reduced top/bottom padding */
     border: 1px solid var(--color-border);
-    border-bottom: none; /* Remove bottom border initially */
-    background-color: var(--color-bg-button); /* Use a subtle background */
+    border-bottom: none;
+    background-color: var(--color-bg-button);
     color: var(--color-text-secondary);
     cursor: pointer;
     margin-right: var(--spacing-xxs);
     border-top-left-radius: var(--border-radius-sm);
     border-top-right-radius: var(--border-radius-sm);
-    white-space: nowrap; /* Prevent filename wrapping */
-    position: relative; /* For positioning dirty indicator and active state*/
-    max-width: 200px; /* Limit tab width */
+    white-space: nowrap;
+    position: relative;
+    max-width: 200px;
     transition: background-color 0.15s ease, color 0.15s ease;
-    z-index: 1; /* Default z-index */
-    /* Pull tab slightly down to overlap container border */
+    z-index: 1;
     margin-bottom: -1px;
-    padding-bottom: calc(var(--spacing-xs) + 1px); /* Compensate for margin-bottom */
-    flex-shrink: 0; /* Prevent tabs from shrinking too easily */
+    /* --- ADJUSTED padding-bottom compensation --- */
+    padding-bottom: calc(var(--spacing-xxs) + 1px); /* Use smaller variable here too */
+    flex-shrink: 0;
 }
 
 .tab:hover {
     background-color: var(--color-bg-button-hover);
     color: var(--color-text-primary);
-    z-index: 2; /* Bring hovered tab slightly forward */
+    z-index: 2;
 }
 
 .tab.active {
-    /* Match editor background for editor tabs, terminal bg for terminal tabs */
-    background-color: var(--color-bg-editor); /* Default for editor */
+    background-color: var(--color-bg-editor);
     color: var(--color-text-primary);
-    border-color: var(--color-border); /* Ensure border matches */
-    /* Make active tab visually connect with panel */
-    border-bottom-color: var(--color-bg-editor); /* Hide bottom border by matching bg */
-    z-index: 3; /* Bring active tab to the very front */
+    border-color: var(--color-border);
+    border-bottom-color: var(--color-bg-editor);
+    z-index: 3;
 }
 
-/* Specific override for active TERMINAL tabs */
+/* Active TERMINAL tabs override */
 .terminal-tab-container .tab.active {
      background-color: var(--color-bg-terminal);
      border-bottom-color: var(--color-bg-terminal);
@@ -84,14 +73,15 @@
 .tab-filename {
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-right: var(--spacing-sm); /* Space before close button */
-    font-size: var(--font-size-sm);
+    margin-right: var(--spacing-sm);
+    font-size: var(--font-size-sm); /* Keep font size unless too cramped */
+    line-height: 1.2; /* Adjust line-height slightly if needed */
 }
 
 .tab-dirty-indicator {
     color: var(--color-text-accent);
-    font-size: 10px;
-    margin-right: var(--spacing-xs);
+    font-size: 8px; /* Make indicator smaller */
+    margin-right: 2px; /* Reduce margin slightly */
     line-height: 1;
 }
 
@@ -100,27 +90,28 @@
     border: none;
     color: var(--color-text-tertiary);
     padding: 0;
-    margin-left: auto; /* Push to the right */
+    margin-left: auto;
     cursor: pointer;
-    font-size: 0.8em; /* Make icon smaller */
+    /* --- ADJUSTED size/font-size --- */
+    font-size: 0.7em; /* Make icon even smaller */
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    line-height: 16px;
-    flex-shrink: 0; /* Prevent shrinking */
+    width: 14px;  /* Reduce size */
+    height: 14px; /* Reduce size */
+    line-height: 14px; /* Match height */
+    flex-shrink: 0;
     transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .tab-close-button:hover {
     background-color: var(--color-bg-hover);
-    color: var(--color-text-error); /* Red on hover */
+    color: var(--color-text-error);
 }
 
 .tab.active .tab-close-button {
-    color: var(--color-text-secondary); /* Slightly more visible on active tab */
+    color: var(--color-text-secondary);
 }
 .tab.active .tab-close-button:hover {
     background-color: var(--color-bg-hover);
@@ -128,88 +119,77 @@
 }
 
 /* Style for Terminal Tabs specifically if needed */
-.terminal-tab {
-    /* Inherits .tab styles */
-}
+.terminal-tab { /* Inherits .tab styles */ }
 
 /* Style for exited/loading states on terminal tabs */
-.terminal-tab.exited {
-    opacity: 0.7;
-    font-style: italic;
-}
-.terminal-tab.loading {
-    opacity: 0.8;
-    cursor: default;
-}
-.tab-loading-spinner {
-     margin-right: var(--spacing-xs);
-     font-size: 0.9em;
-}
+.terminal-tab.exited { opacity: 0.7; font-style: italic; }
+.terminal-tab.loading { opacity: 0.8; cursor: default; }
+.tab-loading-spinner { margin-right: var(--spacing-xs); font-size: 0.8em; /* Smaller spinner */ }
 
 /* Add Tab Button */
 .add-tab-button {
     /* Inherits .icon-button styles */
-    margin-left: var(--spacing-xs); /* Space from last tab */
-    /* Pull it down slightly to align visually with tab tops */
+    margin-left: var(--spacing-xs);
     position: relative;
     top: 1px;
-    padding: 3px; /* Smaller padding */
-    font-size: 0.9em; /* Smaller icon */
-     align-self: center; /* Center vertically within the tab bar */
-     margin-bottom: var(--spacing-xxs); /* Align bottom edge */
+    /* --- ADJUSTED padding/font-size --- */
+    padding: 2px; /* Smaller padding */
+    font-size: 0.8em; /* Smaller icon */
+    align-self: center;
+    margin-bottom: var(--spacing-xxs);
 }
 
-/* Win95/mIRC specific overrides */
+/* Win95/mIRC specific overrides - Also adjust padding */
 .theme-win95 .tab-container,
 .theme-mirc .tab-container {
-    background-color: var(--color-bg-app); /* Match main app bg */
+    background-color: var(--color-bg-app);
     padding-left: 0;
     padding-right: 0;
-    border-bottom: none; /* Remove container border */
+    border-bottom: none;
 }
 .theme-win95 .tab,
 .theme-mirc .tab {
     border-radius: 0;
-    border: none; /* Remove default border */
-     box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent), /* left */
-                 inset 1px 1px var(--win95-bevel-shadow-light, transparent), /* top/right */
-                 inset 0px -1px var(--win95-bevel-shadow-darker, transparent); /* bottom line */
+    border: none;
+     box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent),
+                 inset 1px 1px var(--win95-bevel-shadow-light, transparent),
+                 inset 0px -1px var(--win95-bevel-shadow-darker, transparent);
     background-color: var(--color-bg-button);
     color: var(--color-text-button);
     margin-right: 0;
-    margin-bottom: 0; /* Reset margin */
-    padding-bottom: var(--spacing-xs); /* Reset padding */
-     padding-top: calc(var(--spacing-xs) + 1px); /* Adjust for bevel */
-     border-bottom: 1px solid var(--win95-bevel-shadow-darker); /* Ensure consistent bottom line */
+    margin-bottom: 0;
+    /* --- ADJUSTED padding --- */
+    padding-bottom: var(--spacing-xxs); /* Match new base vertical padding */
+    padding-top: calc(var(--spacing-xxs) + 1px); /* Adjust for bevel */
+    border-bottom: 1px solid var(--win95-bevel-shadow-darker);
 }
 .theme-win95 .tab.active,
 .theme-mirc .tab.active {
     box-shadow: inset -1px 0px var(--win95-bevel-shadow-dark, transparent),
                 inset 1px 1px var(--win95-bevel-shadow-light, transparent);
-                /* No bottom shadow for active tab */
-    /* background-color: var(--color-bg-main); // Editor default */
     color: var(--color-text-primary);
-    border-bottom-color: transparent; /* Hide bottom border */
+    border-bottom-color: transparent;
     position: relative;
-    z-index: 3; /* Bring active tab forward */
-    margin-bottom: -1px; /* Overlap the bottom border */
-    padding-bottom: calc(var(--spacing-xs) + 1px); /* Add back padding */
+    z-index: 3;
+    margin-bottom: -1px;
+    /* --- ADJUSTED padding --- */
+    padding-bottom: calc(var(--spacing-xxs) + 1px); /* Add back padding */
 }
-/* Win95/mIRC Active Tab Backgrounds */
+/* Win95/mIRC Active Tab Backgrounds (No change needed here) */
 .theme-win95 .tab.active, .theme-mirc .tab.active { background-color: var(--color-bg-editor); }
 .theme-win95 .terminal-tab-container .tab.active, .theme-mirc .terminal-tab-container .tab.active { background-color: var(--color-bg-terminal); }
-
 
 .theme-win95 .tab-close-button,
 .theme-mirc .tab-close-button {
     color: var(--color-text-button);
-    font-family: system-ui, sans-serif; /* Use a font more likely to have 'x' */
-    font-size: 0.9em;
+    font-family: system-ui, sans-serif;
+    /* --- ADJUSTED size/padding --- */
+    font-size: 0.8em; /* Slightly smaller */
     width: auto; height: auto; border-radius: 0;
     background: transparent;
     box-shadow: none;
     line-height: 1;
-    padding: 1px 3px; /* Small padding */
+    padding: 0px 2px; /* Minimal padding */
 }
 .theme-win95 .tab-close-button:hover,
 .theme-mirc .tab-close-button:hover {
@@ -220,7 +200,7 @@
 .theme-win95 .add-tab-button,
 .theme-mirc .add-tab-button {
     box-shadow: none;
-    top: 0px; /* Adjust vertical alignment if needed */
+    top: 0px;
     margin-bottom: 0px;
 }
 

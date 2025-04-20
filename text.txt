@@ -1,3 +1,111 @@
+Okay, my apologies for the previous incorrect assessment. Saving is a core function, and if it's broken, that needs to be the absolute top priority. I've updated the prompt to reflect this critical bug.
+
+---
+
+**Continuation Prompt for CodeCraft IDE Development**
+
+**Project:** CodeCraft IDE - A desktop IDE using Electron, React, TypeScript.
+
+**Current Status:**
+The development environment uses a manual Vite configuration with a multi-terminal workflow (`dev:main`, `dev:vite`, `start`). The core architecture is functional, but **critical bugs exist**:
+
+*   **Main Process (`src/main/index.ts`):** Handles window creation (starts fullscreen), standard application menu, IPC handling (Ping, Dialogs), manages multiple `node-pty` instances mapped by unique IDs, and handles filesystem operations (read dir/file, save file) via IPC. Hardware acceleration is disabled.
+*   **Preload Script (`src/preload/index.ts`):** Exposes a type-safe `electronAPI` via `contextBridge` for all required IPC communication, including multi-terminal management, filesystem access, dialogs, and basic app/window controls.
+*   **Renderer Process (`src/renderer`):** Uses React, TypeScript, and Vite.
+    *   **Layout:** Uses `Allotment` for resizable horizontal (Sidebar/MainPanel) and vertical (Editor/Terminal Area) splits.
+    *   **Theming:** Uses `ThemeContext` for managing theme name and font size modifier. Theme classes (`.theme-*`) applied dynamically. `CustomSelect` used for theme switching.
+    *   **Contexts:** `ThemeContext`, `EditorContext`, `TerminalContext` are implemented.
+    *   **Sidebar:** Features a working file tree (`FileTreeNode`) populated via IPC (`fs:readDirectory`), supporting directory expansion. Open folder functionality populates the tree root. Clicking files opens them in the editor via `EditorContext` / `fs:readFile`. Up-directory navigation works. Contains theme switcher.
+    *   **Editor Area:**
+        *   Managed by `EditorContext`, supports multiple file tabs (`TabContainer`, `Tab`).
+        *   Handles opening, closing, focusing tabs, tracking dirty state (visible on tab).
+        *   **BUG:** File saving (`fs:saveFile` IPC / Ctrl+S) is **NOT working correctly**. Reports indicate it fails to save changes.
+        *   Renders a functional Monaco Editor instance (`EditorPanel`).
+        *   Basic language detection based on file extension is active.
+        *   *Syntax highlighting customization deferred.*
+    *   **Terminal Area:**
+        *   Managed by `TerminalContext`, supports multiple terminal tabs (`TerminalTabContainer`, `TerminalTab`) with a '+' button.
+        *   Renders functional Xterm.js instances (`TerminalPanel`) for each tab using CSS visibility/layering.
+        *   Backend PTY communication via IPC is functional and multi-instance aware.
+        *   Terminal theme colors update based on the selected app theme.
+        *   **Fixed:** Rendering glitches (blank screen, background color bleed, cursor offset) when switching tabs.
+        *   **Fixed:** Width issues for full-screen terminal applications (e.g., `lynx`).
+
+**Key Recent Achievements:**
+*   Successfully implemented multi-terminal tabs.
+*   Resolved terminal rendering and width issues upon tab switching.
+
+**V1 Goals Recap (Updated Status):**
+*   Functional Monaco Editor (Partially Done - multi-file tabs, basic highlighting. **Saving broken.**)
+*   Integrated Terminal (xterm+node-pty) (Done - multi-terminal tabs, rendering/width fixed)
+*   File Tree/Management (Partially Done - open folder, read dir/file, display tree. **Saving broken.**)
+*   Theming (Foundation done. *Advanced features deferred.*)
+*   Font Size Control (Done)
+*   Movable/Resizable Panels (Done)
+
+**Next Steps to Implement:**
+
+1.  **(CRITICAL) Fix File Saving:**
+    *   Diagnose why the `activeFileNow.isDirty` check in `EditorPanel.tsx`'s Ctrl+S handler might be failing or why the `saveActiveFile` function in `EditorContext.tsx` isn't successfully triggering the `fs:saveFile` IPC call or processing its response correctly.
+    *   Use console logs extensively in `handleInternalChange` (EditorPanel), `updateActiveFileDirtyState` (EditorContext), the Ctrl+S handler (EditorPanel), and `saveActiveFile` (EditorContext) to trace the `isDirty` state and the save attempt flow.
+    *   Verify the `fs:saveFile` IPC handler in `main/index.ts` is receiving the correct path and content and not encountering filesystem errors (permissions, etc.).
+    *   Ensure the `content` state in `EditorContext` is correctly updated *after* a successful save to reset the dirty state.
+
+2.  **(HIGH) Editor Polish (After Save Fixed):**
+    *   Implement a **Status Bar** component.
+    *   Wire up relevant **Edit Menu** items.
+    *   Consider "Save As..." functionality.
+
+3.  **(HIGH) Terminal Polish:**
+    *   Add a "Clear Terminal" button/command.
+    *   Improve visual indication when a terminal process has exited.
+
+4.  **(MED) Theming - Syntax Highlighting Customization:**
+    *   Revisit `EditorPanel.tsx` and add/refine `rules` in `defineTheme`.
+
+5.  **(MED) Main Menu Integration & Accelerators:**
+    *   Review menu items and ensure they trigger correct actions.
+    *   Verify standard keyboard accelerators.
+
+6.  **(MED) Error Handling:**
+    *   Improve user feedback for errors (file ops, PTY).
+
+7.  **(LOW) Theming - VS Code Import:**
+    *   Implement IPC and parsing logic for `.json` themes.
+
+8.  **(LOW) File Management Extras:**
+    *   New File, New Folder, Delete, Rename.
+
+9.  **(LOW) Font Loading:**
+    *   Implement robust loading/fallback for custom fonts.
+
+**Question:** The **absolute priority** is fixing the file saving functionality (Step 1).
+
+---
+
+**Future Ideas / "Cool Stuff" Brainstorm:**
+
+*   **Search:** Implement project-wide text search (potentially using `ripgrep` via IPC). Find/Replace within the current editor file (using Monaco's built-in actions).
+*   **Git Integration:** Display Git status in the file tree/status bar, provide basic Git commands (commit, push, pull) via UI elements and IPC calls to the `git` CLI.
+*   **Command Palette:** Add a VS Code-style command palette (Ctrl+Shift+P) for quick access to commands (Open File, Change Theme, Git commands, etc.).
+*   **Snippets:** Support for user-defined code snippets.
+*   **Debugger Integration:** Integrate a debugger for a specific language (e.g., Node.js) using the Debug Adapter Protocol (DAP) - complex.
+*   **Extensibility/Plugin System:** Design a basic plugin system to allow adding custom functionality or themes (very advanced).
+*   **Settings UI:** Create a dedicated UI panel for managing settings (theme, font size, editor options, terminal options) instead of just the theme dropdown. Persist settings using `electron-store` or similar.
+*   **Remote Development/SSH:** Allow opening folders and running terminals over SSH connections.
+*   **Web Version:** Explore using the same codebase (with adjustments for Node APIs) to build a web-based version using something like `vscode-web`.
+*   **AI Code Assistance:** Integrate with AI APIs (like CodeLlama, GitHub Copilot APIs, etc.) for code suggestions and completion (requires API keys, careful implementation).
+*   **Markdown Preview:** Add a live preview panel for Markdown files.
+*   **Improved Layout Options:** Use libraries like `react-mosaic` for more complex draggable/dockable panel layouts.
+
+
+----
+
+
+** BELOW THIS LINE IN THIS FILE IS OLD HISTORY **
+
+
+
 ---
 
 **Continuation Prompt for CodeCraft IDE Development**

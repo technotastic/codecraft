@@ -120,8 +120,11 @@ const EditorPanel: React.FC = () => {
         if (editor && activeFileNow && !activeFileNow.isLoading && currentModelValue !== undefined) {
             // Compare editor value with the CONTEXT's last known saved content
             const shouldBeDirty = currentModelValue !== activeFileNow.content;
+            // console.log(`[handleInternalChange] Editor content changed. Current value !== saved content? ${shouldBeDirty}`); // DEBUG LOG
             // Notify context ONLY if dirty status changes
             updateActiveFileDirtyState(shouldBeDirty);
+        } else {
+            // console.log(`[handleInternalChange] Skipping dirty check (editor=${!!editor}, activeFile=${!!activeFileNow}, loading=${activeFileNow?.isLoading}, valueDefined=${currentModelValue !== undefined})`); // DEBUG LOG
         }
     }, [getActiveFile, updateActiveFileDirtyState]);
 
@@ -142,7 +145,7 @@ const EditorPanel: React.FC = () => {
             changeListenerDisposable.current.dispose();
         }
 
-        // Define custom themes
+        // Define custom themes (keep this logic as is)
         const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
              try {
                  monacoInstance.editor.defineTheme(name, {
@@ -177,7 +180,7 @@ const EditorPanel: React.FC = () => {
                  });
              } catch (error) { console.error(`Failed to define Monaco theme '${name}':`, error); }
          };
-        // Define all themes...
+        // Define all themes... (kept for brevity, no change needed)
         defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), /* selectionForeground handled above */ 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
         defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
         defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
@@ -218,22 +221,27 @@ const EditorPanel: React.FC = () => {
 
         // Add Ctrl+S Command
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+            console.log(`[Ctrl+S Handler] Triggered.`); // DEBUG LOG
             const currentContent = editorRef.current?.getValue(); // Get current value directly
             const activeFileNow = getActiveFile(); // Re-check active file state
 
-            // Check if there's an active file and if it's dirty (or has content to save initially)
-            if (activeFileNow && currentContent !== undefined && activeFileNow.isDirty) {
-                 console.log(`Ctrl+S: Saving dirty file ${activeFileNow.path}...`);
+            // *** MODIFIED CHECK: Removed activeFileNow.isDirty ***
+            // The saveActiveFile function in the context will handle saving
+            // and resetting the dirty state on success. We just need to ensure
+            // there's an active file and content to potentially save.
+            if (activeFileNow && currentContent !== undefined) {
+                 console.log(`[Ctrl+S Handler] Active file: ${activeFileNow.path}. Current dirty state in context: ${activeFileNow.isDirty}. Calling saveActiveFile...`); // DEBUG LOG
                  // Pass the CURRENT EDITOR content to the context save function
                  saveActiveFile(currentContent)
+                    .then(() => {
+                        console.log(`[Ctrl+S Handler] saveActiveFile promise resolved for ${activeFileNow.path}.`); // DEBUG LOG
+                    })
                     .catch(err => {
-                        console.error(`Ctrl+S: Error during save operation for ${activeFileNow.path}:`, err);
+                        console.error(`[Ctrl+S Handler] Error during save operation for ${activeFileNow.path}:`, err);
                         // Optionally display error to the user in the UI
                     });
-            } else if (activeFileNow && !activeFileNow.isDirty) {
-                console.log(`Ctrl+S: No changes to save for ${activeFileNow.path}.`);
             } else {
-                console.log("Ctrl+S: No active/dirty file to save or content unavailable.");
+                console.log(`[Ctrl+S Handler] No active file or content unavailable. Cannot save.`); // DEBUG LOG
             }
          });
 
@@ -360,7 +368,8 @@ const EditorPanel: React.FC = () => {
                 options={editorOptions}
                 // Initial value when component mounts, if activeFile is available then
                 value={activeFile?.content ?? ''}
-                onChange={() => { handleInternalChange()}} // Let the handler read value from ref
+                // onChange prop is technically redundant now since we use the internal listener, but keep it for react-monaco-editor's structure if needed
+                onChange={handleInternalChange} // Can directly call the handler
                 editorDidMount={editorDidMount}
             />
         </div>

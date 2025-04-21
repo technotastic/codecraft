@@ -452,18 +452,21 @@ function setupIpcHandlers() {
 
     // Save File Handler
     ipcMain.handle('fs:saveFile', async (_event, filePath: string, content: string): Promise<SaveFileResponse> => {
-         console.log(`IPC Request: Saving file - ${filePath}`);
+         console.log(`IPC [fs:saveFile]: Saving file - ${filePath} (content length: ${content?.length ?? 0})`); // DEBUG LOG
          try {
              if (!filePath || typeof filePath !== 'string') {
                   throw new Error("Invalid file path provided.");
              }
+              if (content === undefined || content === null) {
+                   throw new Error("Invalid content provided for saving.");
+             }
              // Add checks for directory existence if needed? fs.writeFile usually creates dirs if possible.
              await fs.writeFile(filePath, content, { encoding: 'utf-8' });
-             console.log(`IPC Success: Saved file ${filePath}`);
+             console.log(`IPC [fs:saveFile]: Successfully wrote file ${filePath}`); // DEBUG LOG
              return { success: true };
          } catch (error) {
              const errorMsg = error instanceof Error ? error.message : String(error);
-             console.error(`IPC Error: Failed to save file ${filePath}:`, errorMsg);
+             console.error(`IPC Error [fs:saveFile]: Failed to save file ${filePath}:`, errorMsg); // DEBUG LOG
              if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` };
                 if (error.code === 'ENOENT') return { success: false, error: `Directory not found for file: ${filePath}` }; // Or similar

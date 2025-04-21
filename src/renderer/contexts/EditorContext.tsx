@@ -149,7 +149,7 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         const activeFile = getActiveFile();
         // Check both activeFile exists and dirty state actually needs changing
         if (activeFile && activeFile.isDirty !== isNowDirty) {
-            console.log(`EditorContext: Setting dirty state for ${activeFilePath} to ${isNowDirty}`);
+            // console.log(`EditorContext [updateActiveFileDirtyState]: Setting dirty state for ${activeFilePath} to ${isNowDirty}`); // DEBUG LOG
             updateFileState(activeFile.path, { isDirty: isNowDirty });
         }
     }, [activeFilePath, getActiveFile, updateFileState]); // Dependencies on helpers and path
@@ -159,21 +159,34 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         const activeFile = getActiveFile();
 
         if (!activeFile || activeFile.isLoading) {
-            console.warn("EditorContext: Cannot save, no active file or file is loading.");
+            console.warn("EditorContext [saveActiveFile]: Cannot save, no active file or file is loading.");
             // Maybe set an error on the active file?
             if(activeFile) updateFileState(activeFile.path, { error: "Cannot save while loading." });
             return;
         }
 
-        console.log(`EditorContext: Request to save file - ${activeFile.path}`);
+        // *** ADDED CHECK: Only save if content has actually changed ***
+        // Although the Ctrl+S handler was simplified, it's still good practice
+        // to avoid unnecessary IPC calls if the content hasn't changed from the last *saved* state.
+        if (currentEditorContent === activeFile.content && activeFile.content !== null) {
+             console.log(`EditorContext [saveActiveFile]: Content for ${activeFile.path} has not changed. Skipping save.`);
+             // Even if skipped, reset dirty state if it was somehow true
+             if (activeFile.isDirty) {
+                 updateFileState(activeFile.path, { isDirty: false });
+             }
+             return; // Don't proceed with IPC
+        }
+
+        console.log(`EditorContext [saveActiveFile]: Request to save file - ${activeFile.path}`); // DEBUG LOG
         updateFileState(activeFile.path, { isLoading: true, error: null }); // Mark as loading during save
 
         try {
+            console.log(`EditorContext [saveActiveFile]: Calling window.electronAPI.fs_saveFile for ${activeFile.path}...`); // DEBUG LOG
             // Send IPC request with the provided content
             const response: SaveFileResponse = await window.electronAPI.fs_saveFile(activeFile.path, currentEditorContent);
 
             if (response.success) {
-                console.log(`EditorContext: File saved successfully - ${activeFile.path}`);
+                console.log(`EditorContext [saveActiveFile]: File saved successfully via IPC - ${activeFile.path}`); // DEBUG LOG
                 // Update the file state: mark as not dirty, not loading, and store the NEWLY SAVED content
                 updateFileState(activeFile.path, {
                     content: currentEditorContent, // Store the successfully saved content as the new base
@@ -182,13 +195,13 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
                     error: null
                 });
             } else {
-                console.error(`EditorContext: Failed to save file ${activeFile.path}:`, response.error);
+                console.error(`EditorContext [saveActiveFile]: Failed to save file ${activeFile.path} (IPC Response):`, response.error); // DEBUG LOG
                 updateFileState(activeFile.path, { isLoading: false, error: `Save Error: ${response.error || 'Unknown error'}` });
                 // isDirty remains true implicitly because content mismatches saved content
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error(`EditorContext: IPC Error saving file ${activeFile.path}:`, errorMsg);
+            console.error(`EditorContext [saveActiveFile]: IPC Error saving file ${activeFile.path}:`, errorMsg); // DEBUG LOG
             updateFileState(activeFile.path, { isLoading: false, error: `IPC Save Error: ${errorMsg}` });
              // isDirty remains true implicitly
         }

@@ -7,6 +7,7 @@ import React, {
     useCallback,
     useMemo,
 } from 'react';
+import path from 'path-browserify'; // Import path for basename in close confirmation
 
 import type { ReadFileResponse, SaveFileResponse } from '../../shared.types';
 
@@ -17,18 +18,25 @@ export interface OpenFile {
     isDirty: boolean;
     isLoading: boolean;
     error: string | null;
-    // Could add language later if needed separate from path derivation
+}
+
+// Define the structure for cursor position
+export interface CursorPosition {
+    lineNumber: number;
+    column: number;
 }
 
 interface EditorContextProps {
     openFiles: OpenFile[]; // Array of open files
     activeFilePath: string | null; // Path of the currently active file/tab
+    cursorPosition: CursorPosition | null; // Track cursor position
     openOrFocusFile: (filePath: string) => Promise<void>; // Opens a new file or focuses existing tab
     closeFile: (filePath: string) => void; // Closes a tab/file
     setActiveFile: (filePath: string | null) => void; // Switches active tab
-    updateActiveFileDirtyState: (isNowDirty: boolean) => void; // Updates dirty flag ONLY for the active file
+    updateActiveFileDirtyState: (currentEditorContent: string) => void; // Updates dirty flag ONLY for the active file
     saveActiveFile: (currentEditorContent: string) => Promise<void>; // Saves the currently active file's provided content
     getActiveFile: () => OpenFile | undefined; // Helper to get the active file object
+    setCursorPosition: (position: CursorPosition | null) => void; // Setter for cursor position
 }
 
 const EditorContext = createContext<EditorContextProps | undefined>(undefined);
@@ -40,187 +48,204 @@ interface EditorProviderProps {
 export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
     const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
     const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
+    const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(null);
 
-    // Helper to get the active file object
     const getActiveFile = useCallback((): OpenFile | undefined => {
         return openFiles.find(f => f.path === activeFilePath);
     }, [openFiles, activeFilePath]);
 
-    // Helper to update a specific file in the state
-    const updateFileState = useCallback((filePath: string, updates: Partial<OpenFile>) => {
-        setOpenFiles(prevFiles =>
-            prevFiles.map(file =>
-                file.path === filePath ? { ...file, ...updates } : file
-            )
-        );
-    }, []);
-
-
-    // --- Core Tab/File Management Functions ---
-
     const setActiveFile = useCallback((filePath: string | null) => {
-        // Avoid unnecessary updates if already active
         if (filePath !== activeFilePath) {
             console.log(`EditorContext: Setting active file path to: ${filePath}`);
             setActiveFilePath(filePath);
+            setCursorPosition(null);
         }
-    }, [activeFilePath]); // Depends only on activeFilePath for comparison
+    }, [activeFilePath]);
 
     const openOrFocusFile = useCallback(async (filePath: string) => {
         console.log(`EditorContext: Request to open or focus file - ${filePath}`);
-
-        // 1. Check if file is already open
-        const existingFileIndex = openFiles.findIndex(f => f.path === filePath);
-        if (existingFileIndex !== -1) {
+        const existingFile = openFiles.find(f => f.path === filePath);
+        if (existingFile) {
             console.log(`EditorContext: File ${filePath} already open, focusing.`);
-            setActiveFile(filePath); // Just make it active
+            setActiveFile(filePath);
             return;
         }
-
-        // 2. If not open, add it and load content
         console.log(`EditorContext: File ${filePath} not open, adding new entry and loading.`);
-        const newFileEntry: OpenFile = {
-            path: filePath,
-            content: null, // Start with null content
-            isDirty: false,
-            isLoading: true, // Mark as loading
-            error: null,
-        };
-
-        // Add to state FIRST, then set active
+        const newFileEntry: OpenFile = { path: filePath, content: null, isDirty: false, isLoading: true, error: null };
         setOpenFiles(prevFiles => [...prevFiles, newFileEntry]);
-        setActiveFile(filePath); // Make the new file active immediately
-
-        // 3. Fetch content via IPC
+        setActiveFile(filePath);
         try {
             const response: ReadFileResponse = await window.electronAPI.fs_readFile(filePath);
-            // Introduce a small delay if needed to ensure state update has rendered before updating file state
-            // await new Promise(resolve => setTimeout(resolve, 0));
             if (response.success) {
                 console.log(`EditorContext: File loaded successfully - ${filePath}`);
-                // Update the specific file entry with content and clear loading/error
-                updateFileState(filePath, { content: response.content, isLoading: false, error: null, isDirty: false });
+                setOpenFiles(currentFiles => {
+                     const updatedFiles = currentFiles.map(file =>
+                        file.path === filePath
+                            ? { ...file, content: response.content, isLoading: false, error: null, isDirty: false }
+                            : file
+                     );
+                     console.log(`[EditorContext -> openOrFocusFile -> success] State update executed for ${filePath}. isLoading should be false.`);
+                     return updatedFiles;
+                 });
             } else {
                 console.error(`EditorContext: Failed to read file ${filePath}:`, response.error);
-                updateFileState(filePath, { content: `// Error: ${response.error}`, isLoading: false, error: `Load Error: ${response.error}`, isDirty: false });
+                 setOpenFiles(currentFiles => currentFiles.map(file =>
+                    file.path === filePath
+                        ? { ...file, content: `// Error: ${response.error}`, isLoading: false, error: `Load Error: ${response.error}`, isDirty: false }
+                        : file
+                 ));
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             console.error(`EditorContext: IPC Error reading file ${filePath}:`, errorMsg);
-            updateFileState(filePath, { content: `// IPC Error: ${errorMsg}`, isLoading: false, error: `IPC Error: ${errorMsg}`, isDirty: false });
-        }
-    }, [openFiles, setActiveFile, updateFileState]); // Dependencies
-
-    const closeFile = useCallback((filePath: string) => {
-        console.log(`EditorContext: Request to close file - ${filePath}`);
-        const fileToCloseIndex = openFiles.findIndex(f => f.path === filePath);
-
-        if (fileToCloseIndex === -1) return; // File not found
-
-        const fileToClose = openFiles[fileToCloseIndex];
-
-        // Basic close - TODO: Add "dirty check" prompt later
-        if (fileToClose?.isDirty) {
-             const confirmClose = window.confirm(`File "${fileToClose.path}" has unsaved changes. Close anyway?`);
-             if (!confirmClose) {
-                 console.log(`EditorContext: Close cancelled for dirty file ${filePath}.`);
-                 return; // Abort close
-             }
-             console.warn(`EditorContext: Closing dirty file ${filePath} without saving.`);
-        }
-
-        const remainingFiles = openFiles.filter(f => f.path !== filePath);
-        setOpenFiles(remainingFiles);
-
-        // If the closed file was the active one, determine the next active file
-        if (activeFilePath === filePath) {
-            let nextActivePath: string | null = null;
-            if (remainingFiles.length > 0) {
-                // Try to activate the previous tab, otherwise the first tab
-                const nextIndex = Math.min(remainingFiles.length - 1, Math.max(0, fileToCloseIndex -1));
-                 nextActivePath = remainingFiles[nextIndex]?.path || null; // Get path or null
-            }
-            setActiveFile(nextActivePath); // Activate the new tab or null if none left
+             setOpenFiles(currentFiles => currentFiles.map(file =>
+                file.path === filePath
+                    ? { ...file, content: `// IPC Error: ${errorMsg}`, isLoading: false, error: `IPC Error: ${errorMsg}`, isDirty: false }
+                    : file
+             ));
         }
     }, [openFiles, activeFilePath, setActiveFile]);
 
-    // Called by EditorPanel just to update the dirty flag based on its comparison
-    const updateActiveFileDirtyState = useCallback((isNowDirty: boolean) => {
-        const activeFile = getActiveFile();
-        // Check both activeFile exists and dirty state actually needs changing
-        if (activeFile && activeFile.isDirty !== isNowDirty) {
-            // console.log(`EditorContext [updateActiveFileDirtyState]: Setting dirty state for ${activeFilePath} to ${isNowDirty}`); // DEBUG LOG
-            updateFileState(activeFile.path, { isDirty: isNowDirty });
+    const closeFile = useCallback((filePath: string) => {
+        console.log(`EditorContext: Request to close file - ${filePath}`);
+        const currentOpenFiles = openFiles;
+        const fileToClose = currentOpenFiles.find(f => f.path === filePath);
+        const fileToCloseIndex = currentOpenFiles.findIndex(f => f.path === filePath);
+        if (!fileToClose) return;
+        if (fileToClose.isDirty) {
+             const confirmClose = window.confirm(`File "${path.basename(fileToClose.path)}" has unsaved changes. Close anyway?`);
+             if (!confirmClose) {
+                 console.log(`EditorContext: Close cancelled for dirty file ${filePath}.`);
+                 return;
+             }
+             console.warn(`EditorContext: Closing dirty file ${filePath} without saving.`);
         }
-    }, [activeFilePath, getActiveFile, updateFileState]); // Dependencies on helpers and path
+        const remainingFiles = currentOpenFiles.filter(f => f.path !== filePath);
+        setOpenFiles(remainingFiles);
+        if (activeFilePath === filePath) {
+            let nextActivePath: string | null = null;
+            if (remainingFiles.length > 0) {
+                const nextIndex = Math.min(remainingFiles.length - 1, Math.max(0, fileToCloseIndex -1));
+                 nextActivePath = remainingFiles[nextIndex]?.path || null;
+            }
+            setActiveFile(nextActivePath);
+        }
+    }, [openFiles, activeFilePath, setActiveFile]);
 
-    // Called by EditorPanel with the current editor content to save
+    const updateActiveFileDirtyState = useCallback((currentEditorContent: string) => {
+        const currentActivePath = activeFilePath;
+        if (!currentActivePath) return;
+        setOpenFiles(currentFiles => {
+            const activeFileIndex = currentFiles.findIndex(f => f.path === currentActivePath);
+            if (activeFileIndex === -1) {
+                 console.warn(`[updateActiveFileDirtyState] Active file path ${currentActivePath} not found in state.`);
+                 return currentFiles;
+            }
+            const activeFile = currentFiles[activeFileIndex];
+            if (activeFile.content === null || activeFile.isLoading) {
+                 console.log(`[updateActiveFileDirtyState] Skipping dirty check for ${currentActivePath}, content not loaded or is loading.`);
+                 return currentFiles;
+            }
+            const shouldBeDirty = currentEditorContent !== activeFile.content;
+            console.log(`[updateActiveFileDirtyState] Comparing for ${currentActivePath}: Editor content (len ${currentEditorContent.length}) !== Context content (len ${activeFile.content.length})? Result: ${shouldBeDirty}. Current state isDirty: ${activeFile.isDirty}`);
+            if (activeFile.isDirty !== shouldBeDirty) {
+                console.log(`[updateActiveFileDirtyState] *** State Change Needed *** Setting dirty state for ${currentActivePath} to ${shouldBeDirty}`);
+                return currentFiles.map((file, index) =>
+                    index === activeFileIndex ? { ...file, isDirty: shouldBeDirty } : file
+                );
+            }
+            return currentFiles;
+        });
+    }, [activeFilePath]);
+
+    // *** MODIFIED saveActiveFile ***
     const saveActiveFile = useCallback(async (currentEditorContent: string) => {
-        const activeFile = getActiveFile();
+        const currentActiveFilePath = activeFilePath;
+        const currentOpenFiles = openFiles;
 
-        if (!activeFile || activeFile.isLoading) {
-            console.warn("EditorContext [saveActiveFile]: Cannot save, no active file or file is loading.");
-            // Maybe set an error on the active file?
-            if(activeFile) updateFileState(activeFile.path, { error: "Cannot save while loading." });
+        const activeFile = currentOpenFiles.find(f => f.path === currentActiveFilePath);
+
+        console.log(`[EditorContext -> saveActiveFile] Called for path: ${activeFile?.path}.`);
+        console.log(`[EditorContext -> saveActiveFile] Content passed from EditorPanel (length: ${currentEditorContent?.length}):`, currentEditorContent?.substring(0, 50) + '...');
+
+        // *** SIMPLIFIED CHECK: Only ensure we found *an* active file object ***
+        if (!activeFile) {
+            console.warn(`EditorContext [saveActiveFile]: Cannot save. No active file object found for path: ${currentActiveFilePath}.`);
+            // Maybe set a general error? This case shouldn't happen if activeFilePath is valid.
             return;
         }
 
-        // *** ADDED CHECK: Only save if content has actually changed ***
-        // Although the Ctrl+S handler was simplified, it's still good practice
-        // to avoid unnecessary IPC calls if the content hasn't changed from the last *saved* state.
-        if (currentEditorContent === activeFile.content && activeFile.content !== null) {
-             console.log(`EditorContext [saveActiveFile]: Content for ${activeFile.path} has not changed. Skipping save.`);
-             // Even if skipped, reset dirty state if it was somehow true
-             if (activeFile.isDirty) {
-                 updateFileState(activeFile.path, { isDirty: false });
-             }
-             return; // Don't proceed with IPC
+        // *** Log the state we *do* have, even if we don't block on it anymore ***
+        console.log(`[EditorContext -> saveActiveFile] State of active file (${activeFile.path}) at save time: isLoading=${activeFile.isLoading}, contentIsNull=${activeFile.content === null}, isDirty=${activeFile.isDirty}`);
+
+        // Check if save is needed (content changed or already dirty)
+        // We still need activeFile.content for this comparison, but if it's null, the comparison will likely proceed (which is okay)
+        // Let's add a specific log for this check
+        const isContentSame = activeFile.content !== null && currentEditorContent === activeFile.content;
+        console.log(`[EditorContext -> saveActiveFile] Checking if save needed: isContentSame=${isContentSame}, isDirty=${activeFile.isDirty}`);
+        if (isContentSame && !activeFile.isDirty) {
+             console.log(`EditorContext [saveActiveFile]: Content for ${activeFile.path} has not changed and not dirty. Skipping save.`);
+             return;
         }
 
-        console.log(`EditorContext [saveActiveFile]: Request to save file - ${activeFile.path}`); // DEBUG LOG
-        updateFileState(activeFile.path, { isLoading: true, error: null }); // Mark as loading during save
+        console.log(`EditorContext [saveActiveFile]: Request to save file - ${activeFile.path}`);
+        const targetPath = activeFile.path;
+        // Mark as loading
+        setOpenFiles(files => files.map(f => f.path === targetPath ? { ...f, isLoading: true, error: null } : f));
 
         try {
-            console.log(`EditorContext [saveActiveFile]: Calling window.electronAPI.fs_saveFile for ${activeFile.path}...`); // DEBUG LOG
-            // Send IPC request with the provided content
-            const response: SaveFileResponse = await window.electronAPI.fs_saveFile(activeFile.path, currentEditorContent);
+            console.log(`EditorContext [saveActiveFile]: Calling window.electronAPI.fs_saveFile for ${targetPath}...`);
+            const response: SaveFileResponse = await window.electronAPI.fs_saveFile(targetPath, currentEditorContent);
+
+            console.log(`[EditorContext -> saveActiveFile] IPC Response for ${targetPath}:`, response);
 
             if (response.success) {
-                console.log(`EditorContext [saveActiveFile]: File saved successfully via IPC - ${activeFile.path}`); // DEBUG LOG
-                // Update the file state: mark as not dirty, not loading, and store the NEWLY SAVED content
-                updateFileState(activeFile.path, {
-                    content: currentEditorContent, // Store the successfully saved content as the new base
+                console.log(`EditorContext [saveActiveFile]: File saved successfully via IPC - ${targetPath}`);
+                console.log(`[EditorContext -> saveActiveFile] Updating context state: isDirty=false, content=currentEditorContent`);
+                setOpenFiles(files => files.map(f => f.path === targetPath ? {
+                    ...f,
+                    content: currentEditorContent,
                     isDirty: false,
                     isLoading: false,
                     error: null
-                });
+                 } : f));
             } else {
-                console.error(`EditorContext [saveActiveFile]: Failed to save file ${activeFile.path} (IPC Response):`, response.error); // DEBUG LOG
-                updateFileState(activeFile.path, { isLoading: false, error: `Save Error: ${response.error || 'Unknown error'}` });
-                // isDirty remains true implicitly because content mismatches saved content
+                console.error(`EditorContext [saveActiveFile]: Failed to save file ${targetPath} (IPC Response):`, response.error);
+                console.log(`[EditorContext -> saveActiveFile] Updating context state: isLoading=false, error=${response.error}`);
+                setOpenFiles(files => files.map(f => f.path === targetPath ? {
+                    ...f,
+                    isLoading: false, // Still set isLoading false even on error
+                    error: `Save Error: ${response.error || 'Unknown error'}`
+                 } : f));
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error(`EditorContext [saveActiveFile]: IPC Error saving file ${activeFile.path}:`, errorMsg); // DEBUG LOG
-            updateFileState(activeFile.path, { isLoading: false, error: `IPC Save Error: ${errorMsg}` });
-             // isDirty remains true implicitly
+            console.error(`EditorContext [saveActiveFile]: IPC Error saving file ${targetPath}:`, errorMsg);
+            console.log(`[EditorContext -> saveActiveFile] Updating context state after IPC error: isLoading=false, error=${errorMsg}`);
+             setOpenFiles(files => files.map(f => f.path === targetPath ? {
+                    ...f,
+                    isLoading: false, // Still set isLoading false even on error
+                    error: `IPC Save Error: ${errorMsg}`
+             } : f));
         }
-    }, [getActiveFile, updateFileState]);
+    }, [openFiles, activeFilePath]); // Keep dependencies
 
 
     // --- Context Value ---
     const contextValue = useMemo(() => ({
         openFiles,
         activeFilePath,
+        cursorPosition,
         openOrFocusFile,
         closeFile,
         setActiveFile,
-        updateActiveFileDirtyState, // Expose the function to update dirty state
-        saveActiveFile, // Expose save function
-        getActiveFile, // Expose helper
+        updateActiveFileDirtyState,
+        saveActiveFile,
+        getActiveFile,
+        setCursorPosition,
     }), [
-        openFiles, activeFilePath, openOrFocusFile, closeFile, setActiveFile,
-        updateActiveFileDirtyState, saveActiveFile, getActiveFile
+        openFiles, activeFilePath, cursorPosition, openOrFocusFile, closeFile, setActiveFile,
+        updateActiveFileDirtyState, saveActiveFile, getActiveFile, setCursorPosition
     ]);
 
     return (

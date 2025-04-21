@@ -6,230 +6,251 @@
     width: 100%;
     background-color: var(--color-bg-app);
     overflow: hidden;
-  }
-
-  .sidebar {
-    background-color: var(--color-bg-sidebar);
-    height: 100%;
-    color: var(--color-text-primary);
+    /* <<< NEW: Use Flexbox to position main content and status bar >>> */
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-  }
+}
 
-  /* Sidebar Header */
-  .sidebar-header {
+/* <<< NEW: Wrapper for the main splitting area (Sidebar/MainPanel) >>> */
+.main-content-area {
+    flex-grow: 1; /* Take up all available vertical space */
+    overflow: hidden; /* Prevent its content from overflowing the container */
+    position: relative; /* Needed for Allotment internals */
+    display: flex; /* Ensure inner Allotment can fill this */
+}
+
+/* Ensure Allotment fills the main-content-area */
+.main-content-area > .allotment-module--vertical-container___AllotmentVerticalContainer,
+.main-content-area > .allotment-module--horizontal-container___AllotmentHorizontalContainer {
+    flex-grow: 1;
+}
+
+
+.sidebar {
+  background-color: var(--color-bg-sidebar);
+  height: 100%;
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: var(--border-standard);
+  flex-shrink: 0;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  margin-right: var(--spacing-sm);
+}
+
+.sidebar-header button.open-folder-button {
+  flex-shrink: 0;
+}
+
+/* Navigation Controls */
+.navigation-controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-md);
     border-bottom: var(--border-standard);
     flex-shrink: 0;
-  }
+    gap: var(--spacing-sm);
+    min-height: 30px;
+}
 
-  .sidebar-header h2 {
-    margin: 0;
-    font-size: var(--font-size-lg);
-    color: var(--color-text-heading);
+/* Base style for icon-only buttons */
+.icon-button {
+    background: none;
+    border: none;
+    padding: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-size: var(--font-size-md);
+}
+
+.icon-button:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-primary);
+}
+.icon-button:active {
+    background-color: var(--color-bg-button-active);
+}
+.icon-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: transparent;
+    color: var(--color-text-tertiary);
+}
+
+.navigation-controls .up-button {
+    flex-shrink: 0;
+}
+
+/* Win95/mIRC Icon Button Overrides */
+.theme-win95 .icon-button, .theme-mirc .icon-button {
+   box-shadow: none; padding: var(--spacing-xs);
+}
+.theme-win95 .icon-button:active, .theme-mirc .icon-button:active {
+   box-shadow: none;
+}
+
+.navigation-controls .current-folder-path {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
-    margin-right: var(--spacing-sm);
-  }
+    padding: 0;
+    border-bottom: none;
+}
 
-  .sidebar-header button.open-folder-button {
-    flex-shrink: 0;
-  }
+.sidebar svg {
+    border: none;
+    vertical-align: middle;
+}
 
-  /* Navigation Controls */
-  .navigation-controls {
-      display: flex;
-      align-items: center;
-      padding: var(--spacing-xs) var(--spacing-md);
-      border-bottom: var(--border-standard);
-      flex-shrink: 0;
-      gap: var(--spacing-sm);
-      min-height: 30px;
-  }
-
-  /* Base style for icon-only buttons */
-  .icon-button {
-      background: none;
-      border: none;
-      padding: var(--spacing-xs);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      border-radius: var(--border-radius-sm);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      font-size: var(--font-size-md);
-  }
-
-  .icon-button:hover {
-      background-color: var(--color-bg-hover);
-      color: var(--color-text-primary);
-  }
-  .icon-button:active {
-      background-color: var(--color-bg-button-active);
-  }
-  .icon-button:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      background-color: transparent;
-      color: var(--color-text-tertiary);
-  }
-
-  .navigation-controls .up-button {
-      flex-shrink: 0;
-  }
-
-  /* Win95/mIRC Icon Button Overrides */
-  .theme-win95 .icon-button, .theme-mirc .icon-button {
-     box-shadow: none; padding: var(--spacing-xs);
-  }
-  .theme-win95 .icon-button:active, .theme-mirc .icon-button:active {
-     box-shadow: none;
-  }
-
-  .navigation-controls .current-folder-path {
-      font-size: var(--font-size-sm);
-      color: var(--color-text-tertiary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      flex-grow: 1;
-      padding: 0;
-      border-bottom: none;
-  }
-
-  .sidebar svg {
-      border: none;
-      vertical-align: middle;
-  }
-
-  /* File Tree Styling */
-  .file-tree {
-      flex-grow: 1;
-      overflow-y: auto;
-      min-height: 50px;
-      padding: var(--spacing-xs) 0;
-      font-size: var(--font-size-sm);
-  }
-  .file-tree ul { list-style: none; padding: 0; margin: 0; }
-  .file-tree-node.loading > .node-content { opacity: 0.7; cursor: default; }
-  .file-tree-node .node-content { display: flex; align-items: center; cursor: pointer; padding: var(--spacing-xxs) var(--spacing-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; position: relative; }
-  .file-tree-node .node-content:hover { background-color: var(--color-bg-hover); }
-  .file-tree-node .toggle-icon { width: 1.5em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; vertical-align: middle; color: var(--color-text-tertiary); }
-  .file-tree-node .toggle-icon.spacer { visibility: hidden; }
-  .file-tree-node .expand-icon { font-size: 0.9em; display: inline-block; vertical-align: middle; }
-  .file-tree-node .file-icon { margin-right: var(--spacing-xs); display: inline-flex; align-items: center; flex-shrink: 0; vertical-align: middle; color: var(--color-text-accent); font-size: 1.1em; }
-  .file-tree-node .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; margin-left: var(--spacing-xxs); }
-  .file-tree-node .loading-spinner { display: inline-flex; align-items: center; justify-content: center; font-size: 0.9em; vertical-align: middle; color: var(--color-text-tertiary); }
-  .spin-animation { animation: spin 1.5s linear infinite; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .file-tree-node .error-message, .file-tree-node .empty-folder-message { color: var(--color-text-tertiary); font-style: italic; padding: var(--spacing-xxs) 0; margin: 0; list-style: none; user-select: none; font-size: 0.9em; }
-  .file-tree-node .error-message { color: var(--color-text-error); font-style: normal; }
-  .file-tree .placeholder-message { color: var(--color-text-tertiary); padding: var(--spacing-md); font-style: italic; line-height: 1.5; }
-
-  /* Theme switcher styles */
-  .sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
-  .sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-
-  /* Main Panel, Editor, Terminal Base Styles */
-  .main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
-  .editor-panel { background-color: var(--color-bg-editor); overflow: hidden; position: relative; height: 100%; width: 100%; display: flex; }
-
-  /* Wrapper for Terminal Tabs + Panel Area */
-  .terminal-area-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background-color: var(--color-bg-terminal);
-  }
-
-  /* Wrapper for the absolutely positioned terminal panel instances */
-  .terminal-panels-wrapper {
+/* File Tree Styling */
+.file-tree {
     flex-grow: 1;
+    overflow-y: auto;
+    min-height: 50px;
+    padding: var(--spacing-xs) 0;
+    font-size: var(--font-size-sm);
+}
+.file-tree ul { list-style: none; padding: 0; margin: 0; }
+.file-tree-node.loading > .node-content { opacity: 0.7; cursor: default; }
+.file-tree-node .node-content { display: flex; align-items: center; cursor: pointer; padding: var(--spacing-xxs) var(--spacing-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; position: relative; }
+.file-tree-node .node-content:hover { background-color: var(--color-bg-hover); }
+.file-tree-node .toggle-icon { width: 1.5em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; vertical-align: middle; color: var(--color-text-tertiary); }
+.file-tree-node .toggle-icon.spacer { visibility: hidden; }
+.file-tree-node .expand-icon { font-size: 0.9em; display: inline-block; vertical-align: middle; }
+.file-tree-node .file-icon { margin-right: var(--spacing-xs); display: inline-flex; align-items: center; flex-shrink: 0; vertical-align: middle; color: var(--color-text-accent); font-size: 1.1em; }
+.file-tree-node .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; margin-left: var(--spacing-xxs); }
+.file-tree-node .loading-spinner { display: inline-flex; align-items: center; justify-content: center; font-size: 0.9em; vertical-align: middle; color: var(--color-text-tertiary); }
+.spin-animation { animation: spin 1.5s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.file-tree-node .error-message, .file-tree-node .empty-folder-message { color: var(--color-text-tertiary); font-style: italic; padding: var(--spacing-xxs) 0; margin: 0; list-style: none; user-select: none; font-size: 0.9em; }
+.file-tree-node .error-message { color: var(--color-text-error); font-style: normal; }
+.file-tree .placeholder-message { color: var(--color-text-tertiary); padding: var(--spacing-md); font-style: italic; line-height: 1.5; }
+
+/* Theme switcher styles */
+.sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
+.sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+/* Main Panel, Editor, Terminal Base Styles */
+.main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
+.editor-panel { background-color: var(--color-bg-editor); overflow: hidden; position: relative; height: 100%; width: 100%; display: flex; }
+
+/* Wrapper for Terminal Tabs + Panel Area */
+.terminal-area-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
     overflow: hidden;
-    position: relative;
     background-color: var(--color-bg-terminal);
-  }
+}
 
-  /* Terminal Panel Instance Styling (Absolute Positioning) */
-  .terminal-panel-instance {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      /* --- Visibility Control --- */
-      visibility: hidden; /* Hidden by default */
-      opacity: 0;
-      z-index: 1;
-      transition: opacity 0.05s ease-out, visibility 0s linear 0.05s; /* Faster hide transition */
-      /* --- Content Styling --- */
-      display: flex; /* Needed for inner mount point to fill space */
-      overflow: hidden;
-      /* Padding applied to inner mount point now */
-      background-color: var(--color-bg-terminal);
-      color: var(--color-text-terminal);
-      font-family: var(--font-family-mono);
-      font-size: var(--font-size-terminal);
-  }
+/* Wrapper for the absolutely positioned terminal panel instances */
+.terminal-panels-wrapper {
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--color-bg-terminal);
+}
 
-  /* Style for the ACTIVE terminal panel */
-  .terminal-panel-instance.active {
-      visibility: visible;
-      opacity: 1;
-      z-index: 2;
-      transition: opacity 0.05s ease-in, visibility 0s linear; /* Faster show transition */
-  }
+/* Terminal Panel Instance Styling (Absolute Positioning) */
+.terminal-panel-instance {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* --- Visibility Control --- */
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    z-index: 1;
+    transition: opacity 0.05s ease-out, visibility 0s linear 0.05s; /* Faster hide transition */
+    /* --- Content Styling --- */
+    display: flex; /* Needed for inner mount point to fill space */
+    overflow: hidden;
+    /* Padding applied to inner mount point now */
+    background-color: var(--color-bg-terminal);
+    color: var(--color-text-terminal);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-terminal);
+}
 
-  /* The actual mount point for xterm INSIDE the instance wrapper */
-  .terminal-mount-point {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      padding: var(--spacing-xs);
-      padding-bottom: var(--spacing-sm)
-  }
+/* Style for the ACTIVE terminal panel */
+.terminal-panel-instance.active {
+    visibility: visible;
+    opacity: 1;
+    z-index: 2;
+    transition: opacity 0.05s ease-in, visibility 0s linear; /* Faster show transition */
+}
+
+/* The actual mount point for xterm INSIDE the instance wrapper */
+.terminal-mount-point {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: var(--spacing-xs);
+    padding-bottom: var(--spacing-sm)
+}
 
 
-  /* Placeholder for when no terminal is active/open */
-  .terminal-placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--color-text-tertiary);
-      padding: var(--spacing-md);
-      font-style: italic;
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: var(--color-bg-terminal);
-      z-index: 0;
-  }
+/* Placeholder for when no terminal is active/open */
+.terminal-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+    padding: var(--spacing-md);
+    font-style: italic;
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--color-bg-terminal);
+    z-index: 0;
+}
 
-  /* Ensure xterm fills its container (.terminal-mount-point) */
-  .terminal-mount-point > div { width: 100%; height: 100%; }
-  .terminal-mount-point .terminal.xterm { height: 100% !important; width: 100% !important; }
-  .terminal-mount-point .xterm-screen { width: 100% !important; height: 100% !important; }
-  .terminal-mount-point .xterm-viewport { width: 100% !important; }
-  .terminal-mount-point .xterm .xterm-screen canvas { width: 100% !important; height: 100% !important; }
-  .terminal-mount-point p { display: none; }
+/* Ensure xterm fills its container (.terminal-mount-point) */
+.terminal-mount-point > div { width: 100%; height: 100%; }
+.terminal-mount-point .terminal.xterm { height: 100% !important; width: 100% !important; }
+.terminal-mount-point .xterm-screen { width: 100% !important; height: 100% !important; }
+.terminal-mount-point .xterm-viewport { width: 100% !important; }
+.terminal-mount-point .xterm .xterm-screen canvas { width: 100% !important; height: 100% !important; }
+.terminal-mount-point p { display: none; }
 
-  /* Editor Panel Overlay Indicators */
-  .editor-context-error, .editor-loading-indicator {
-      position: absolute; top: var(--spacing-xs); left: var(--spacing-sm);
-      background-color: color-mix(in srgb, var(--color-bg-editor) 90%, black);
-      padding: var(--spacing-xxs) var(--spacing-xs); border-radius: var(--border-radius-sm);
-      font-size: var(--font-size-sm); z-index: 10; box-shadow: var(--box-shadow-sm); max-width: 80%;
-  }
-  .editor-context-error { color: var(--color-text-error); border: 1px solid var(--color-text-error); }
-  .editor-loading-indicator { color: var(--color-text-secondary); border: 1px solid var(--color-border-accent); }
+/* Editor Panel Overlay Indicators */
+.editor-context-error, .editor-loading-indicator {
+    position: absolute; top: var(--spacing-xs); left: var(--spacing-sm);
+    background-color: color-mix(in srgb, var(--color-bg-editor) 90%, black);
+    padding: var(--spacing-xxs) var(--spacing-xs); border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm); z-index: 10; box-shadow: var(--box-shadow-sm); max-width: 80%;
+}
+.editor-context-error { color: var(--color-text-error); border: 1px solid var(--color-text-error); }
+.editor-loading-indicator { color: var(--color-text-secondary); border: 1px solid var(--color-border-accent); }
+
+/* <<< StatusBar is handled by its own CSS file (StatusBar.css) >>> */
+/* No specific styles needed here unless overriding something */
 
 /* --- END FINAL FILE: src/renderer/App.css --- */

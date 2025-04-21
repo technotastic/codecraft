@@ -5,6 +5,7 @@ import { Allotment } from 'allotment'; // Import Allotment
 import 'allotment/dist/style.css'; // Ensure styles are imported
 import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
+import StatusBar from './components/StatusBar'; // <<< NEW: Import StatusBar
 import './App.css'; // Import the layout styles
 
 // Helper function to get initial sidebar width from CSS variable
@@ -24,7 +25,7 @@ const getSidebarInitialSize = (): number => {
 
 function App() {
 
-  // *** NEW: Effect for keyboard shortcuts ***
+  // Effect for keyboard shortcuts (no changes needed here)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Use Ctrl+Alt modifiers for less conflict potential in WSL
@@ -57,31 +58,33 @@ function App() {
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
   return (
-    // The app-container now primarily provides the full viewport boundary for Allotment
+    // The app-container is now a flex container for the main content and status bar
     <div className="app-container">
-      {/*
-        Top-level Allotment for horizontal split (Sidebar vs MainPanel).
-        No 'vertical' prop means it splits horizontally by default.
-      */}
-      <Allotment>
-        <Allotment.Pane
-          preferredSize={getSidebarInitialSize()} // Use CSS var for initial width
-          minSize={150}  // Minimum width for the sidebar (matches default)
-          maxSize={500}  // Maximum width for the sidebar
-          snap           // Enable snapping
-        >
-          {/* Sidebar takes the first pane */}
-          <Sidebar />
-        </Allotment.Pane>
+      {/* Main content area (Allotment for Sidebar/MainPanel split) */}
+      <div className="main-content-area">
+        <Allotment>
+          <Allotment.Pane
+            preferredSize={getSidebarInitialSize()} // Use CSS var for initial width
+            minSize={150}  // Minimum width for the sidebar (matches default)
+            maxSize={500}  // Maximum width for the sidebar
+            snap           // Enable snapping
+          >
+            {/* Sidebar takes the first pane */}
+            <Sidebar />
+          </Allotment.Pane>
 
-        <Allotment.Pane
-          minSize={300} // Minimum width for the main content area
-          // No preferredSize needed here, it will take remaining space
-        >
-          {/* MainPanel (containing the vertical editor/terminal split) takes the second pane */}
-          <MainPanel />
-        </Allotment.Pane>
-      </Allotment>
+          <Allotment.Pane
+            minSize={300} // Minimum width for the main content area
+            // No preferredSize needed here, it will take remaining space
+          >
+            {/* MainPanel (containing the vertical editor/terminal split) takes the second pane */}
+            <MainPanel />
+          </Allotment.Pane>
+        </Allotment>
+      </div>
+
+      {/* Status Bar rendered below the main content area */}
+      <StatusBar />
     </div>
   );
 }

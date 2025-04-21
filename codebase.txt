@@ -255,6 +255,10 @@ The application structure includes:
 </html>
 --- END FILE: index.html ---
 
+--- START FILE: test.txt ---
+Testing testing 123
+--- END FILE: test.txt ---
+
 --- START FILE: tsconfig.json ---
 // tsconfig.json (Base config)
 {
@@ -835,7 +839,7 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         const activeFile = getActiveFile();
         // Check both activeFile exists and dirty state actually needs changing
         if (activeFile && activeFile.isDirty !== isNowDirty) {
-            console.log(`EditorContext: Setting dirty state for ${activeFilePath} to ${isNowDirty}`);
+            // console.log(`EditorContext [updateActiveFileDirtyState]: Setting dirty state for ${activeFilePath} to ${isNowDirty}`); // DEBUG LOG
             updateFileState(activeFile.path, { isDirty: isNowDirty });
         }
     }, [activeFilePath, getActiveFile, updateFileState]); // Dependencies on helpers and path
@@ -845,21 +849,34 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
         const activeFile = getActiveFile();
 
         if (!activeFile || activeFile.isLoading) {
-            console.warn("EditorContext: Cannot save, no active file or file is loading.");
+            console.warn("EditorContext [saveActiveFile]: Cannot save, no active file or file is loading.");
             // Maybe set an error on the active file?
             if(activeFile) updateFileState(activeFile.path, { error: "Cannot save while loading." });
             return;
         }
 
-        console.log(`EditorContext: Request to save file - ${activeFile.path}`);
+        // *** ADDED CHECK: Only save if content has actually changed ***
+        // Although the Ctrl+S handler was simplified, it's still good practice
+        // to avoid unnecessary IPC calls if the content hasn't changed from the last *saved* state.
+        if (currentEditorContent === activeFile.content && activeFile.content !== null) {
+             console.log(`EditorContext [saveActiveFile]: Content for ${activeFile.path} has not changed. Skipping save.`);
+             // Even if skipped, reset dirty state if it was somehow true
+             if (activeFile.isDirty) {
+                 updateFileState(activeFile.path, { isDirty: false });
+             }
+             return; // Don't proceed with IPC
+        }
+
+        console.log(`EditorContext [saveActiveFile]: Request to save file - ${activeFile.path}`); // DEBUG LOG
         updateFileState(activeFile.path, { isLoading: true, error: null }); // Mark as loading during save
 
         try {
+            console.log(`EditorContext [saveActiveFile]: Calling window.electronAPI.fs_saveFile for ${activeFile.path}...`); // DEBUG LOG
             // Send IPC request with the provided content
             const response: SaveFileResponse = await window.electronAPI.fs_saveFile(activeFile.path, currentEditorContent);
 
             if (response.success) {
-                console.log(`EditorContext: File saved successfully - ${activeFile.path}`);
+                console.log(`EditorContext [saveActiveFile]: File saved successfully via IPC - ${activeFile.path}`); // DEBUG LOG
                 // Update the file state: mark as not dirty, not loading, and store the NEWLY SAVED content
                 updateFileState(activeFile.path, {
                     content: currentEditorContent, // Store the successfully saved content as the new base
@@ -868,13 +885,13 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
                     error: null
                 });
             } else {
-                console.error(`EditorContext: Failed to save file ${activeFile.path}:`, response.error);
+                console.error(`EditorContext [saveActiveFile]: Failed to save file ${activeFile.path} (IPC Response):`, response.error); // DEBUG LOG
                 updateFileState(activeFile.path, { isLoading: false, error: `Save Error: ${response.error || 'Unknown error'}` });
                 // isDirty remains true implicitly because content mismatches saved content
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error(`EditorContext: IPC Error saving file ${activeFile.path}:`, errorMsg);
+            console.error(`EditorContext [saveActiveFile]: IPC Error saving file ${activeFile.path}:`, errorMsg); // DEBUG LOG
             updateFileState(activeFile.path, { isLoading: false, error: `IPC Save Error: ${errorMsg}` });
              // isDirty remains true implicitly
         }
@@ -3451,8 +3468,11 @@ const EditorPanel: React.FC = () => {
         if (editor && activeFileNow && !activeFileNow.isLoading && currentModelValue !== undefined) {
             // Compare editor value with the CONTEXT's last known saved content
             const shouldBeDirty = currentModelValue !== activeFileNow.content;
+            // console.log(`[handleInternalChange] Editor content changed. Current value !== saved content? ${shouldBeDirty}`); // DEBUG LOG
             // Notify context ONLY if dirty status changes
             updateActiveFileDirtyState(shouldBeDirty);
+        } else {
+            // console.log(`[handleInternalChange] Skipping dirty check (editor=${!!editor}, activeFile=${!!activeFileNow}, loading=${activeFileNow?.isLoading}, valueDefined=${currentModelValue !== undefined})`); // DEBUG LOG
         }
     }, [getActiveFile, updateActiveFileDirtyState]);
 
@@ -3473,7 +3493,7 @@ const EditorPanel: React.FC = () => {
             changeListenerDisposable.current.dispose();
         }
 
-        // Define custom themes
+        // Define custom themes (keep this logic as is)
         const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
              try {
                  monacoInstance.editor.defineTheme(name, {
@@ -3508,7 +3528,7 @@ const EditorPanel: React.FC = () => {
                  });
              } catch (error) { console.error(`Failed to define Monaco theme '${name}':`, error); }
          };
-        // Define all themes...
+        // Define all themes... (kept for brevity, no change needed)
         defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), /* selectionForeground handled above */ 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
         defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
         defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
@@ -3549,22 +3569,27 @@ const EditorPanel: React.FC = () => {
 
         // Add Ctrl+S Command
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+            console.log(`[Ctrl+S Handler] Triggered.`); // DEBUG LOG
             const currentContent = editorRef.current?.getValue(); // Get current value directly
             const activeFileNow = getActiveFile(); // Re-check active file state
 
-            // Check if there's an active file and if it's dirty (or has content to save initially)
-            if (activeFileNow && currentContent !== undefined && activeFileNow.isDirty) {
-                 console.log(`Ctrl+S: Saving dirty file ${activeFileNow.path}...`);
+            // *** MODIFIED CHECK: Removed activeFileNow.isDirty ***
+            // The saveActiveFile function in the context will handle saving
+            // and resetting the dirty state on success. We just need to ensure
+            // there's an active file and content to potentially save.
+            if (activeFileNow && currentContent !== undefined) {
+                 console.log(`[Ctrl+S Handler] Active file: ${activeFileNow.path}. Current dirty state in context: ${activeFileNow.isDirty}. Calling saveActiveFile...`); // DEBUG LOG
                  // Pass the CURRENT EDITOR content to the context save function
                  saveActiveFile(currentContent)
+                    .then(() => {
+                        console.log(`[Ctrl+S Handler] saveActiveFile promise resolved for ${activeFileNow.path}.`); // DEBUG LOG
+                    })
                     .catch(err => {
-                        console.error(`Ctrl+S: Error during save operation for ${activeFileNow.path}:`, err);
+                        console.error(`[Ctrl+S Handler] Error during save operation for ${activeFileNow.path}:`, err);
                         // Optionally display error to the user in the UI
                     });
-            } else if (activeFileNow && !activeFileNow.isDirty) {
-                console.log(`Ctrl+S: No changes to save for ${activeFileNow.path}.`);
             } else {
-                console.log("Ctrl+S: No active/dirty file to save or content unavailable.");
+                console.log(`[Ctrl+S Handler] No active file or content unavailable. Cannot save.`); // DEBUG LOG
             }
          });
 
@@ -3691,7 +3716,8 @@ const EditorPanel: React.FC = () => {
                 options={editorOptions}
                 // Initial value when component mounts, if activeFile is available then
                 value={activeFile?.content ?? ''}
-                onChange={() => { handleInternalChange()}} // Let the handler read value from ref
+                // onChange prop is technically redundant now since we use the internal listener, but keep it for react-monaco-editor's structure if needed
+                onChange={handleInternalChange} // Can directly call the handler
                 editorDidMount={editorDidMount}
             />
         </div>
@@ -4152,7 +4178,8 @@ export default CustomSelect;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      padding: var(--spacing-xs); /* Apply padding HERE */
+      padding: var(--spacing-xs);
+      padding-bottom: var(--spacing-sm)
   }
 
 
@@ -4661,18 +4688,21 @@ function setupIpcHandlers() {
 
     // Save File Handler
     ipcMain.handle('fs:saveFile', async (_event, filePath: string, content: string): Promise<SaveFileResponse> => {
-         console.log(`IPC Request: Saving file - ${filePath}`);
+         console.log(`IPC [fs:saveFile]: Saving file - ${filePath} (content length: ${content?.length ?? 0})`); // DEBUG LOG
          try {
              if (!filePath || typeof filePath !== 'string') {
                   throw new Error("Invalid file path provided.");
              }
+              if (content === undefined || content === null) {
+                   throw new Error("Invalid content provided for saving.");
+             }
              // Add checks for directory existence if needed? fs.writeFile usually creates dirs if possible.
              await fs.writeFile(filePath, content, { encoding: 'utf-8' });
-             console.log(`IPC Success: Saved file ${filePath}`);
+             console.log(`IPC [fs:saveFile]: Successfully wrote file ${filePath}`); // DEBUG LOG
              return { success: true };
          } catch (error) {
              const errorMsg = error instanceof Error ? error.message : String(error);
-             console.error(`IPC Error: Failed to save file ${filePath}:`, errorMsg);
+             console.error(`IPC Error [fs:saveFile]: Failed to save file ${filePath}:`, errorMsg); // DEBUG LOG
              if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` };
                 if (error.code === 'ENOENT') return { success: false, error: `Directory not found for file: ${filePath}` }; // Or similar
@@ -5531,19 +5561,22 @@ function setupIpcHandlers() {
     });
     // Save File Handler
     electron_1.ipcMain.handle('fs:saveFile', async (_event, filePath, content) => {
-        console.log(`IPC Request: Saving file - ${filePath}`);
+        console.log(`IPC [fs:saveFile]: Saving file - ${filePath} (content length: ${content?.length ?? 0})`); // DEBUG LOG
         try {
             if (!filePath || typeof filePath !== 'string') {
                 throw new Error("Invalid file path provided.");
             }
+            if (content === undefined || content === null) {
+                throw new Error("Invalid content provided for saving.");
+            }
             // Add checks for directory existence if needed? fs.writeFile usually creates dirs if possible.
             await promises_1.default.writeFile(filePath, content, { encoding: 'utf-8' });
-            console.log(`IPC Success: Saved file ${filePath}`);
+            console.log(`IPC [fs:saveFile]: Successfully wrote file ${filePath}`); // DEBUG LOG
             return { success: true };
         }
         catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`IPC Error: Failed to save file ${filePath}:`, errorMsg);
+            console.error(`IPC Error [fs:saveFile]: Failed to save file ${filePath}:`, errorMsg); // DEBUG LOG
             if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES')
                     return { success: false, error: `Permission denied: ${filePath}` };

@@ -1,0 +1,115 @@
+/* --- START FILE: src/renderer/components/StatusBar.css --- */
+/* src/renderer/components/StatusBar.css */
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xxs) var(--spacing-sm);
+    background-color: var(--color-bg-sidebar); /* Use sidebar bg or a dedicated one */
+    color: var(--color-text-secondary);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    height: 24px; /* Fixed height */
+    flex-shrink: 0; /* Prevent shrinking */
+    overflow: hidden; /* Prevent content spill */
+    user-select: none; /* Prevent text selection */
+  }
+  
+  .status-bar-left,
+  .status-bar-right {
+    display: flex;
+    align-items: center;
+    /* --- Adjusted gap for potentially more items --- */
+    gap: var(--spacing-md); /* Use medium gap between items */
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  .status-bar-left {
+      flex-grow: 1; /* Allow left side to take more space */
+      min-width: 100px; /* Ensure some minimum space */
+      margin-right: var(--spacing-md);
+  }
+  
+  .status-bar-right {
+      flex-shrink: 0; /* Prevent right side from shrinking too much */
+      margin-left: auto; /* Push right items further right if space allows */
+  }
+  
+  .status-item {
+    display: inline-flex;
+    align-items: center;
+    cursor: default; /* Indicate non-interactive */
+    /* Add some padding to separate visually */
+    padding: 0 var(--spacing-xxs);
+    border-radius: var(--border-radius-sm); /* Optional: slight rounding */
+    transition: background-color 0.15s ease; /* Subtle hover */
+  }
+  
+  /* Optional: Add hover effect to items if desired */
+  /* .status-item:hover {
+      background-color: var(--color-bg-hover);
+      color: var(--color-text-primary);
+  } */
+  
+  
+  .status-item.file-path {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 0; /* No left padding for the first item */
+  }
+  
+  .status-item .dirty-indicator {
+      margin-left: var(--spacing-xxs);
+      color: var(--color-text-accent); /* Use accent color */
+      font-weight: bold;
+  }
+  
+  .status-item.error-message {
+      color: var(--color-text-error);
+      margin-left: var(--spacing-xs); /* Add space before error icon */
+      cursor: help; /* Indicate hover for tooltip */
+  }
+  
+  .status-item.time {
+      font-variant-numeric: tabular-nums; /* Keep time width consistent */
+      min-width: 65px; /* Allocate space for HH:MM:SS */
+      text-align: center;
+  }
+  
+  /* Win95/mIRC Specifics */
+  .theme-win95 .status-bar,
+  .theme-mirc .status-bar {
+      background-color: var(--color-bg-app);
+      border-top: none;
+      height: auto; /* Allow height adjustment based on font */
+      min-height: 20px;
+      padding: 1px var(--spacing-xs);
+      /* Apply bevel using box-shadow (top inset) */
+      box-shadow: inset 0px 1px var(--win95-bevel-shadow-light, transparent),
+                  inset 0px 2px var(--win95-bevel-shadow-lighter, transparent);
+  }
+  .theme-win95 .status-item,
+  .theme-mirc .status-item {
+      /* Add slight inset shadow to mimic engraved text */
+       text-shadow: 1px 1px var(--win95-bevel-shadow-dark);
+       padding: 0 2px; /* Adjust padding */
+       border-radius: 0;
+  }
+  
+  /* Pip-Boy Specifics */
+  .theme-pipboy .status-bar {
+      background-color: var(--pipboy-bg-lighter);
+      border-top-color: var(--pipboy-green-dark);
+      color: var(--pipboy-green);
+  }
+  .theme-pipboy .status-item .dirty-indicator,
+  .theme-pipboy .status-item.error-message {
+      color: var(--pipboy-green); /* Keep green for indicators */
+  }
+  .theme-pipboy .status-item.error-message {
+       font-weight: bold;
+  }
+  
+  /* --- END FILE: src/renderer/components/StatusBar.css --- */

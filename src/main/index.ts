@@ -1,6 +1,5 @@
 // --- START FILE: src/main/index.ts ---
 // src/main/index.ts
-// *** Import Menu ***
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu, MenuItemConstructorOptions } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
@@ -19,7 +18,6 @@ const shellPath = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
 // --- Terminal Management ---
 // Use a Map to store multiple PTY processes, keyed by their unique ID
 const ptyInstances = new Map<string, pty.IPty>();
-// let ptyProcess: pty.IPty | null = null; // OLD: single pty process
 let mainWindow: BrowserWindow | null = null;
 
 
@@ -30,7 +28,7 @@ if (app.isPackaged && process.platform === 'win32') {
     }
 }
 
-// *** Function to create the application menu *** (NO CHANGES NEEDED HERE)
+// Function to create the application menu
 function createApplicationMenu() {
     const isMac = process.platform === 'darwin';
 
@@ -54,9 +52,6 @@ function createApplicationMenu() {
         {
             label: 'File',
             submenu: [
-                // Add Open Folder here if needed, although sidebar button is primary
-                // { label: 'Open Folder...', click: () => { /* TODO: Trigger IPC for dialog */ }},
-                // { type: 'separator' },
                 isMac ? { role: 'close' } : { role: 'quit' } // Alt+F4 (Win/Linux), Cmd+W (Mac) vs Cmd+Q
             ]
         },
@@ -140,15 +135,14 @@ function createApplicationMenu() {
 }
 
 
-// --- Main Window Creation Function --- (NO CHANGES NEEDED HERE)
+// --- Main Window Creation Function ---
 function createWindow() {
   console.log('Creating main window...');
   mainWindow = new BrowserWindow({
     width: 1200, // Initial width (will be overridden by fullscreen)
     height: 800, // Initial height (will be overridden by fullscreen)
-    fullscreen: true, // <<< SET TO START FULLSCREEN
+    fullscreen: true,
     webPreferences: {
-      // __dirname here refers to dist-electron/main
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
@@ -164,11 +158,9 @@ function createWindow() {
     console.log(`Loading DEV URL: ${VITE_DEV_SERVER_URL}`);
     mainWindow.loadURL(VITE_DEV_SERVER_URL)
       .catch(err => console.error('Failed to load DEV URL:', err));
-    // mainWindow.webContents.openDevTools(); // <<< COMMENTED OUT TO HIDE DEV TOOLS
   } else {
     console.log('Loading PROD build file');
-    // Adjust path relative to __dirname (dist-electron/main)
-    const prodPath = path.join(__dirname, '..', 'renderer', 'index.html'); // Corrected path
+    const prodPath = path.join(__dirname, '..', 'renderer', 'index.html');
     console.log(`Attempting to load production file: ${prodPath}`);
     mainWindow.loadFile(prodPath)
        .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
@@ -192,13 +184,12 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     console.log('Main window closed.');
-    // Kill ALL remaining PTY processes when the main window closes
     console.log(`Main window closed. Killing ${ptyInstances.size} PTY process(es).`);
     ptyInstances.forEach((pty, id) => {
         console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
         try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); }
     });
-    ptyInstances.clear(); // Clear the map
+    ptyInstances.clear();
     mainWindow = null;
   });
 
@@ -214,7 +205,7 @@ function killPtyProcess(id: string) {
         } catch (e) {
              console.warn(`Error killing PTY ID ${id}:`, e);
         } finally {
-             ptyInstances.delete(id); // Remove from map even if kill throws
+             ptyInstances.delete(id);
              console.log(`PTY process ID: ${id} removed from map.`);
         }
     } else {
@@ -230,9 +221,7 @@ function setupIpcHandlers() {
     // Basic Ping Example
     ipcMain.handle('ping', () => 'pong from main!');
 
-    // --- PTY Handlers (MODIFIED FOR MULTIPLE INSTANCES) ---
-
-    // Create a new PTY instance associated with an ID
+    // --- PTY Handlers ---
     ipcMain.handle('pty-create', async (_event, options: PtyCreateOptions): Promise<PtyCreateResponse> => {
         if (!mainWindow) {
             console.error("Cannot create PTY: mainWindow is not available.");
@@ -248,7 +237,7 @@ function setupIpcHandlers() {
 
         if (ptyInstances.has(id)) {
             console.warn(`PTY process with ID ${id} already exists. Killing old one.`);
-            killPtyProcess(id); // Ensure old one is gone before creating new
+            killPtyProcess(id);
         }
 
         console.log(`Creating PTY process for ID: ${id}, shell: ${shellPath}, cols: ${cols}, rows: ${rows}`);
@@ -264,34 +253,25 @@ function setupIpcHandlers() {
             });
 
             console.log(`PTY process created successfully for ID: ${id} (PID: ${newPtyProcess.pid}). Storing in map.`);
-            ptyInstances.set(id, newPtyProcess); // Store the new PTY process in the map
+            ptyInstances.set(id, newPtyProcess);
 
-            // Handle Data Output for this specific PTY
             newPtyProcess.onData(data => {
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    // Send data back WITH THE ID
                     targetWebContents.send('pty-data', id, data);
                  }
             });
 
-            // Handle Process Exit for this specific PTY
             newPtyProcess.onExit(({ exitCode, signal }) => {
                 console.log(`PTY process ID: ${id} (PID: ${newPtyProcess.pid}) exited with code: ${exitCode}, signal: ${signal}`);
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    // Send exit signal back WITH THE ID
                     targetWebContents.send('pty-exit', id, exitCode);
-                    // Optionally send error if exit was abnormal
                     if (exitCode !== 0 || signal) {
                          targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
                     }
                  }
-                 ptyInstances.delete(id); // Remove from map on exit
+                 ptyInstances.delete(id);
                  console.log(`PTY process ID: ${id} removed from map due to exit.`);
             });
-
-            // Handle Potential Errors for this specific PTY (though many manifest as onExit)
-            // newPtyProcess.onError is not a standard event in node-pty's typings, errors usually trigger exit
-            // If specific error handling IS needed, it would be attached here.
 
             return { success: true };
 
@@ -299,10 +279,8 @@ function setupIpcHandlers() {
             const errorMsg = error instanceof Error ? error.message : String(error);
             console.error(`Failed to create PTY process for ID ${id}:`, error);
             if (targetWebContents && !targetWebContents.isDestroyed()) {
-                 // Send error back WITH THE ID
                 targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`);
             }
-            // Ensure it's not left in the map if spawn failed
             if (ptyInstances.has(id)) {
                 ptyInstances.delete(id);
             }
@@ -310,7 +288,6 @@ function setupIpcHandlers() {
         }
     });
 
-    // Handle Input from Renderer for a specific PTY ID
     ipcMain.on('pty-input', (_event, id: string, data: string) => {
         const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
@@ -320,14 +297,10 @@ function setupIpcHandlers() {
                  const errorMsg = error instanceof Error ? error.message : String(error);
                  console.error(`Error writing to PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
                  mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`);
-                 // Optional: killPtyProcess(id); ? Depends on error handling strategy
              }
-        } else {
-            // console.warn(`Received input for unknown/exited PTY ID: ${id}`); // Can be noisy
         }
     });
 
-    // Handle Resize from Renderer for a specific PTY ID
     ipcMain.on('pty-resize', (_event, id: string, options: PtyResizeOptions) => {
         const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
@@ -342,12 +315,9 @@ function setupIpcHandlers() {
             } else {
                 console.warn(`Received invalid resize dimensions for PTY ID ${id}: cols=${options.cols}, rows=${options.rows}`);
             }
-        } else {
-             // console.warn(`Received resize for unknown/exited PTY ID: ${id}`); // Can be noisy
         }
     });
 
-    // NEW: Handle Kill request from Renderer for a specific PTY ID
     ipcMain.handle('pty-kill', async (_event, id: string) => {
          console.log(`IPC Request: Kill PTY ID: ${id}`);
          if (!id) {
@@ -355,7 +325,7 @@ function setupIpcHandlers() {
             return { success: false, error: "Missing terminal ID." };
          }
          try {
-             killPtyProcess(id); // Use the helper function
+             killPtyProcess(id);
              return { success: true };
          } catch(error) {
              const errorMsg = error instanceof Error ? error.message : String(error);
@@ -365,7 +335,7 @@ function setupIpcHandlers() {
      });
 
 
-    // --- Dialog Handler --- (NO CHANGES NEEDED)
+    // --- Dialog Handler ---
     ipcMain.handle('dialog:openDirectory', async () => {
         if (!mainWindow) return null;
         const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -379,7 +349,7 @@ function setupIpcHandlers() {
         }
     });
 
-    // --- File System Handlers --- (NO CHANGES NEEDED)
+    // --- File System Handlers ---
 
     // Read Directory Handler
     ipcMain.handle('fs:readDirectory', async (_event, folderPath: string): Promise<ReadDirectoryResponse> => {
@@ -388,7 +358,6 @@ function setupIpcHandlers() {
             if (!folderPath || typeof folderPath !== 'string') {
                  throw new Error("Invalid folder path provided.");
             }
-            // Verify path exists and is a directory
             const stats = await fs.stat(folderPath);
             if (!stats.isDirectory()) {
                 throw new Error(`Path is not a directory: ${folderPath}`);
@@ -400,7 +369,6 @@ function setupIpcHandlers() {
                 path: path.join(folderPath, dirent.name),
                 isDirectory: dirent.isDirectory(),
             }));
-            // Optional: Sort entries (folders first, then alphabetically)
             entries.sort((a, b) => {
                 if (a.isDirectory && !b.isDirectory) return -1;
                 if (!a.isDirectory && b.isDirectory) return 1;
@@ -412,7 +380,6 @@ function setupIpcHandlers() {
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             console.error(`IPC Error: Failed to read directory ${folderPath}:`, errorMsg);
-            // Add specific checks for common errors
             if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${folderPath}` };
                 if (error.code === 'ENOENT') return { success: false, error: `Directory not found: ${folderPath}` };
@@ -432,10 +399,6 @@ function setupIpcHandlers() {
             if (!stats.isFile()) {
                 throw new Error(`Path is not a file: ${filePath}`);
             }
-            // Add size check?
-            // if (stats.size > 10 * 1024 * 1024) { // e.g., 10MB limit
-            //    throw new Error(`File is too large to open (> 10MB): ${filePath}`);
-            //}
             const content = await fs.readFile(filePath, { encoding: 'utf-8' });
             console.log(`IPC Success: Read file ${filePath}`);
             return { success: true, content: content };
@@ -452,7 +415,11 @@ function setupIpcHandlers() {
 
     // Save File Handler
     ipcMain.handle('fs:saveFile', async (_event, filePath: string, content: string): Promise<SaveFileResponse> => {
-         console.log(`IPC [fs:saveFile]: Saving file - ${filePath} (content length: ${content?.length ?? 0})`); // DEBUG LOG
+         // *** ADDED LOGS ***
+         console.log(`[Main IPC -> fs:saveFile] Received save request for: ${filePath}`);
+         console.log(`[Main IPC -> fs:saveFile] Received content length: ${content?.length ?? 'undefined'}`);
+         console.log(`[Main IPC -> fs:saveFile] Received content start:`, content?.substring(0, 50) + '...');
+
          try {
              if (!filePath || typeof filePath !== 'string') {
                   throw new Error("Invalid file path provided.");
@@ -460,22 +427,25 @@ function setupIpcHandlers() {
               if (content === undefined || content === null) {
                    throw new Error("Invalid content provided for saving.");
              }
-             // Add checks for directory existence if needed? fs.writeFile usually creates dirs if possible.
              await fs.writeFile(filePath, content, { encoding: 'utf-8' });
-             console.log(`IPC [fs:saveFile]: Successfully wrote file ${filePath}`); // DEBUG LOG
+             // *** MODIFIED LOG ***
+             console.log(`[Main IPC -> fs:saveFile] fs.writeFile SUCCEEDED for ${filePath}. Returning { success: true }`);
              return { success: true };
          } catch (error) {
              const errorMsg = error instanceof Error ? error.message : String(error);
-             console.error(`IPC Error [fs:saveFile]: Failed to save file ${filePath}:`, errorMsg); // DEBUG LOG
+             // *** MODIFIED LOG ***
+             console.error(`[Main IPC -> fs:saveFile] fs.writeFile FAILED for ${filePath}:`, errorMsg);
              if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` };
                 if (error.code === 'ENOENT') return { success: false, error: `Directory not found for file: ${filePath}` }; // Or similar
              }
+              // *** ADDED LOG ***
+             console.log(`[Main IPC -> fs:saveFile] Returning { success: false, error: ${errorMsg} }`);
              return { success: false, error: errorMsg };
          }
      });
 
-    // --- App/Window Control Handlers --- (NO CHANGES NEEDED)
+    // --- App/Window Control Handlers ---
     ipcMain.handle('app:quit', () => {
         console.log("IPC: Received app:quit request.");
         app.quit();
@@ -508,12 +478,10 @@ function setupIpcHandlers() {
 app.whenReady().then(() => {
   console.log('App is ready.');
   setupIpcHandlers();
-  createApplicationMenu(); // <<< CREATE THE MENU HERE
+  createApplicationMenu();
   createWindow();
 
   app.on('activate', () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
         console.log('App activated, creating window.');
         createWindow();
@@ -522,9 +490,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // Quit when all windows are closed, except on macOS. There, it's common
-  // for applications and their menu bar to stay active until the user quits
-  // explicitly with Cmd + Q.
   console.log('All windows closed.');
   if (process.platform !== 'darwin') {
     app.quit();
@@ -532,7 +497,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('will-quit', () => {
-    // Kill ALL remaining PTY processes on quit
     console.log(`App will quit. Killing ${ptyInstances.size} PTY process(es).`);
     ptyInstances.forEach((pty, id) => {
         console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
@@ -542,16 +506,11 @@ app.on('will-quit', () => {
 });
 
 process.on('uncaughtException', (error: Error) => {
-    // Log unhandled errors from the main process
     console.error('Uncaught Main Process Exception:', error);
-    // Avoid showing dialog for common errors like EPIPE if not critical
     if (error.message.includes('EPIPE')) {
         console.warn("Ignoring EPIPE error in main process.");
         return;
     }
-    // Show a dialog for other errors
     dialog.showErrorBox('Unhandled Main Process Error', `${error.name}: ${error.message}\n${error.stack ?? ''}`);
-    // Consider if app.quit() is appropriate here, might depend on the error
-    // app.quit();
 });
 // --- END FILE: src/main/index.ts ---

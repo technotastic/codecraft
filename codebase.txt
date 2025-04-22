@@ -49,6 +49,107 @@
 --- END FILE: tsconfig.node.json ---
 
 --- START FILE: text.txt ---
+
+---
+
+**Project Continuation Prompt: CodeCraft IDE**
+
+**1. Project Goal:**
+To build a functional desktop code editor (CodeCraft IDE) using Electron, React, TypeScript, and Vite, featuring an integrated terminal, file management, and basic customization.
+
+**2. Core Technologies:**
+*   **Framework:** Electron
+*   **UI (Renderer):** React, TypeScript, Vite
+*   **Editor Component:** Monaco Editor (`react-monaco-editor`)
+*   **Terminal Component:** Xterm.js + `node-pty` (via IPC)
+*   **Layout:** `allotment`
+*   **Styling:** CSS Variables, Theme Context
+
+**3. Current State Summary:**
+
+*   **Development Environment:** Manual setup using Vite dev server (`dev:vite`), `tsc --watch` for main/preload (`dev:main`), and `electron .` (`start`) in separate terminals.
+*   **Architecture:**
+    *   **Main Process (`main/index.ts`):** Handles window (starts fullscreen), app menu, IPC (dialogs, multi-PTY, filesystem), basic app controls.
+    *   **Preload Script (`preload/index.ts`):** Securely exposes typed `electronAPI` via `contextBridge` for all renderer-main communication.
+    *   **Renderer Process (`renderer/`):** React app managed by Vite.
+*   **Key Features Implemented:**
+    *   **Layout:** Resizable horizontal split (Sidebar/Main Area) and vertical split (Editor/Terminal Area) using `Allotment`.
+    *   **Theming:** `ThemeContext` manages theme name (e.g., 'dark', 'pipboy', 'win95') and font size modifier. Applies `.theme-*` class to root/body. Includes a `CustomSelect` dropdown in the sidebar for theme switching.
+    *   **Contexts:** `ThemeContext`, `EditorContext`, `TerminalContext` manage relevant application state.
+    *   **Sidebar:**
+        *   Displays an expandable file tree (`FileTreeNode`) populated via `fs:readDirectory` IPC.
+        *   Supports "Open Folder..." to set the tree root.
+        *   Supports navigating up directories.
+        *   Clicking files opens them in the editor via `fs:readFile` IPC and `EditorContext`.
+    *   **Editor Area:**
+        *   Managed by `EditorContext`, supporting multiple file tabs (`TabContainer`, `Tab`).
+        *   Handles opening, closing, and focusing tabs.
+        *   Tracks and displays file dirty status (`*`) on tabs.
+        *   **Saving Fixed:** Saving files via Ctrl+S (`fs:saveFile` IPC) now reliably updates the file content and context state. Stale state issues resolved.
+        *   Renders Monaco Editor instance (`EditorPanel`).
+        *   Basic language detection based on file extension (used for status bar display).
+        *   **Syntax Highlighting:** **NOT FUNCTIONAL.** While basic Monaco themes (background, foreground) are applied, token-based syntax highlighting does not change with themes or work correctly.
+    *   **Terminal Area:**
+        *   Managed by `TerminalContext`, supports multiple terminal tabs (`TerminalTabContainer`, `TerminalTab`) via '+' button.
+        *   Renders Xterm.js instances (`TerminalPanel`) per tab, managing visibility via CSS.
+        *   Multi-instance PTY communication via IPC (`pty-create`, `pty-input`, etc.) is functional.
+        *   Terminal background/foreground colors update based on the selected app theme.
+        *   **Rendering Issues Fixed:** Resolved previous issues with blank screens, color bleeding, and cursor offsets on tab switching.
+    *   **Status Bar:**
+        *   Implemented (`StatusBar.tsx`, `StatusBar.css`).
+        *   Displays active file name, dirty status, error status.
+        *   Displays cursor line/column number.
+        *   Displays basic detected language of the active file.
+        *   Displays live-updating current time.
+        *   Displays placeholder encoding (UTF-8).
+*   **Development Server Interaction:** Saving the root `index.html` during development correctly triggers a Vite full page reload (expected behavior).
+
+**4. V1 Goals Status:**
+*   Functional Monaco Editor (Partially Done - multi-file, saving fixed. **Highlighting broken.**)
+*   Integrated Terminal (Done - multi-tab, rendering fixed)
+*   File Tree/Management (Done - basic open/read/display/save)
+*   Theming (Foundation done. **Syntax highlighting broken.** Advanced features deferred.)
+*   Font Size Control (Done)
+*   Movable/Resizable Panels (Done)
+*   Status Bar (Done)
+
+**5. Next Steps to Implement (Suggestions):**
+
+*   **(HIGH) Fix Syntax Highlighting:** Diagnose why token colors aren't being applied correctly or changing with themes. Revisit theme definition in `EditorPanel.tsx` (`monaco.editor.defineTheme`) and ensure `rules` are correctly structured and map to theme variables.
+*   **(HIGH) Editor Polish (After Highlighting Fixed):**
+    *   Wire up Edit Menu items (Undo/Redo integration).
+    *   Implement "Save As..." functionality.
+*   **(HIGH) Terminal Polish:**
+    *   Add "Clear Terminal" command/button.
+    *   Improve visual feedback for exited terminal processes.
+*   **(MED) Main Menu / Accelerators:** Review standard menu items and accelerators for correctness and platform consistency.
+*   **(MED) Error Handling:** Improve user feedback for filesystem/PTY errors.
+*   **(LOW) File Management Extras:** New File/Folder, Delete, Rename.
+*   **(LOW) Theming - VS Code Import:** Parse `.json` themes.
+*   **(LOW) Font Loading:** Robust custom font loading.
+
+**6. Future Ideas Brainstorm:**
+*   Project-wide Search (`ripgrep`)
+*   Git Integration (Status, Basic Commands)
+*   Command Palette (Ctrl+Shift+P)
+*   Snippets
+*   Debugger Integration (DAP)
+*   Plugin System
+*   Settings UI (`electron-store`)
+*   Remote/SSH Integration
+*   Web Version (`vscode-web`)
+*   AI Code Assistance
+*   Markdown Preview
+*   Advanced Layouts (`react-mosaic`)
+
+**7. Action Requested:**
+Based on the current state, particularly the non-functional syntax highlighting, what feature or fix should be prioritized next? (Fixing syntax highlighting is highly recommended).
+
+
+
+*** OLDER PROMPTS BELOW - LEFT FOR REFERENCE****
+
+
 Okay, my apologies for the previous incorrect assessment. Saving is a core function, and if it's broken, that needs to be the absolute top priority. I've updated the prompt to reflect this critical bug.
 
 ---
@@ -697,6 +798,7 @@ import React, {
     useCallback,
     useMemo,
 } from 'react';
+import path from 'path-browserify'; // Import path for basename in close confirmation
 
 import type { ReadFileResponse, SaveFileResponse } from '../../shared.types';
 
@@ -707,18 +809,25 @@ export interface OpenFile {
     isDirty: boolean;
     isLoading: boolean;
     error: string | null;
-    // Could add language later if needed separate from path derivation
+}
+
+// Define the structure for cursor position
+export interface CursorPosition {
+    lineNumber: number;
+    column: number;
 }
 
 interface EditorContextProps {
     openFiles: OpenFile[]; // Array of open files
     activeFilePath: string | null; // Path of the currently active file/tab
+    cursorPosition: CursorPosition | null; // Track cursor position
     openOrFocusFile: (filePath: string) => Promise<void>; // Opens a new file or focuses existing tab
     closeFile: (filePath: string) => void; // Closes a tab/file
     setActiveFile: (filePath: string | null) => void; // Switches active tab
-    updateActiveFileDirtyState: (isNowDirty: boolean) => void; // Updates dirty flag ONLY for the active file
+    updateActiveFileDirtyState: (currentEditorContent: string) => void; // Updates dirty flag ONLY for the active file
     saveActiveFile: (currentEditorContent: string) => Promise<void>; // Saves the currently active file's provided content
     getActiveFile: () => OpenFile | undefined; // Helper to get the active file object
+    setCursorPosition: (position: CursorPosition | null) => void; // Setter for cursor position
 }
 
 const EditorContext = createContext<EditorContextProps | undefined>(undefined);
@@ -730,187 +839,204 @@ interface EditorProviderProps {
 export const EditorProvider: React.FC<EditorProviderProps> = ({ children }) => {
     const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
     const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
+    const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(null);
 
-    // Helper to get the active file object
     const getActiveFile = useCallback((): OpenFile | undefined => {
         return openFiles.find(f => f.path === activeFilePath);
     }, [openFiles, activeFilePath]);
 
-    // Helper to update a specific file in the state
-    const updateFileState = useCallback((filePath: string, updates: Partial<OpenFile>) => {
-        setOpenFiles(prevFiles =>
-            prevFiles.map(file =>
-                file.path === filePath ? { ...file, ...updates } : file
-            )
-        );
-    }, []);
-
-
-    // --- Core Tab/File Management Functions ---
-
     const setActiveFile = useCallback((filePath: string | null) => {
-        // Avoid unnecessary updates if already active
         if (filePath !== activeFilePath) {
             console.log(`EditorContext: Setting active file path to: ${filePath}`);
             setActiveFilePath(filePath);
+            setCursorPosition(null);
         }
-    }, [activeFilePath]); // Depends only on activeFilePath for comparison
+    }, [activeFilePath]);
 
     const openOrFocusFile = useCallback(async (filePath: string) => {
         console.log(`EditorContext: Request to open or focus file - ${filePath}`);
-
-        // 1. Check if file is already open
-        const existingFileIndex = openFiles.findIndex(f => f.path === filePath);
-        if (existingFileIndex !== -1) {
+        const existingFile = openFiles.find(f => f.path === filePath);
+        if (existingFile) {
             console.log(`EditorContext: File ${filePath} already open, focusing.`);
-            setActiveFile(filePath); // Just make it active
+            setActiveFile(filePath);
             return;
         }
-
-        // 2. If not open, add it and load content
         console.log(`EditorContext: File ${filePath} not open, adding new entry and loading.`);
-        const newFileEntry: OpenFile = {
-            path: filePath,
-            content: null, // Start with null content
-            isDirty: false,
-            isLoading: true, // Mark as loading
-            error: null,
-        };
-
-        // Add to state FIRST, then set active
+        const newFileEntry: OpenFile = { path: filePath, content: null, isDirty: false, isLoading: true, error: null };
         setOpenFiles(prevFiles => [...prevFiles, newFileEntry]);
-        setActiveFile(filePath); // Make the new file active immediately
-
-        // 3. Fetch content via IPC
+        setActiveFile(filePath);
         try {
             const response: ReadFileResponse = await window.electronAPI.fs_readFile(filePath);
-            // Introduce a small delay if needed to ensure state update has rendered before updating file state
-            // await new Promise(resolve => setTimeout(resolve, 0));
             if (response.success) {
                 console.log(`EditorContext: File loaded successfully - ${filePath}`);
-                // Update the specific file entry with content and clear loading/error
-                updateFileState(filePath, { content: response.content, isLoading: false, error: null, isDirty: false });
+                setOpenFiles(currentFiles => {
+                     const updatedFiles = currentFiles.map(file =>
+                        file.path === filePath
+                            ? { ...file, content: response.content, isLoading: false, error: null, isDirty: false }
+                            : file
+                     );
+                     console.log(`[EditorContext -> openOrFocusFile -> success] State update executed for ${filePath}. isLoading should be false.`);
+                     return updatedFiles;
+                 });
             } else {
                 console.error(`EditorContext: Failed to read file ${filePath}:`, response.error);
-                updateFileState(filePath, { content: `// Error: ${response.error}`, isLoading: false, error: `Load Error: ${response.error}`, isDirty: false });
+                 setOpenFiles(currentFiles => currentFiles.map(file =>
+                    file.path === filePath
+                        ? { ...file, content: `// Error: ${response.error}`, isLoading: false, error: `Load Error: ${response.error}`, isDirty: false }
+                        : file
+                 ));
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             console.error(`EditorContext: IPC Error reading file ${filePath}:`, errorMsg);
-            updateFileState(filePath, { content: `// IPC Error: ${errorMsg}`, isLoading: false, error: `IPC Error: ${errorMsg}`, isDirty: false });
-        }
-    }, [openFiles, setActiveFile, updateFileState]); // Dependencies
-
-    const closeFile = useCallback((filePath: string) => {
-        console.log(`EditorContext: Request to close file - ${filePath}`);
-        const fileToCloseIndex = openFiles.findIndex(f => f.path === filePath);
-
-        if (fileToCloseIndex === -1) return; // File not found
-
-        const fileToClose = openFiles[fileToCloseIndex];
-
-        // Basic close - TODO: Add "dirty check" prompt later
-        if (fileToClose?.isDirty) {
-             const confirmClose = window.confirm(`File "${fileToClose.path}" has unsaved changes. Close anyway?`);
-             if (!confirmClose) {
-                 console.log(`EditorContext: Close cancelled for dirty file ${filePath}.`);
-                 return; // Abort close
-             }
-             console.warn(`EditorContext: Closing dirty file ${filePath} without saving.`);
-        }
-
-        const remainingFiles = openFiles.filter(f => f.path !== filePath);
-        setOpenFiles(remainingFiles);
-
-        // If the closed file was the active one, determine the next active file
-        if (activeFilePath === filePath) {
-            let nextActivePath: string | null = null;
-            if (remainingFiles.length > 0) {
-                // Try to activate the previous tab, otherwise the first tab
-                const nextIndex = Math.min(remainingFiles.length - 1, Math.max(0, fileToCloseIndex -1));
-                 nextActivePath = remainingFiles[nextIndex]?.path || null; // Get path or null
-            }
-            setActiveFile(nextActivePath); // Activate the new tab or null if none left
+             setOpenFiles(currentFiles => currentFiles.map(file =>
+                file.path === filePath
+                    ? { ...file, content: `// IPC Error: ${errorMsg}`, isLoading: false, error: `IPC Error: ${errorMsg}`, isDirty: false }
+                    : file
+             ));
         }
     }, [openFiles, activeFilePath, setActiveFile]);
 
-    // Called by EditorPanel just to update the dirty flag based on its comparison
-    const updateActiveFileDirtyState = useCallback((isNowDirty: boolean) => {
-        const activeFile = getActiveFile();
-        // Check both activeFile exists and dirty state actually needs changing
-        if (activeFile && activeFile.isDirty !== isNowDirty) {
-            // console.log(`EditorContext [updateActiveFileDirtyState]: Setting dirty state for ${activeFilePath} to ${isNowDirty}`); // DEBUG LOG
-            updateFileState(activeFile.path, { isDirty: isNowDirty });
+    const closeFile = useCallback((filePath: string) => {
+        console.log(`EditorContext: Request to close file - ${filePath}`);
+        const currentOpenFiles = openFiles;
+        const fileToClose = currentOpenFiles.find(f => f.path === filePath);
+        const fileToCloseIndex = currentOpenFiles.findIndex(f => f.path === filePath);
+        if (!fileToClose) return;
+        if (fileToClose.isDirty) {
+             const confirmClose = window.confirm(`File "${path.basename(fileToClose.path)}" has unsaved changes. Close anyway?`);
+             if (!confirmClose) {
+                 console.log(`EditorContext: Close cancelled for dirty file ${filePath}.`);
+                 return;
+             }
+             console.warn(`EditorContext: Closing dirty file ${filePath} without saving.`);
         }
-    }, [activeFilePath, getActiveFile, updateFileState]); // Dependencies on helpers and path
+        const remainingFiles = currentOpenFiles.filter(f => f.path !== filePath);
+        setOpenFiles(remainingFiles);
+        if (activeFilePath === filePath) {
+            let nextActivePath: string | null = null;
+            if (remainingFiles.length > 0) {
+                const nextIndex = Math.min(remainingFiles.length - 1, Math.max(0, fileToCloseIndex -1));
+                 nextActivePath = remainingFiles[nextIndex]?.path || null;
+            }
+            setActiveFile(nextActivePath);
+        }
+    }, [openFiles, activeFilePath, setActiveFile]);
 
-    // Called by EditorPanel with the current editor content to save
+    const updateActiveFileDirtyState = useCallback((currentEditorContent: string) => {
+        const currentActivePath = activeFilePath;
+        if (!currentActivePath) return;
+        setOpenFiles(currentFiles => {
+            const activeFileIndex = currentFiles.findIndex(f => f.path === currentActivePath);
+            if (activeFileIndex === -1) {
+                 console.warn(`[updateActiveFileDirtyState] Active file path ${currentActivePath} not found in state.`);
+                 return currentFiles;
+            }
+            const activeFile = currentFiles[activeFileIndex];
+            if (activeFile.content === null || activeFile.isLoading) {
+                 console.log(`[updateActiveFileDirtyState] Skipping dirty check for ${currentActivePath}, content not loaded or is loading.`);
+                 return currentFiles;
+            }
+            const shouldBeDirty = currentEditorContent !== activeFile.content;
+            console.log(`[updateActiveFileDirtyState] Comparing for ${currentActivePath}: Editor content (len ${currentEditorContent.length}) !== Context content (len ${activeFile.content.length})? Result: ${shouldBeDirty}. Current state isDirty: ${activeFile.isDirty}`);
+            if (activeFile.isDirty !== shouldBeDirty) {
+                console.log(`[updateActiveFileDirtyState] *** State Change Needed *** Setting dirty state for ${currentActivePath} to ${shouldBeDirty}`);
+                return currentFiles.map((file, index) =>
+                    index === activeFileIndex ? { ...file, isDirty: shouldBeDirty } : file
+                );
+            }
+            return currentFiles;
+        });
+    }, [activeFilePath]);
+
+    // *** MODIFIED saveActiveFile ***
     const saveActiveFile = useCallback(async (currentEditorContent: string) => {
-        const activeFile = getActiveFile();
+        const currentActiveFilePath = activeFilePath;
+        const currentOpenFiles = openFiles;
 
-        if (!activeFile || activeFile.isLoading) {
-            console.warn("EditorContext [saveActiveFile]: Cannot save, no active file or file is loading.");
-            // Maybe set an error on the active file?
-            if(activeFile) updateFileState(activeFile.path, { error: "Cannot save while loading." });
+        const activeFile = currentOpenFiles.find(f => f.path === currentActiveFilePath);
+
+        console.log(`[EditorContext -> saveActiveFile] Called for path: ${activeFile?.path}.`);
+        console.log(`[EditorContext -> saveActiveFile] Content passed from EditorPanel (length: ${currentEditorContent?.length}):`, currentEditorContent?.substring(0, 50) + '...');
+
+        // *** SIMPLIFIED CHECK: Only ensure we found *an* active file object ***
+        if (!activeFile) {
+            console.warn(`EditorContext [saveActiveFile]: Cannot save. No active file object found for path: ${currentActiveFilePath}.`);
+            // Maybe set a general error? This case shouldn't happen if activeFilePath is valid.
             return;
         }
 
-        // *** ADDED CHECK: Only save if content has actually changed ***
-        // Although the Ctrl+S handler was simplified, it's still good practice
-        // to avoid unnecessary IPC calls if the content hasn't changed from the last *saved* state.
-        if (currentEditorContent === activeFile.content && activeFile.content !== null) {
-             console.log(`EditorContext [saveActiveFile]: Content for ${activeFile.path} has not changed. Skipping save.`);
-             // Even if skipped, reset dirty state if it was somehow true
-             if (activeFile.isDirty) {
-                 updateFileState(activeFile.path, { isDirty: false });
-             }
-             return; // Don't proceed with IPC
+        // *** Log the state we *do* have, even if we don't block on it anymore ***
+        console.log(`[EditorContext -> saveActiveFile] State of active file (${activeFile.path}) at save time: isLoading=${activeFile.isLoading}, contentIsNull=${activeFile.content === null}, isDirty=${activeFile.isDirty}`);
+
+        // Check if save is needed (content changed or already dirty)
+        // We still need activeFile.content for this comparison, but if it's null, the comparison will likely proceed (which is okay)
+        // Let's add a specific log for this check
+        const isContentSame = activeFile.content !== null && currentEditorContent === activeFile.content;
+        console.log(`[EditorContext -> saveActiveFile] Checking if save needed: isContentSame=${isContentSame}, isDirty=${activeFile.isDirty}`);
+        if (isContentSame && !activeFile.isDirty) {
+             console.log(`EditorContext [saveActiveFile]: Content for ${activeFile.path} has not changed and not dirty. Skipping save.`);
+             return;
         }
 
-        console.log(`EditorContext [saveActiveFile]: Request to save file - ${activeFile.path}`); // DEBUG LOG
-        updateFileState(activeFile.path, { isLoading: true, error: null }); // Mark as loading during save
+        console.log(`EditorContext [saveActiveFile]: Request to save file - ${activeFile.path}`);
+        const targetPath = activeFile.path;
+        // Mark as loading
+        setOpenFiles(files => files.map(f => f.path === targetPath ? { ...f, isLoading: true, error: null } : f));
 
         try {
-            console.log(`EditorContext [saveActiveFile]: Calling window.electronAPI.fs_saveFile for ${activeFile.path}...`); // DEBUG LOG
-            // Send IPC request with the provided content
-            const response: SaveFileResponse = await window.electronAPI.fs_saveFile(activeFile.path, currentEditorContent);
+            console.log(`EditorContext [saveActiveFile]: Calling window.electronAPI.fs_saveFile for ${targetPath}...`);
+            const response: SaveFileResponse = await window.electronAPI.fs_saveFile(targetPath, currentEditorContent);
+
+            console.log(`[EditorContext -> saveActiveFile] IPC Response for ${targetPath}:`, response);
 
             if (response.success) {
-                console.log(`EditorContext [saveActiveFile]: File saved successfully via IPC - ${activeFile.path}`); // DEBUG LOG
-                // Update the file state: mark as not dirty, not loading, and store the NEWLY SAVED content
-                updateFileState(activeFile.path, {
-                    content: currentEditorContent, // Store the successfully saved content as the new base
+                console.log(`EditorContext [saveActiveFile]: File saved successfully via IPC - ${targetPath}`);
+                console.log(`[EditorContext -> saveActiveFile] Updating context state: isDirty=false, content=currentEditorContent`);
+                setOpenFiles(files => files.map(f => f.path === targetPath ? {
+                    ...f,
+                    content: currentEditorContent,
                     isDirty: false,
                     isLoading: false,
                     error: null
-                });
+                 } : f));
             } else {
-                console.error(`EditorContext [saveActiveFile]: Failed to save file ${activeFile.path} (IPC Response):`, response.error); // DEBUG LOG
-                updateFileState(activeFile.path, { isLoading: false, error: `Save Error: ${response.error || 'Unknown error'}` });
-                // isDirty remains true implicitly because content mismatches saved content
+                console.error(`EditorContext [saveActiveFile]: Failed to save file ${targetPath} (IPC Response):`, response.error);
+                console.log(`[EditorContext -> saveActiveFile] Updating context state: isLoading=false, error=${response.error}`);
+                setOpenFiles(files => files.map(f => f.path === targetPath ? {
+                    ...f,
+                    isLoading: false, // Still set isLoading false even on error
+                    error: `Save Error: ${response.error || 'Unknown error'}`
+                 } : f));
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error(`EditorContext [saveActiveFile]: IPC Error saving file ${activeFile.path}:`, errorMsg); // DEBUG LOG
-            updateFileState(activeFile.path, { isLoading: false, error: `IPC Save Error: ${errorMsg}` });
-             // isDirty remains true implicitly
+            console.error(`EditorContext [saveActiveFile]: IPC Error saving file ${targetPath}:`, errorMsg);
+            console.log(`[EditorContext -> saveActiveFile] Updating context state after IPC error: isLoading=false, error=${errorMsg}`);
+             setOpenFiles(files => files.map(f => f.path === targetPath ? {
+                    ...f,
+                    isLoading: false, // Still set isLoading false even on error
+                    error: `IPC Save Error: ${errorMsg}`
+             } : f));
         }
-    }, [getActiveFile, updateFileState]);
+    }, [openFiles, activeFilePath]); // Keep dependencies
 
 
     // --- Context Value ---
     const contextValue = useMemo(() => ({
         openFiles,
         activeFilePath,
+        cursorPosition,
         openOrFocusFile,
         closeFile,
         setActiveFile,
-        updateActiveFileDirtyState, // Expose the function to update dirty state
-        saveActiveFile, // Expose save function
-        getActiveFile, // Expose helper
+        updateActiveFileDirtyState,
+        saveActiveFile,
+        getActiveFile,
+        setCursorPosition,
     }), [
-        openFiles, activeFilePath, openOrFocusFile, closeFile, setActiveFile,
-        updateActiveFileDirtyState, saveActiveFile, getActiveFile
+        openFiles, activeFilePath, cursorPosition, openOrFocusFile, closeFile, setActiveFile,
+        updateActiveFileDirtyState, saveActiveFile, getActiveFile, setCursorPosition
     ]);
 
     return (
@@ -1098,6 +1224,7 @@ import { Allotment } from 'allotment'; // Import Allotment
 import 'allotment/dist/style.css'; // Ensure styles are imported
 import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
+import StatusBar from './components/StatusBar'; // <<< NEW: Import StatusBar
 import './App.css'; // Import the layout styles
 
 // Helper function to get initial sidebar width from CSS variable
@@ -1117,7 +1244,7 @@ const getSidebarInitialSize = (): number => {
 
 function App() {
 
-  // *** NEW: Effect for keyboard shortcuts ***
+  // Effect for keyboard shortcuts (no changes needed here)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Use Ctrl+Alt modifiers for less conflict potential in WSL
@@ -1150,31 +1277,33 @@ function App() {
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
   return (
-    // The app-container now primarily provides the full viewport boundary for Allotment
+    // The app-container is now a flex container for the main content and status bar
     <div className="app-container">
-      {/*
-        Top-level Allotment for horizontal split (Sidebar vs MainPanel).
-        No 'vertical' prop means it splits horizontally by default.
-      */}
-      <Allotment>
-        <Allotment.Pane
-          preferredSize={getSidebarInitialSize()} // Use CSS var for initial width
-          minSize={150}  // Minimum width for the sidebar (matches default)
-          maxSize={500}  // Maximum width for the sidebar
-          snap           // Enable snapping
-        >
-          {/* Sidebar takes the first pane */}
-          <Sidebar />
-        </Allotment.Pane>
+      {/* Main content area (Allotment for Sidebar/MainPanel split) */}
+      <div className="main-content-area">
+        <Allotment>
+          <Allotment.Pane
+            preferredSize={getSidebarInitialSize()} // Use CSS var for initial width
+            minSize={150}  // Minimum width for the sidebar (matches default)
+            maxSize={500}  // Maximum width for the sidebar
+            snap           // Enable snapping
+          >
+            {/* Sidebar takes the first pane */}
+            <Sidebar />
+          </Allotment.Pane>
 
-        <Allotment.Pane
-          minSize={300} // Minimum width for the main content area
-          // No preferredSize needed here, it will take remaining space
-        >
-          {/* MainPanel (containing the vertical editor/terminal split) takes the second pane */}
-          <MainPanel />
-        </Allotment.Pane>
-      </Allotment>
+          <Allotment.Pane
+            minSize={300} // Minimum width for the main content area
+            // No preferredSize needed here, it will take remaining space
+          >
+            {/* MainPanel (containing the vertical editor/terminal split) takes the second pane */}
+            <MainPanel />
+          </Allotment.Pane>
+        </Allotment>
+      </div>
+
+      {/* Status Bar rendered below the main content area */}
+      <StatusBar />
     </div>
   );
 }
@@ -2563,6 +2692,115 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
 export default TerminalPanel;
 --- END FILE: src/renderer/components/TerminalPanel.tsx ---
 
+--- START FILE: src/renderer/components/StatusBar.tsx ---
+// --- START FILE: src/renderer/components/StatusBar.tsx ---
+import React, { useState, useEffect } from 'react'; // Import useState, useEffect
+import path from 'path-browserify';
+import { useEditor } from '../contexts/EditorContext';
+import './StatusBar.css'; // Import styles
+
+// Simple Language Mapping Utility (copied from EditorPanel for now)
+// TODO: Extract to a shared utility file later
+const getLanguageFromPath = (filePath: string | null): string => {
+    if (!filePath) return 'Plain Text'; // More user-friendly default
+    const extension = filePath.split('.').pop()?.toLowerCase();
+    switch (extension) {
+        case 'js': case 'jsx': return 'JavaScript';
+        case 'ts': case 'tsx': return 'TypeScript';
+        case 'json': return 'JSON';
+        case 'css': return 'CSS';
+        case 'html': case 'htm': return 'HTML';
+        case 'md': case 'markdown': return 'Markdown';
+        case 'py': return 'Python';
+        case 'java': return 'Java';
+        case 'c': case 'h': return 'C';
+        case 'cpp': case 'hpp': return 'C++';
+        case 'cs': return 'C#';
+        case 'sh': return 'Shell Script';
+        case 'xml': return 'XML';
+        case 'yaml': case 'yml': return 'YAML';
+        case 'sql': return 'SQL';
+        // Add more user-friendly names
+        default: return 'Plain Text';
+    }
+};
+
+// Helper to format time with leading zeros
+const formatTime = (date: Date): string => {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+};
+
+
+const StatusBar: React.FC = () => {
+    const { activeFilePath, getActiveFile, cursorPosition } = useEditor();
+    const activeFile = getActiveFile();
+    const [currentTime, setCurrentTime] = useState<string>(formatTime(new Date())); // State for time
+
+    // Effect to update the time every second
+    useEffect(() => {
+        const timerId = setInterval(() => {
+            setCurrentTime(formatTime(new Date()));
+        }, 1000); // Update every 1000ms (1 second)
+
+        // Cleanup interval on component unmount
+        return () => {
+            clearInterval(timerId);
+        };
+    }, []); // Empty dependency array ensures this runs only once on mount
+
+
+    const fileName = activeFilePath ? path.basename(activeFilePath) : 'No file selected';
+    const isDirty = activeFile?.isDirty ?? false;
+    const isLoading = activeFile?.isLoading ?? false;
+    const errorMessage = activeFile?.error ?? null;
+
+    const line = cursorPosition?.lineNumber ?? 0;
+    const column = cursorPosition?.column ?? 0;
+    const detectedLanguage = getLanguageFromPath(activeFilePath);
+
+    return (
+        <div className="status-bar">
+            {/* Left Side: File Status */}
+            <div className="status-bar-left">
+                <span className="status-item file-path" title={activeFilePath ?? ''}>
+                    {isLoading ? 'Loading...' : (errorMessage ? `Error: ${fileName}` : fileName)}
+                    {isDirty && !isLoading && !errorMessage && <span className="dirty-indicator">*</span>}
+                </span>
+                {errorMessage && (
+                     <span className="status-item error-message" title={errorMessage}>
+                         ⚠️ Error
+                     </span>
+                )}
+            </div>
+
+            {/* Right Side: Editor Info & Time */}
+            <div className="status-bar-right">
+                 {/* Show Ln/Col only if a file is active and we have position info */}
+                 {activeFilePath && !isLoading && !errorMessage && line > 0 && column > 0 && (
+                      <span className="status-item cursor-position" title="Line number, Column number">
+                          Ln {line}, Col {column}
+                      </span>
+                  )}
+                  {/* Show language only if a file is active */}
+                  {activeFilePath && !isLoading && !errorMessage && (
+                    <span className="status-item language" title="Detected File Language">
+                        {detectedLanguage}
+                    </span>
+                  )}
+                  <span className="status-item encoding" title="File Encoding">UTF-8</span> {/* Placeholder */}
+                  <span className="status-item time" title="Current Time">{currentTime}</span>
+            </div>
+        </div>
+    );
+};
+
+export default StatusBar;
+// --- END FILE: src/renderer/components/StatusBar.tsx ---
+--- END FILE: src/renderer/components/StatusBar.tsx ---
+
 --- START FILE: src/renderer/components/TabContainer.tsx ---
 // --- START FILE: src/renderer/components/TabContainer.tsx ---
 import React, { useRef, useEffect } from 'react';
@@ -3347,7 +3585,7 @@ export default FileTreeNode;
 
 --- START FILE: src/renderer/components/EditorPanel.tsx ---
 // --- START FILE: src/renderer/components/EditorPanel.tsx ---
-import React, { useEffect, useRef, useCallback, useMemo } from 'react'; // Removed useState
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import MonacoEditor from 'react-monaco-editor';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
@@ -3407,30 +3645,27 @@ const getLanguageFromPath = (filePath: string | null): string => {
 const EditorPanel: React.FC = () => {
     const { theme } = useTheme();
     const {
-        activeFilePath, // Get active path from context
-        getActiveFile, // Get the active file data object
-        updateActiveFileDirtyState, // Function to update context's dirty state flag
-        saveActiveFile, // Function to trigger save IPC for active file (expects content)
+        activeFilePath,
+        getActiveFile,
+        updateActiveFileDirtyState, // <-- Function to call
+        saveActiveFile,
+        setCursorPosition,
     } = useEditor();
 
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoRef = useRef<typeof monaco | null>(null);
-    // Store the active file's path when the model was last set
-    // to prevent unnecessary updates when switching tabs
     const lastSetModelPath = useRef<string | null>(null);
     const changeListenerDisposable = useRef<monaco.IDisposable | null>(null);
-    // Keep track of the current view state (scroll position, cursor) for the inactive file
+    const cursorListenerDisposable = useRef<monaco.IDisposable | null>(null);
     const viewStateCache = useRef<Map<string, monaco.editor.ICodeEditorViewState | null>>(new Map());
 
-
-    // Get the data for the currently active file
     const activeFile = useMemo(() => getActiveFile(), [getActiveFile]);
 
-    // Map app theme names to Monaco theme names
     const getMonacoThemeName = useCallback((currentTheme: ThemeName): string => {
         switch (currentTheme) {
             case 'light': return 'vs';
             case 'dark': return 'vs-dark';
+            // ... other themes
             case 'win95': return 'win95-monaco-theme';
             case 'pipboy': return 'pipboy-monaco-theme';
             case 'mirc': return 'mirc-monaco-theme';
@@ -3444,37 +3679,31 @@ const EditorPanel: React.FC = () => {
         }
     }, []);
 
-
     const editorOptions = useMemo((): monaco.editor.IStandaloneEditorConstructionOptions => ({
         selectOnLineNumbers: true,
-        automaticLayout: true, // Crucial for resizing within Allotment
+        automaticLayout: true,
         fontFamily: 'var(--font-family-mono)',
         fontSize: getEditorFontSize(),
         minimap: { enabled: true },
         wordWrap: 'on',
         scrollBeyondLastLine: false,
-        readOnly: activeFile?.isLoading ?? !activeFile, // Readonly if loading OR no file active
-        // Value is now managed dynamically, not set here
-    }), [activeFile]); // Depends on activeFile status
+        readOnly: activeFile?.isLoading ?? !activeFile,
+    }), [activeFile]);
 
 
     // --- Editor Change Handler ---
-    // Called BY the editor's internal change event
+    // MODIFIED: Always call context function, pass current editor value
     const handleInternalChange = useCallback(() => {
         const editor = editorRef.current;
         const currentModelValue = editor?.getValue();
-        const activeFileNow = getActiveFile(); // Get current active file state
 
-        if (editor && activeFileNow && !activeFileNow.isLoading && currentModelValue !== undefined) {
-            // Compare editor value with the CONTEXT's last known saved content
-            const shouldBeDirty = currentModelValue !== activeFileNow.content;
-            // console.log(`[handleInternalChange] Editor content changed. Current value !== saved content? ${shouldBeDirty}`); // DEBUG LOG
-            // Notify context ONLY if dirty status changes
-            updateActiveFileDirtyState(shouldBeDirty);
-        } else {
-            // console.log(`[handleInternalChange] Skipping dirty check (editor=${!!editor}, activeFile=${!!activeFileNow}, loading=${activeFileNow?.isLoading}, valueDefined=${currentModelValue !== undefined})`); // DEBUG LOG
+        if (editor && currentModelValue !== undefined) {
+            // Pass the current editor value to the context function
+            // Let the context handle the comparison with its latest state
+             console.log(`[EditorPanel -> handleInternalChange] Calling updateActiveFileDirtyState with current editor content (length: ${currentModelValue.length})`);
+            updateActiveFileDirtyState(currentModelValue);
         }
-    }, [getActiveFile, updateActiveFileDirtyState]);
+    }, [updateActiveFileDirtyState]); // Depends only on the context function
 
 
     // --- Editor Mount Logic ---
@@ -3485,21 +3714,19 @@ const EditorPanel: React.FC = () => {
         console.log('Editor mounted!');
         editorRef.current = editor;
         monacoRef.current = monacoInstance;
-        lastSetModelPath.current = null; // Reset marker
-        viewStateCache.current.clear(); // Clear view state cache on mount
+        lastSetModelPath.current = null;
+        viewStateCache.current.clear();
 
-        // Dispose previous listener if remounts occur
-        if (changeListenerDisposable.current) {
-            changeListenerDisposable.current.dispose();
-        }
+        changeListenerDisposable.current?.dispose();
+        cursorListenerDisposable.current?.dispose();
 
-        // Define custom themes (keep this logic as is)
+        // Define custom themes (No changes needed here, keep as is)
         const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
              try {
                  monacoInstance.editor.defineTheme(name, {
                     base: base,
                     inherit: true,
-                    rules: [], // Add token rules later if needed
+                    rules: [],
                     colors: {
                         'editor.background': getCssVar(`--${cssVarPrefix}-bg`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
                         'editor.foreground': getCssVar(`--${cssVarPrefix}-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
@@ -3507,13 +3734,13 @@ const EditorPanel: React.FC = () => {
                         'editorLineNumber.foreground': getCssVar(`--${cssVarPrefix}-tertiary`, '#858585'),
                         'editorLineNumber.activeForeground': getCssVar(`--${cssVarPrefix}-secondary`, '#c6c6c6'),
                         'editor.selectionBackground': getCssVar(`--${cssVarPrefix}-selected-bg`, '#add6ff'),
-                        'editor.selectionForeground': getCssVar(`--${cssVarPrefix}-selected-text`, '#000000'), // Use appropriate contrast
+                        'editor.selectionForeground': getCssVar(`--${cssVarPrefix}-selected-text`, '#000000'),
                         'editorWidget.background': getCssVar(`--${cssVarPrefix}-widget-bg`, base === 'vs' ? '#f3f3f3' : '#252526'),
                         'editorWidget.border': getCssVar(`--${cssVarPrefix}-border`, '#c8c8c8'),
                         'input.background': getCssVar(`--${cssVarPrefix}-input-bg`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
                         'input.foreground': getCssVar(`--${cssVarPrefix}-input-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
                         'input.border': getCssVar(`--${cssVarPrefix}-input-border`, '#bebebe'),
-                        // Ensure high contrast selection for specific themes
+                        // Theme-specific overrides
                          ...(name === 'win95-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
                          ...(name === 'mirc-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
                          ...(name === 'pipboy-monaco-theme' && { 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f') }),
@@ -3528,87 +3755,83 @@ const EditorPanel: React.FC = () => {
                  });
              } catch (error) { console.error(`Failed to define Monaco theme '${name}':`, error); }
          };
-        // Define all themes... (kept for brevity, no change needed)
-        defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), /* selectionForeground handled above */ 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
-        defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
-        defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), /* selectionForeground handled above */ });
-        defineTheme('qbasic-monaco-theme', 'vs-dark', 'qbasic', { 'editor.background': getCssVar('--qbasic-blue', '#0000AA'), 'editor.foreground': getCssVar('--qbasic-yellow', '#FFFF55'), 'editorCursor.foreground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--qbasic-dark-gray', '#555555'), /* selectionForeground handled above */ });
-        defineTheme('orange-monaco-theme', 'vs-dark', 'orange', { 'editor.background': getCssVar('--orange-dark', '#201500'), 'editor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editorCursor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editor.selectionBackground': getCssVar('--orange-medium', '#D98C00'), /* selectionForeground handled above */ });
-        defineTheme('cga-monaco-theme', 'vs-dark', 'cga', { 'editor.background': getCssVar('--cga-black', '#000000'), 'editor.foreground': getCssVar('--cga-cyan', '#55FFFF'), 'editorCursor.foreground': getCssVar('--cga-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--cga-cyan', '#55FFFF'), /* selectionForeground handled above */ });
-        defineTheme('atari-monaco-theme', 'vs-dark', 'atari', { 'editor.background': getCssVar('--atari-black', '#000000'), 'editor.foreground': getCssVar('--atari-cyan', '#3FFFCF'), 'editorCursor.foreground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionBackground': getCssVar('--atari-orange', '#D87050'), /* selectionForeground handled above */ });
-        defineTheme('snes-monaco-theme', 'vs-dark', 'snes', { 'editor.background': getCssVar('--snes-bg', '#2F2F4F'), 'editor.foreground': getCssVar('--snes-text', '#E0E0FF'), 'editorCursor.foreground': getCssVar('--snes-accent4', '#E0E040'), 'editor.selectionBackground': getCssVar('--snes-accent1', '#8080FF'), /* selectionForeground handled above */ });
-        defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv', { 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), /* selectionForeground handled above */ });
+        // Define all themes...
+        defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
+        defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), });
+        defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), });
+        defineTheme('qbasic-monaco-theme', 'vs-dark', 'qbasic', { 'editor.background': getCssVar('--qbasic-blue', '#0000AA'), 'editor.foreground': getCssVar('--qbasic-yellow', '#FFFF55'), 'editorCursor.foreground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--qbasic-dark-gray', '#555555'), });
+        defineTheme('orange-monaco-theme', 'vs-dark', 'orange', { 'editor.background': getCssVar('--orange-dark', '#201500'), 'editor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editorCursor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editor.selectionBackground': getCssVar('--orange-medium', '#D98C00'), });
+        defineTheme('cga-monaco-theme', 'vs-dark', 'cga', { 'editor.background': getCssVar('--cga-black', '#000000'), 'editor.foreground': getCssVar('--cga-cyan', '#55FFFF'), 'editorCursor.foreground': getCssVar('--cga-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--cga-cyan', '#55FFFF'), });
+        defineTheme('atari-monaco-theme', 'vs-dark', 'atari', { 'editor.background': getCssVar('--atari-black', '#000000'), 'editor.foreground': getCssVar('--atari-cyan', '#3FFFCF'), 'editorCursor.foreground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionBackground': getCssVar('--atari-orange', '#D87050'), });
+        defineTheme('snes-monaco-theme', 'vs-dark', 'snes', { 'editor.background': getCssVar('--snes-bg', '#2F2F4F'), 'editor.foreground': getCssVar('--snes-text', '#E0E0FF'), 'editorCursor.foreground': getCssVar('--snes-accent4', '#E0E040'), 'editor.selectionBackground': getCssVar('--snes-accent1', '#8080FF'), });
+        defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv', { 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), });
 
-
-        // Apply initial theme/font size
         monacoInstance.editor.setTheme(getMonacoThemeName(theme));
         editor.updateOptions({ fontSize: getEditorFontSize() });
 
-        // --- Logic to load INITIAL active file content (if any) ---
-        // Use the value from the context hook directly
-        const initialActiveFile = getActiveFile(); // Needs getActiveFile from context
+        const initialActiveFile = getActiveFile();
         if (initialActiveFile && initialActiveFile.content !== null) {
             console.log(`EditorDidMount: Setting initial model value for ${initialActiveFile.path}`);
             editor.setValue(initialActiveFile.content);
-            lastSetModelPath.current = initialActiveFile.path; // Mark this path as set
+            lastSetModelPath.current = initialActiveFile.path;
             monacoInstance.editor.setModelLanguage(editor.getModel()!, getLanguageFromPath(initialActiveFile.path));
+            const initialPosition = editor.getPosition();
+            if (initialPosition) setCursorPosition(initialPosition);
         } else {
-            editor.setValue('// Open a file from the sidebar or File > Open Folder...');
+            editor.setValue('// Open a file from the sidebar...');
             lastSetModelPath.current = null;
             monacoInstance.editor.setModelLanguage(editor.getModel()!, 'plaintext');
+            setCursorPosition(null);
         }
-        editor.getModel()?.pushStackElement(); // Reset undo stack
+        editor.getModel()?.pushStackElement();
 
-
-        // Attach the onChange listener - uses the state setter
+        // Attach the onChange listener - calls the MODIFIED handler
         changeListenerDisposable.current = editor.onDidChangeModelContent(() => {
-            // Call the memoized handler function
-            handleInternalChange();
+            handleInternalChange(); // This now calls the context function
         });
         console.log("EditorDidMount: Attached onDidChangeModelContent listener.");
 
-        // Add Ctrl+S Command
-        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-            console.log(`[Ctrl+S Handler] Triggered.`); // DEBUG LOG
-            const currentContent = editorRef.current?.getValue(); // Get current value directly
-            const activeFileNow = getActiveFile(); // Re-check active file state
+        cursorListenerDisposable.current = editor.onDidChangeCursorPosition((e) => {
+            if (e.position) setCursorPosition(e.position);
+            else setCursorPosition(null);
+        });
+        console.log("EditorDidMount: Attached onDidChangeCursorPosition listener.");
 
-            // *** MODIFIED CHECK: Removed activeFileNow.isDirty ***
-            // The saveActiveFile function in the context will handle saving
-            // and resetting the dirty state on success. We just need to ensure
-            // there's an active file and content to potentially save.
+        // Add Ctrl+S Command (No change here, relies on context save function)
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+            console.log(`[Ctrl+S Handler] Triggered.`);
+            const currentContent = editorRef.current?.getValue();
+            const activeFileNow = getActiveFile(); // Still useful to check *if* there's an active file
+
+            console.log(`[Ctrl+S Handler] Content to save (length: ${currentContent?.length ?? 'undefined'}):`, currentContent?.substring(0, 50) + '...');
+
             if (activeFileNow && currentContent !== undefined) {
-                 console.log(`[Ctrl+S Handler] Active file: ${activeFileNow.path}. Current dirty state in context: ${activeFileNow.isDirty}. Calling saveActiveFile...`); // DEBUG LOG
-                 // Pass the CURRENT EDITOR content to the context save function
+                 // We no longer log dirty state here, context handles it
+                 console.log(`[Ctrl+S Handler] Active file: ${activeFileNow.path}. Calling saveActiveFile...`);
                  saveActiveFile(currentContent)
                     .then(() => {
-                        console.log(`[Ctrl+S Handler] saveActiveFile promise resolved for ${activeFileNow.path}.`); // DEBUG LOG
+                        console.log(`[Ctrl+S Handler] saveActiveFile promise resolved (may or may not indicate success) for ${activeFileNow.path}.`);
                     })
                     .catch(err => {
                         console.error(`[Ctrl+S Handler] Error during save operation for ${activeFileNow.path}:`, err);
-                        // Optionally display error to the user in the UI
                     });
             } else {
-                console.log(`[Ctrl+S Handler] No active file or content unavailable. Cannot save.`); // DEBUG LOG
+                console.log(`[Ctrl+S Handler] No active file or content unavailable. Cannot save.`);
             }
          });
 
         editor.focus();
 
-        // Cleanup
         return () => {
-             console.log("Editor unmounting, disposing listener.");
-             if (changeListenerDisposable.current) {
-                 changeListenerDisposable.current.dispose();
-                 changeListenerDisposable.current = null;
-             }
-             // Persist view state just before unmount? Or when switching tabs?
-             // Let's do it when switching tabs (in the update effect)
+             console.log("Editor unmounting, disposing listeners.");
+             changeListenerDisposable.current?.dispose();
+             cursorListenerDisposable.current?.dispose();
+             changeListenerDisposable.current = null;
+             cursorListenerDisposable.current = null;
              editorRef.current = null;
              monacoRef.current = null;
         };
-    // Dependencies: Include functions from context, theme, and helpers
-    }, [theme, getMonacoThemeName, getActiveFile, handleInternalChange, saveActiveFile, updateActiveFileDirtyState]); // Added context functions
+    }, [theme, getMonacoThemeName, getActiveFile, handleInternalChange, saveActiveFile, updateActiveFileDirtyState, setCursorPosition]);
 
 
     // --- Effect to UPDATE editor content when ACTIVE file changes ---
@@ -3616,7 +3839,6 @@ const EditorPanel: React.FC = () => {
         const editor = editorRef.current;
         const monaco = monacoRef.current;
 
-        // --- Save View State of the PREVIOUS file ---
         const previousPath = lastSetModelPath.current;
         if (editor && previousPath && previousPath !== activeFile?.path) {
             const currentState = editor.saveViewState();
@@ -3624,47 +3846,45 @@ const EditorPanel: React.FC = () => {
             console.log(`Saved view state for ${previousPath}`);
         }
 
-        // --- Handle the NEW active file ---
         if (!editor || !monaco ) {
              console.log("Editor not ready, skipping active file update.");
              return;
         }
 
-        // If no file is active, clear the editor
         if (!activeFile) {
             if (lastSetModelPath.current !== null) {
                 console.log("No active file, clearing editor.");
                 editor.setValue('');
                 lastSetModelPath.current = null;
                 monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
-                editor.updateOptions({ readOnly: true }); // Make readonly when no file
+                editor.updateOptions({ readOnly: true });
+                setCursorPosition(null);
             }
             return;
         }
 
-
-        // Only update the editor's model if the active file path has actually changed
-        // AND the file is not currently loading and has content
+        // *** IMPORTANT: Check activeFile.content specifically ***
+        // Check if path changed AND the content in the context is NOT null (meaning load is complete)
+        // AND the file isn't currently marked as loading
         if (activeFile.path !== lastSetModelPath.current && activeFile.content !== null && !activeFile.isLoading) {
-            console.log(`Active file changed to ${activeFile.path}. Updating editor model.`);
+            console.log(`Active file changed to ${activeFile.path} AND content/loading state is ready. Updating editor model.`);
 
             editor.setValue(activeFile.content);
-            lastSetModelPath.current = activeFile.path; // Mark this path as the one displayed
+            lastSetModelPath.current = activeFile.path;
 
-             // Restore View State for the NEW active file
              const previousViewState = viewStateCache.current.get(activeFile.path);
              if (previousViewState) {
                  console.log(`Restoring view state for ${activeFile.path}`);
                  editor.restoreViewState(previousViewState);
              } else {
                   console.log(`No view state found for ${activeFile.path}, using default.`);
-                  // Optionally reset scroll/cursor position if no state saved
                   editor.setScrollPosition({ scrollTop: 0, scrollLeft: 0 });
                   editor.setPosition({ lineNumber: 1, column: 1 });
              }
 
+             const currentPosition = editor.getPosition();
+             if (currentPosition) setCursorPosition(currentPosition);
 
-             // Update language model
              const newLanguage = getLanguageFromPath(activeFile.path);
              const model = editor.getModel();
              if (model && model.getLanguageId() !== newLanguage) {
@@ -3672,20 +3892,22 @@ const EditorPanel: React.FC = () => {
                  console.log(`Editor language set to: ${newLanguage}`);
              }
 
-             // Reset undo stack only if needed? Maybe not, let undo persist across tabs for now.
-             // editor.getModel()?.pushStackElement();
-             editor.focus(); // Focus editor when tab changes
+             editor.focus();
+        } else if (activeFile.path === lastSetModelPath.current) {
+             console.log(`Active file path ${activeFile.path} hasn't changed, skipping model update.`);
+        } else {
+             console.log(`Active file changed to ${activeFile.path} BUT content is null or still loading. Deferring editor model update.`);
         }
 
-        // Update readOnly state based on active file's loading status or if no file is active
-        const shouldBeReadOnly = activeFile.isLoading || !activeFile;
+
+        // Always update readOnly state based on latest activeFile status
+        const shouldBeReadOnly = activeFile.isLoading || !activeFile.path; // Consider no path as readonly too
         if (editor.getOption(monaco.editor.EditorOption.readOnly) !== shouldBeReadOnly) {
              console.log(`Updating editor readOnly state to: ${shouldBeReadOnly}`);
              editor.updateOptions({ readOnly: shouldBeReadOnly });
         }
 
-    // This effect now primarily reacts to the activeFile object changing
-    }, [activeFile]);
+    }, [activeFile, setCursorPosition]);
 
 
     // Effect to update theme and font size
@@ -3700,24 +3922,21 @@ const EditorPanel: React.FC = () => {
 
 
     return (
-        <div className="editor-panel" id="editor-panel-main"> {/* Added ID for potential aria-controls */}
-            {/* Display Active File Error / Loading - Use CSS for styling */}
+        <div className="editor-panel" id="editor-panel-main">
             {activeFile?.error && <div className="editor-context-error">Error: {activeFile.error}</div>}
             {activeFile?.isLoading && <div className="editor-loading-indicator">Loading...</div>}
-            {/* Dirty indicator is now on the tab */}
 
             <MonacoEditor
-                key={activeFilePath || 'no-file'} // Change key when file path changes to help reset state if needed? Careful.
+                key={activeFilePath || 'no-file'}
                 width="100%"
                 height="100%"
-                // Language is now dynamically set in the effect
-                language={getLanguageFromPath(activeFilePath)} // Still useful for initial hint
-                theme={getMonacoThemeName(theme)} // Theme set dynamically
+                language={getLanguageFromPath(activeFilePath)}
+                theme={getMonacoThemeName(theme)}
                 options={editorOptions}
-                // Initial value when component mounts, if activeFile is available then
-                value={activeFile?.content ?? ''}
-                // onChange prop is technically redundant now since we use the internal listener, but keep it for react-monaco-editor's structure if needed
-                onChange={handleInternalChange} // Can directly call the handler
+                // Value is primarily controlled by the useEffect hook reacting to activeFile
+                value={activeFile?.content ?? ''} // Provide default empty string
+                // onChange is technically optional now as we use the internal listener
+                // onChange={handleInternalChange} // This would call the *new* handleInternalChange
                 editorDidMount={editorDidMount}
             />
         </div>
@@ -3885,6 +4104,124 @@ export default Tab;
 // --- END FILE: src/renderer/components/Tab.tsx ---
 --- END FILE: src/renderer/components/Tab.tsx ---
 
+--- START FILE: src/renderer/components/StatusBar.css ---
+/* --- START FILE: src/renderer/components/StatusBar.css --- */
+/* src/renderer/components/StatusBar.css */
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xxs) var(--spacing-sm);
+    background-color: var(--color-bg-sidebar); /* Use sidebar bg or a dedicated one */
+    color: var(--color-text-secondary);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    height: 24px; /* Fixed height */
+    flex-shrink: 0; /* Prevent shrinking */
+    overflow: hidden; /* Prevent content spill */
+    user-select: none; /* Prevent text selection */
+  }
+  
+  .status-bar-left,
+  .status-bar-right {
+    display: flex;
+    align-items: center;
+    /* --- Adjusted gap for potentially more items --- */
+    gap: var(--spacing-md); /* Use medium gap between items */
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  .status-bar-left {
+      flex-grow: 1; /* Allow left side to take more space */
+      min-width: 100px; /* Ensure some minimum space */
+      margin-right: var(--spacing-md);
+  }
+  
+  .status-bar-right {
+      flex-shrink: 0; /* Prevent right side from shrinking too much */
+      margin-left: auto; /* Push right items further right if space allows */
+  }
+  
+  .status-item {
+    display: inline-flex;
+    align-items: center;
+    cursor: default; /* Indicate non-interactive */
+    /* Add some padding to separate visually */
+    padding: 0 var(--spacing-xxs);
+    border-radius: var(--border-radius-sm); /* Optional: slight rounding */
+    transition: background-color 0.15s ease; /* Subtle hover */
+  }
+  
+  /* Optional: Add hover effect to items if desired */
+  /* .status-item:hover {
+      background-color: var(--color-bg-hover);
+      color: var(--color-text-primary);
+  } */
+  
+  
+  .status-item.file-path {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 0; /* No left padding for the first item */
+  }
+  
+  .status-item .dirty-indicator {
+      margin-left: var(--spacing-xxs);
+      color: var(--color-text-accent); /* Use accent color */
+      font-weight: bold;
+  }
+  
+  .status-item.error-message {
+      color: var(--color-text-error);
+      margin-left: var(--spacing-xs); /* Add space before error icon */
+      cursor: help; /* Indicate hover for tooltip */
+  }
+  
+  .status-item.time {
+      font-variant-numeric: tabular-nums; /* Keep time width consistent */
+      min-width: 65px; /* Allocate space for HH:MM:SS */
+      text-align: center;
+  }
+  
+  /* Win95/mIRC Specifics */
+  .theme-win95 .status-bar,
+  .theme-mirc .status-bar {
+      background-color: var(--color-bg-app);
+      border-top: none;
+      height: auto; /* Allow height adjustment based on font */
+      min-height: 20px;
+      padding: 1px var(--spacing-xs);
+      /* Apply bevel using box-shadow (top inset) */
+      box-shadow: inset 0px 1px var(--win95-bevel-shadow-light, transparent),
+                  inset 0px 2px var(--win95-bevel-shadow-lighter, transparent);
+  }
+  .theme-win95 .status-item,
+  .theme-mirc .status-item {
+      /* Add slight inset shadow to mimic engraved text */
+       text-shadow: 1px 1px var(--win95-bevel-shadow-dark);
+       padding: 0 2px; /* Adjust padding */
+       border-radius: 0;
+  }
+  
+  /* Pip-Boy Specifics */
+  .theme-pipboy .status-bar {
+      background-color: var(--pipboy-bg-lighter);
+      border-top-color: var(--pipboy-green-dark);
+      color: var(--pipboy-green);
+  }
+  .theme-pipboy .status-item .dirty-indicator,
+  .theme-pipboy .status-item.error-message {
+      color: var(--pipboy-green); /* Keep green for indicators */
+  }
+  .theme-pipboy .status-item.error-message {
+       font-weight: bold;
+  }
+  
+  /* --- END FILE: src/renderer/components/StatusBar.css --- */
+--- END FILE: src/renderer/components/StatusBar.css ---
+
 --- START FILE: src/renderer/components/CustomSelect.tsx ---
 // src/renderer/components/CustomSelect.tsx
 import React, { useState, useRef, useEffect, ReactNode } from 'react';
@@ -3989,231 +4326,252 @@ export default CustomSelect;
     width: 100%;
     background-color: var(--color-bg-app);
     overflow: hidden;
-  }
-
-  .sidebar {
-    background-color: var(--color-bg-sidebar);
-    height: 100%;
-    color: var(--color-text-primary);
+    /* <<< NEW: Use Flexbox to position main content and status bar >>> */
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-  }
+}
 
-  /* Sidebar Header */
-  .sidebar-header {
+/* <<< NEW: Wrapper for the main splitting area (Sidebar/MainPanel) >>> */
+.main-content-area {
+    flex-grow: 1; /* Take up all available vertical space */
+    overflow: hidden; /* Prevent its content from overflowing the container */
+    position: relative; /* Needed for Allotment internals */
+    display: flex; /* Ensure inner Allotment can fill this */
+}
+
+/* Ensure Allotment fills the main-content-area */
+.main-content-area > .allotment-module--vertical-container___AllotmentVerticalContainer,
+.main-content-area > .allotment-module--horizontal-container___AllotmentHorizontalContainer {
+    flex-grow: 1;
+}
+
+
+.sidebar {
+  background-color: var(--color-bg-sidebar);
+  height: 100%;
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: var(--border-standard);
+  flex-shrink: 0;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  margin-right: var(--spacing-sm);
+}
+
+.sidebar-header button.open-folder-button {
+  flex-shrink: 0;
+}
+
+/* Navigation Controls */
+.navigation-controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-md);
     border-bottom: var(--border-standard);
     flex-shrink: 0;
-  }
+    gap: var(--spacing-sm);
+    min-height: 30px;
+}
 
-  .sidebar-header h2 {
-    margin: 0;
-    font-size: var(--font-size-lg);
-    color: var(--color-text-heading);
+/* Base style for icon-only buttons */
+.icon-button {
+    background: none;
+    border: none;
+    padding: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-size: var(--font-size-md);
+}
+
+.icon-button:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-primary);
+}
+.icon-button:active {
+    background-color: var(--color-bg-button-active);
+}
+.icon-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: transparent;
+    color: var(--color-text-tertiary);
+}
+
+.navigation-controls .up-button {
+    flex-shrink: 0;
+}
+
+/* Win95/mIRC Icon Button Overrides */
+.theme-win95 .icon-button, .theme-mirc .icon-button {
+   box-shadow: none; padding: var(--spacing-xs);
+}
+.theme-win95 .icon-button:active, .theme-mirc .icon-button:active {
+   box-shadow: none;
+}
+
+.navigation-controls .current-folder-path {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
-    margin-right: var(--spacing-sm);
-  }
+    padding: 0;
+    border-bottom: none;
+}
 
-  .sidebar-header button.open-folder-button {
-    flex-shrink: 0;
-  }
+.sidebar svg {
+    border: none;
+    vertical-align: middle;
+}
 
-  /* Navigation Controls */
-  .navigation-controls {
-      display: flex;
-      align-items: center;
-      padding: var(--spacing-xs) var(--spacing-md);
-      border-bottom: var(--border-standard);
-      flex-shrink: 0;
-      gap: var(--spacing-sm);
-      min-height: 30px;
-  }
-
-  /* Base style for icon-only buttons */
-  .icon-button {
-      background: none;
-      border: none;
-      padding: var(--spacing-xs);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      border-radius: var(--border-radius-sm);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      font-size: var(--font-size-md);
-  }
-
-  .icon-button:hover {
-      background-color: var(--color-bg-hover);
-      color: var(--color-text-primary);
-  }
-  .icon-button:active {
-      background-color: var(--color-bg-button-active);
-  }
-  .icon-button:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      background-color: transparent;
-      color: var(--color-text-tertiary);
-  }
-
-  .navigation-controls .up-button {
-      flex-shrink: 0;
-  }
-
-  /* Win95/mIRC Icon Button Overrides */
-  .theme-win95 .icon-button, .theme-mirc .icon-button {
-     box-shadow: none; padding: var(--spacing-xs);
-  }
-  .theme-win95 .icon-button:active, .theme-mirc .icon-button:active {
-     box-shadow: none;
-  }
-
-  .navigation-controls .current-folder-path {
-      font-size: var(--font-size-sm);
-      color: var(--color-text-tertiary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      flex-grow: 1;
-      padding: 0;
-      border-bottom: none;
-  }
-
-  .sidebar svg {
-      border: none;
-      vertical-align: middle;
-  }
-
-  /* File Tree Styling */
-  .file-tree {
-      flex-grow: 1;
-      overflow-y: auto;
-      min-height: 50px;
-      padding: var(--spacing-xs) 0;
-      font-size: var(--font-size-sm);
-  }
-  .file-tree ul { list-style: none; padding: 0; margin: 0; }
-  .file-tree-node.loading > .node-content { opacity: 0.7; cursor: default; }
-  .file-tree-node .node-content { display: flex; align-items: center; cursor: pointer; padding: var(--spacing-xxs) var(--spacing-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; position: relative; }
-  .file-tree-node .node-content:hover { background-color: var(--color-bg-hover); }
-  .file-tree-node .toggle-icon { width: 1.5em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; vertical-align: middle; color: var(--color-text-tertiary); }
-  .file-tree-node .toggle-icon.spacer { visibility: hidden; }
-  .file-tree-node .expand-icon { font-size: 0.9em; display: inline-block; vertical-align: middle; }
-  .file-tree-node .file-icon { margin-right: var(--spacing-xs); display: inline-flex; align-items: center; flex-shrink: 0; vertical-align: middle; color: var(--color-text-accent); font-size: 1.1em; }
-  .file-tree-node .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; margin-left: var(--spacing-xxs); }
-  .file-tree-node .loading-spinner { display: inline-flex; align-items: center; justify-content: center; font-size: 0.9em; vertical-align: middle; color: var(--color-text-tertiary); }
-  .spin-animation { animation: spin 1.5s linear infinite; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .file-tree-node .error-message, .file-tree-node .empty-folder-message { color: var(--color-text-tertiary); font-style: italic; padding: var(--spacing-xxs) 0; margin: 0; list-style: none; user-select: none; font-size: 0.9em; }
-  .file-tree-node .error-message { color: var(--color-text-error); font-style: normal; }
-  .file-tree .placeholder-message { color: var(--color-text-tertiary); padding: var(--spacing-md); font-style: italic; line-height: 1.5; }
-
-  /* Theme switcher styles */
-  .sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
-  .sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-
-  /* Main Panel, Editor, Terminal Base Styles */
-  .main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
-  .editor-panel { background-color: var(--color-bg-editor); overflow: hidden; position: relative; height: 100%; width: 100%; display: flex; }
-
-  /* Wrapper for Terminal Tabs + Panel Area */
-  .terminal-area-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background-color: var(--color-bg-terminal);
-  }
-
-  /* Wrapper for the absolutely positioned terminal panel instances */
-  .terminal-panels-wrapper {
+/* File Tree Styling */
+.file-tree {
     flex-grow: 1;
+    overflow-y: auto;
+    min-height: 50px;
+    padding: var(--spacing-xs) 0;
+    font-size: var(--font-size-sm);
+}
+.file-tree ul { list-style: none; padding: 0; margin: 0; }
+.file-tree-node.loading > .node-content { opacity: 0.7; cursor: default; }
+.file-tree-node .node-content { display: flex; align-items: center; cursor: pointer; padding: var(--spacing-xxs) var(--spacing-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; position: relative; }
+.file-tree-node .node-content:hover { background-color: var(--color-bg-hover); }
+.file-tree-node .toggle-icon { width: 1.5em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; vertical-align: middle; color: var(--color-text-tertiary); }
+.file-tree-node .toggle-icon.spacer { visibility: hidden; }
+.file-tree-node .expand-icon { font-size: 0.9em; display: inline-block; vertical-align: middle; }
+.file-tree-node .file-icon { margin-right: var(--spacing-xs); display: inline-flex; align-items: center; flex-shrink: 0; vertical-align: middle; color: var(--color-text-accent); font-size: 1.1em; }
+.file-tree-node .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; margin-left: var(--spacing-xxs); }
+.file-tree-node .loading-spinner { display: inline-flex; align-items: center; justify-content: center; font-size: 0.9em; vertical-align: middle; color: var(--color-text-tertiary); }
+.spin-animation { animation: spin 1.5s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.file-tree-node .error-message, .file-tree-node .empty-folder-message { color: var(--color-text-tertiary); font-style: italic; padding: var(--spacing-xxs) 0; margin: 0; list-style: none; user-select: none; font-size: 0.9em; }
+.file-tree-node .error-message { color: var(--color-text-error); font-style: normal; }
+.file-tree .placeholder-message { color: var(--color-text-tertiary); padding: var(--spacing-md); font-style: italic; line-height: 1.5; }
+
+/* Theme switcher styles */
+.sidebar .theme-switcher { margin-top: auto; padding: var(--spacing-md); border-top: var(--border-standard); flex-shrink: 0; position: relative; z-index: 5; }
+.sidebar .theme-switcher label { display: block; margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+/* Main Panel, Editor, Terminal Base Styles */
+.main-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--color-bg-main); }
+.editor-panel { background-color: var(--color-bg-editor); overflow: hidden; position: relative; height: 100%; width: 100%; display: flex; }
+
+/* Wrapper for Terminal Tabs + Panel Area */
+.terminal-area-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
     overflow: hidden;
-    position: relative;
     background-color: var(--color-bg-terminal);
-  }
+}
 
-  /* Terminal Panel Instance Styling (Absolute Positioning) */
-  .terminal-panel-instance {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      /* --- Visibility Control --- */
-      visibility: hidden; /* Hidden by default */
-      opacity: 0;
-      z-index: 1;
-      transition: opacity 0.05s ease-out, visibility 0s linear 0.05s; /* Faster hide transition */
-      /* --- Content Styling --- */
-      display: flex; /* Needed for inner mount point to fill space */
-      overflow: hidden;
-      /* Padding applied to inner mount point now */
-      background-color: var(--color-bg-terminal);
-      color: var(--color-text-terminal);
-      font-family: var(--font-family-mono);
-      font-size: var(--font-size-terminal);
-  }
+/* Wrapper for the absolutely positioned terminal panel instances */
+.terminal-panels-wrapper {
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--color-bg-terminal);
+}
 
-  /* Style for the ACTIVE terminal panel */
-  .terminal-panel-instance.active {
-      visibility: visible;
-      opacity: 1;
-      z-index: 2;
-      transition: opacity 0.05s ease-in, visibility 0s linear; /* Faster show transition */
-  }
+/* Terminal Panel Instance Styling (Absolute Positioning) */
+.terminal-panel-instance {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* --- Visibility Control --- */
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    z-index: 1;
+    transition: opacity 0.05s ease-out, visibility 0s linear 0.05s; /* Faster hide transition */
+    /* --- Content Styling --- */
+    display: flex; /* Needed for inner mount point to fill space */
+    overflow: hidden;
+    /* Padding applied to inner mount point now */
+    background-color: var(--color-bg-terminal);
+    color: var(--color-text-terminal);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-terminal);
+}
 
-  /* The actual mount point for xterm INSIDE the instance wrapper */
-  .terminal-mount-point {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      padding: var(--spacing-xs);
-      padding-bottom: var(--spacing-sm)
-  }
+/* Style for the ACTIVE terminal panel */
+.terminal-panel-instance.active {
+    visibility: visible;
+    opacity: 1;
+    z-index: 2;
+    transition: opacity 0.05s ease-in, visibility 0s linear; /* Faster show transition */
+}
+
+/* The actual mount point for xterm INSIDE the instance wrapper */
+.terminal-mount-point {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: var(--spacing-xs);
+    padding-bottom: var(--spacing-sm)
+}
 
 
-  /* Placeholder for when no terminal is active/open */
-  .terminal-placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--color-text-tertiary);
-      padding: var(--spacing-md);
-      font-style: italic;
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: var(--color-bg-terminal);
-      z-index: 0;
-  }
+/* Placeholder for when no terminal is active/open */
+.terminal-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+    padding: var(--spacing-md);
+    font-style: italic;
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--color-bg-terminal);
+    z-index: 0;
+}
 
-  /* Ensure xterm fills its container (.terminal-mount-point) */
-  .terminal-mount-point > div { width: 100%; height: 100%; }
-  .terminal-mount-point .terminal.xterm { height: 100% !important; width: 100% !important; }
-  .terminal-mount-point .xterm-screen { width: 100% !important; height: 100% !important; }
-  .terminal-mount-point .xterm-viewport { width: 100% !important; }
-  .terminal-mount-point .xterm .xterm-screen canvas { width: 100% !important; height: 100% !important; }
-  .terminal-mount-point p { display: none; }
+/* Ensure xterm fills its container (.terminal-mount-point) */
+.terminal-mount-point > div { width: 100%; height: 100%; }
+.terminal-mount-point .terminal.xterm { height: 100% !important; width: 100% !important; }
+.terminal-mount-point .xterm-screen { width: 100% !important; height: 100% !important; }
+.terminal-mount-point .xterm-viewport { width: 100% !important; }
+.terminal-mount-point .xterm .xterm-screen canvas { width: 100% !important; height: 100% !important; }
+.terminal-mount-point p { display: none; }
 
-  /* Editor Panel Overlay Indicators */
-  .editor-context-error, .editor-loading-indicator {
-      position: absolute; top: var(--spacing-xs); left: var(--spacing-sm);
-      background-color: color-mix(in srgb, var(--color-bg-editor) 90%, black);
-      padding: var(--spacing-xxs) var(--spacing-xs); border-radius: var(--border-radius-sm);
-      font-size: var(--font-size-sm); z-index: 10; box-shadow: var(--box-shadow-sm); max-width: 80%;
-  }
-  .editor-context-error { color: var(--color-text-error); border: 1px solid var(--color-text-error); }
-  .editor-loading-indicator { color: var(--color-text-secondary); border: 1px solid var(--color-border-accent); }
+/* Editor Panel Overlay Indicators */
+.editor-context-error, .editor-loading-indicator {
+    position: absolute; top: var(--spacing-xs); left: var(--spacing-sm);
+    background-color: color-mix(in srgb, var(--color-bg-editor) 90%, black);
+    padding: var(--spacing-xxs) var(--spacing-xs); border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm); z-index: 10; box-shadow: var(--box-shadow-sm); max-width: 80%;
+}
+.editor-context-error { color: var(--color-text-error); border: 1px solid var(--color-text-error); }
+.editor-loading-indicator { color: var(--color-text-secondary); border: 1px solid var(--color-border-accent); }
+
+/* <<< StatusBar is handled by its own CSS file (StatusBar.css) >>> */
+/* No specific styles needed here unless overriding something */
 
 /* --- END FINAL FILE: src/renderer/App.css --- */
 --- END FILE: src/renderer/App.css ---
@@ -4236,7 +4594,6 @@ interface ImportMetaEnv {
 --- START FILE: src/main/index.ts ---
 // --- START FILE: src/main/index.ts ---
 // src/main/index.ts
-// *** Import Menu ***
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu, MenuItemConstructorOptions } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
@@ -4255,7 +4612,6 @@ const shellPath = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
 // --- Terminal Management ---
 // Use a Map to store multiple PTY processes, keyed by their unique ID
 const ptyInstances = new Map<string, pty.IPty>();
-// let ptyProcess: pty.IPty | null = null; // OLD: single pty process
 let mainWindow: BrowserWindow | null = null;
 
 
@@ -4266,7 +4622,7 @@ if (app.isPackaged && process.platform === 'win32') {
     }
 }
 
-// *** Function to create the application menu *** (NO CHANGES NEEDED HERE)
+// Function to create the application menu
 function createApplicationMenu() {
     const isMac = process.platform === 'darwin';
 
@@ -4290,9 +4646,6 @@ function createApplicationMenu() {
         {
             label: 'File',
             submenu: [
-                // Add Open Folder here if needed, although sidebar button is primary
-                // { label: 'Open Folder...', click: () => { /* TODO: Trigger IPC for dialog */ }},
-                // { type: 'separator' },
                 isMac ? { role: 'close' } : { role: 'quit' } // Alt+F4 (Win/Linux), Cmd+W (Mac) vs Cmd+Q
             ]
         },
@@ -4376,15 +4729,14 @@ function createApplicationMenu() {
 }
 
 
-// --- Main Window Creation Function --- (NO CHANGES NEEDED HERE)
+// --- Main Window Creation Function ---
 function createWindow() {
   console.log('Creating main window...');
   mainWindow = new BrowserWindow({
     width: 1200, // Initial width (will be overridden by fullscreen)
     height: 800, // Initial height (will be overridden by fullscreen)
-    fullscreen: true, // <<< SET TO START FULLSCREEN
+    fullscreen: true,
     webPreferences: {
-      // __dirname here refers to dist-electron/main
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
@@ -4400,11 +4752,9 @@ function createWindow() {
     console.log(`Loading DEV URL: ${VITE_DEV_SERVER_URL}`);
     mainWindow.loadURL(VITE_DEV_SERVER_URL)
       .catch(err => console.error('Failed to load DEV URL:', err));
-    // mainWindow.webContents.openDevTools(); // <<< COMMENTED OUT TO HIDE DEV TOOLS
   } else {
     console.log('Loading PROD build file');
-    // Adjust path relative to __dirname (dist-electron/main)
-    const prodPath = path.join(__dirname, '..', 'renderer', 'index.html'); // Corrected path
+    const prodPath = path.join(__dirname, '..', 'renderer', 'index.html');
     console.log(`Attempting to load production file: ${prodPath}`);
     mainWindow.loadFile(prodPath)
        .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
@@ -4428,13 +4778,12 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     console.log('Main window closed.');
-    // Kill ALL remaining PTY processes when the main window closes
     console.log(`Main window closed. Killing ${ptyInstances.size} PTY process(es).`);
     ptyInstances.forEach((pty, id) => {
         console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
         try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); }
     });
-    ptyInstances.clear(); // Clear the map
+    ptyInstances.clear();
     mainWindow = null;
   });
 
@@ -4450,7 +4799,7 @@ function killPtyProcess(id: string) {
         } catch (e) {
              console.warn(`Error killing PTY ID ${id}:`, e);
         } finally {
-             ptyInstances.delete(id); // Remove from map even if kill throws
+             ptyInstances.delete(id);
              console.log(`PTY process ID: ${id} removed from map.`);
         }
     } else {
@@ -4466,9 +4815,7 @@ function setupIpcHandlers() {
     // Basic Ping Example
     ipcMain.handle('ping', () => 'pong from main!');
 
-    // --- PTY Handlers (MODIFIED FOR MULTIPLE INSTANCES) ---
-
-    // Create a new PTY instance associated with an ID
+    // --- PTY Handlers ---
     ipcMain.handle('pty-create', async (_event, options: PtyCreateOptions): Promise<PtyCreateResponse> => {
         if (!mainWindow) {
             console.error("Cannot create PTY: mainWindow is not available.");
@@ -4484,7 +4831,7 @@ function setupIpcHandlers() {
 
         if (ptyInstances.has(id)) {
             console.warn(`PTY process with ID ${id} already exists. Killing old one.`);
-            killPtyProcess(id); // Ensure old one is gone before creating new
+            killPtyProcess(id);
         }
 
         console.log(`Creating PTY process for ID: ${id}, shell: ${shellPath}, cols: ${cols}, rows: ${rows}`);
@@ -4500,34 +4847,25 @@ function setupIpcHandlers() {
             });
 
             console.log(`PTY process created successfully for ID: ${id} (PID: ${newPtyProcess.pid}). Storing in map.`);
-            ptyInstances.set(id, newPtyProcess); // Store the new PTY process in the map
+            ptyInstances.set(id, newPtyProcess);
 
-            // Handle Data Output for this specific PTY
             newPtyProcess.onData(data => {
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    // Send data back WITH THE ID
                     targetWebContents.send('pty-data', id, data);
                  }
             });
 
-            // Handle Process Exit for this specific PTY
             newPtyProcess.onExit(({ exitCode, signal }) => {
                 console.log(`PTY process ID: ${id} (PID: ${newPtyProcess.pid}) exited with code: ${exitCode}, signal: ${signal}`);
                  if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    // Send exit signal back WITH THE ID
                     targetWebContents.send('pty-exit', id, exitCode);
-                    // Optionally send error if exit was abnormal
                     if (exitCode !== 0 || signal) {
                          targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
                     }
                  }
-                 ptyInstances.delete(id); // Remove from map on exit
+                 ptyInstances.delete(id);
                  console.log(`PTY process ID: ${id} removed from map due to exit.`);
             });
-
-            // Handle Potential Errors for this specific PTY (though many manifest as onExit)
-            // newPtyProcess.onError is not a standard event in node-pty's typings, errors usually trigger exit
-            // If specific error handling IS needed, it would be attached here.
 
             return { success: true };
 
@@ -4535,10 +4873,8 @@ function setupIpcHandlers() {
             const errorMsg = error instanceof Error ? error.message : String(error);
             console.error(`Failed to create PTY process for ID ${id}:`, error);
             if (targetWebContents && !targetWebContents.isDestroyed()) {
-                 // Send error back WITH THE ID
                 targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`);
             }
-            // Ensure it's not left in the map if spawn failed
             if (ptyInstances.has(id)) {
                 ptyInstances.delete(id);
             }
@@ -4546,7 +4882,6 @@ function setupIpcHandlers() {
         }
     });
 
-    // Handle Input from Renderer for a specific PTY ID
     ipcMain.on('pty-input', (_event, id: string, data: string) => {
         const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
@@ -4556,14 +4891,10 @@ function setupIpcHandlers() {
                  const errorMsg = error instanceof Error ? error.message : String(error);
                  console.error(`Error writing to PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
                  mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`);
-                 // Optional: killPtyProcess(id); ? Depends on error handling strategy
              }
-        } else {
-            // console.warn(`Received input for unknown/exited PTY ID: ${id}`); // Can be noisy
         }
     });
 
-    // Handle Resize from Renderer for a specific PTY ID
     ipcMain.on('pty-resize', (_event, id: string, options: PtyResizeOptions) => {
         const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
@@ -4578,12 +4909,9 @@ function setupIpcHandlers() {
             } else {
                 console.warn(`Received invalid resize dimensions for PTY ID ${id}: cols=${options.cols}, rows=${options.rows}`);
             }
-        } else {
-             // console.warn(`Received resize for unknown/exited PTY ID: ${id}`); // Can be noisy
         }
     });
 
-    // NEW: Handle Kill request from Renderer for a specific PTY ID
     ipcMain.handle('pty-kill', async (_event, id: string) => {
          console.log(`IPC Request: Kill PTY ID: ${id}`);
          if (!id) {
@@ -4591,7 +4919,7 @@ function setupIpcHandlers() {
             return { success: false, error: "Missing terminal ID." };
          }
          try {
-             killPtyProcess(id); // Use the helper function
+             killPtyProcess(id);
              return { success: true };
          } catch(error) {
              const errorMsg = error instanceof Error ? error.message : String(error);
@@ -4601,7 +4929,7 @@ function setupIpcHandlers() {
      });
 
 
-    // --- Dialog Handler --- (NO CHANGES NEEDED)
+    // --- Dialog Handler ---
     ipcMain.handle('dialog:openDirectory', async () => {
         if (!mainWindow) return null;
         const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -4615,7 +4943,7 @@ function setupIpcHandlers() {
         }
     });
 
-    // --- File System Handlers --- (NO CHANGES NEEDED)
+    // --- File System Handlers ---
 
     // Read Directory Handler
     ipcMain.handle('fs:readDirectory', async (_event, folderPath: string): Promise<ReadDirectoryResponse> => {
@@ -4624,7 +4952,6 @@ function setupIpcHandlers() {
             if (!folderPath || typeof folderPath !== 'string') {
                  throw new Error("Invalid folder path provided.");
             }
-            // Verify path exists and is a directory
             const stats = await fs.stat(folderPath);
             if (!stats.isDirectory()) {
                 throw new Error(`Path is not a directory: ${folderPath}`);
@@ -4636,7 +4963,6 @@ function setupIpcHandlers() {
                 path: path.join(folderPath, dirent.name),
                 isDirectory: dirent.isDirectory(),
             }));
-            // Optional: Sort entries (folders first, then alphabetically)
             entries.sort((a, b) => {
                 if (a.isDirectory && !b.isDirectory) return -1;
                 if (!a.isDirectory && b.isDirectory) return 1;
@@ -4648,7 +4974,6 @@ function setupIpcHandlers() {
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             console.error(`IPC Error: Failed to read directory ${folderPath}:`, errorMsg);
-            // Add specific checks for common errors
             if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${folderPath}` };
                 if (error.code === 'ENOENT') return { success: false, error: `Directory not found: ${folderPath}` };
@@ -4668,10 +4993,6 @@ function setupIpcHandlers() {
             if (!stats.isFile()) {
                 throw new Error(`Path is not a file: ${filePath}`);
             }
-            // Add size check?
-            // if (stats.size > 10 * 1024 * 1024) { // e.g., 10MB limit
-            //    throw new Error(`File is too large to open (> 10MB): ${filePath}`);
-            //}
             const content = await fs.readFile(filePath, { encoding: 'utf-8' });
             console.log(`IPC Success: Read file ${filePath}`);
             return { success: true, content: content };
@@ -4688,7 +5009,11 @@ function setupIpcHandlers() {
 
     // Save File Handler
     ipcMain.handle('fs:saveFile', async (_event, filePath: string, content: string): Promise<SaveFileResponse> => {
-         console.log(`IPC [fs:saveFile]: Saving file - ${filePath} (content length: ${content?.length ?? 0})`); // DEBUG LOG
+         // *** ADDED LOGS ***
+         console.log(`[Main IPC -> fs:saveFile] Received save request for: ${filePath}`);
+         console.log(`[Main IPC -> fs:saveFile] Received content length: ${content?.length ?? 'undefined'}`);
+         console.log(`[Main IPC -> fs:saveFile] Received content start:`, content?.substring(0, 50) + '...');
+
          try {
              if (!filePath || typeof filePath !== 'string') {
                   throw new Error("Invalid file path provided.");
@@ -4696,22 +5021,25 @@ function setupIpcHandlers() {
               if (content === undefined || content === null) {
                    throw new Error("Invalid content provided for saving.");
              }
-             // Add checks for directory existence if needed? fs.writeFile usually creates dirs if possible.
              await fs.writeFile(filePath, content, { encoding: 'utf-8' });
-             console.log(`IPC [fs:saveFile]: Successfully wrote file ${filePath}`); // DEBUG LOG
+             // *** MODIFIED LOG ***
+             console.log(`[Main IPC -> fs:saveFile] fs.writeFile SUCCEEDED for ${filePath}. Returning { success: true }`);
              return { success: true };
          } catch (error) {
              const errorMsg = error instanceof Error ? error.message : String(error);
-             console.error(`IPC Error [fs:saveFile]: Failed to save file ${filePath}:`, errorMsg); // DEBUG LOG
+             // *** MODIFIED LOG ***
+             console.error(`[Main IPC -> fs:saveFile] fs.writeFile FAILED for ${filePath}:`, errorMsg);
              if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` };
                 if (error.code === 'ENOENT') return { success: false, error: `Directory not found for file: ${filePath}` }; // Or similar
              }
+              // *** ADDED LOG ***
+             console.log(`[Main IPC -> fs:saveFile] Returning { success: false, error: ${errorMsg} }`);
              return { success: false, error: errorMsg };
          }
      });
 
-    // --- App/Window Control Handlers --- (NO CHANGES NEEDED)
+    // --- App/Window Control Handlers ---
     ipcMain.handle('app:quit', () => {
         console.log("IPC: Received app:quit request.");
         app.quit();
@@ -4744,12 +5072,10 @@ function setupIpcHandlers() {
 app.whenReady().then(() => {
   console.log('App is ready.');
   setupIpcHandlers();
-  createApplicationMenu(); // <<< CREATE THE MENU HERE
+  createApplicationMenu();
   createWindow();
 
   app.on('activate', () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
         console.log('App activated, creating window.');
         createWindow();
@@ -4758,9 +5084,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // Quit when all windows are closed, except on macOS. There, it's common
-  // for applications and their menu bar to stay active until the user quits
-  // explicitly with Cmd + Q.
   console.log('All windows closed.');
   if (process.platform !== 'darwin') {
     app.quit();
@@ -4768,7 +5091,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('will-quit', () => {
-    // Kill ALL remaining PTY processes on quit
     console.log(`App will quit. Killing ${ptyInstances.size} PTY process(es).`);
     ptyInstances.forEach((pty, id) => {
         console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
@@ -4778,17 +5100,12 @@ app.on('will-quit', () => {
 });
 
 process.on('uncaughtException', (error: Error) => {
-    // Log unhandled errors from the main process
     console.error('Uncaught Main Process Exception:', error);
-    // Avoid showing dialog for common errors like EPIPE if not critical
     if (error.message.includes('EPIPE')) {
         console.warn("Ignoring EPIPE error in main process.");
         return;
     }
-    // Show a dialog for other errors
     dialog.showErrorBox('Unhandled Main Process Error', `${error.name}: ${error.message}\n${error.stack ?? ''}`);
-    // Consider if app.quit() is appropriate here, might depend on the error
-    // app.quit();
 });
 // --- END FILE: src/main/index.ts ---
 --- END FILE: src/main/index.ts ---
@@ -5131,7 +5448,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // --- START FILE: src/main/index.ts ---
 // src/main/index.ts
-// *** Import Menu ***
 const electron_1 = require("electron");
 const node_path_1 = __importDefault(require("node:path"));
 const node_os_1 = __importDefault(require("node:os"));
@@ -5143,7 +5459,6 @@ const shellPath = node_os_1.default.platform() === 'win32' ? 'powershell.exe' : 
 // --- Terminal Management ---
 // Use a Map to store multiple PTY processes, keyed by their unique ID
 const ptyInstances = new Map();
-// let ptyProcess: pty.IPty | null = null; // OLD: single pty process
 let mainWindow = null;
 // --- Squirrel Startup Handler (Windows Installer) ---
 if (electron_1.app.isPackaged && process.platform === 'win32') {
@@ -5151,7 +5466,7 @@ if (electron_1.app.isPackaged && process.platform === 'win32') {
         electron_1.app.quit();
     }
 }
-// *** Function to create the application menu *** (NO CHANGES NEEDED HERE)
+// Function to create the application menu
 function createApplicationMenu() {
     const isMac = process.platform === 'darwin';
     const template = [
@@ -5174,9 +5489,6 @@ function createApplicationMenu() {
         {
             label: 'File',
             submenu: [
-                // Add Open Folder here if needed, although sidebar button is primary
-                // { label: 'Open Folder...', click: () => { /* TODO: Trigger IPC for dialog */ }},
-                // { type: 'separator' },
                 isMac ? { role: 'close' } : { role: 'quit' } // Alt+F4 (Win/Linux), Cmd+W (Mac) vs Cmd+Q
             ]
         },
@@ -5257,15 +5569,14 @@ function createApplicationMenu() {
     electron_1.Menu.setApplicationMenu(menu);
     console.log("Application menu created and set.");
 }
-// --- Main Window Creation Function --- (NO CHANGES NEEDED HERE)
+// --- Main Window Creation Function ---
 function createWindow() {
     console.log('Creating main window...');
     mainWindow = new electron_1.BrowserWindow({
         width: 1200, // Initial width (will be overridden by fullscreen)
         height: 800, // Initial height (will be overridden by fullscreen)
-        fullscreen: true, // <<< SET TO START FULLSCREEN
+        fullscreen: true,
         webPreferences: {
-            // __dirname here refers to dist-electron/main
             preload: node_path_1.default.join(__dirname, '../preload/index.js'),
             nodeIntegration: false,
             contextIsolation: true,
@@ -5278,12 +5589,10 @@ function createWindow() {
         console.log(`Loading DEV URL: ${VITE_DEV_SERVER_URL}`);
         mainWindow.loadURL(VITE_DEV_SERVER_URL)
             .catch(err => console.error('Failed to load DEV URL:', err));
-        // mainWindow.webContents.openDevTools(); // <<< COMMENTED OUT TO HIDE DEV TOOLS
     }
     else {
         console.log('Loading PROD build file');
-        // Adjust path relative to __dirname (dist-electron/main)
-        const prodPath = node_path_1.default.join(__dirname, '..', 'renderer', 'index.html'); // Corrected path
+        const prodPath = node_path_1.default.join(__dirname, '..', 'renderer', 'index.html');
         console.log(`Attempting to load production file: ${prodPath}`);
         mainWindow.loadFile(prodPath)
             .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
@@ -5303,7 +5612,6 @@ function createWindow() {
     });
     mainWindow.on('closed', () => {
         console.log('Main window closed.');
-        // Kill ALL remaining PTY processes when the main window closes
         console.log(`Main window closed. Killing ${ptyInstances.size} PTY process(es).`);
         ptyInstances.forEach((pty, id) => {
             console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
@@ -5314,7 +5622,7 @@ function createWindow() {
                 console.warn(`Error killing PTY ID ${id}:`, e);
             }
         });
-        ptyInstances.clear(); // Clear the map
+        ptyInstances.clear();
         mainWindow = null;
     });
 }
@@ -5330,7 +5638,7 @@ function killPtyProcess(id) {
             console.warn(`Error killing PTY ID ${id}:`, e);
         }
         finally {
-            ptyInstances.delete(id); // Remove from map even if kill throws
+            ptyInstances.delete(id);
             console.log(`PTY process ID: ${id} removed from map.`);
         }
     }
@@ -5343,8 +5651,7 @@ function setupIpcHandlers() {
     console.log('Setting up IPC Handlers...');
     // Basic Ping Example
     electron_1.ipcMain.handle('ping', () => 'pong from main!');
-    // --- PTY Handlers (MODIFIED FOR MULTIPLE INSTANCES) ---
-    // Create a new PTY instance associated with an ID
+    // --- PTY Handlers ---
     electron_1.ipcMain.handle('pty-create', async (_event, options) => {
         if (!mainWindow) {
             console.error("Cannot create PTY: mainWindow is not available.");
@@ -5358,7 +5665,7 @@ function setupIpcHandlers() {
         }
         if (ptyInstances.has(id)) {
             console.warn(`PTY process with ID ${id} already exists. Killing old one.`);
-            killPtyProcess(id); // Ensure old one is gone before creating new
+            killPtyProcess(id);
         }
         console.log(`Creating PTY process for ID: ${id}, shell: ${shellPath}, cols: ${cols}, rows: ${rows}`);
         try {
@@ -5372,48 +5679,37 @@ function setupIpcHandlers() {
                 env: { ...process.env },
             });
             console.log(`PTY process created successfully for ID: ${id} (PID: ${newPtyProcess.pid}). Storing in map.`);
-            ptyInstances.set(id, newPtyProcess); // Store the new PTY process in the map
-            // Handle Data Output for this specific PTY
+            ptyInstances.set(id, newPtyProcess);
             newPtyProcess.onData(data => {
                 if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    // Send data back WITH THE ID
                     targetWebContents.send('pty-data', id, data);
                 }
             });
-            // Handle Process Exit for this specific PTY
             newPtyProcess.onExit(({ exitCode, signal }) => {
                 console.log(`PTY process ID: ${id} (PID: ${newPtyProcess.pid}) exited with code: ${exitCode}, signal: ${signal}`);
                 if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    // Send exit signal back WITH THE ID
                     targetWebContents.send('pty-exit', id, exitCode);
-                    // Optionally send error if exit was abnormal
                     if (exitCode !== 0 || signal) {
                         targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
                     }
                 }
-                ptyInstances.delete(id); // Remove from map on exit
+                ptyInstances.delete(id);
                 console.log(`PTY process ID: ${id} removed from map due to exit.`);
             });
-            // Handle Potential Errors for this specific PTY (though many manifest as onExit)
-            // newPtyProcess.onError is not a standard event in node-pty's typings, errors usually trigger exit
-            // If specific error handling IS needed, it would be attached here.
             return { success: true };
         }
         catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             console.error(`Failed to create PTY process for ID ${id}:`, error);
             if (targetWebContents && !targetWebContents.isDestroyed()) {
-                // Send error back WITH THE ID
                 targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`);
             }
-            // Ensure it's not left in the map if spawn failed
             if (ptyInstances.has(id)) {
                 ptyInstances.delete(id);
             }
             return { success: false, error: errorMsg };
         }
     });
-    // Handle Input from Renderer for a specific PTY ID
     electron_1.ipcMain.on('pty-input', (_event, id, data) => {
         const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
@@ -5424,14 +5720,9 @@ function setupIpcHandlers() {
                 const errorMsg = error instanceof Error ? error.message : String(error);
                 console.error(`Error writing to PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
                 mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`);
-                // Optional: killPtyProcess(id); ? Depends on error handling strategy
             }
         }
-        else {
-            // console.warn(`Received input for unknown/exited PTY ID: ${id}`); // Can be noisy
-        }
     });
-    // Handle Resize from Renderer for a specific PTY ID
     electron_1.ipcMain.on('pty-resize', (_event, id, options) => {
         const ptyProcess = ptyInstances.get(id);
         if (ptyProcess) {
@@ -5449,11 +5740,7 @@ function setupIpcHandlers() {
                 console.warn(`Received invalid resize dimensions for PTY ID ${id}: cols=${options.cols}, rows=${options.rows}`);
             }
         }
-        else {
-            // console.warn(`Received resize for unknown/exited PTY ID: ${id}`); // Can be noisy
-        }
     });
-    // NEW: Handle Kill request from Renderer for a specific PTY ID
     electron_1.ipcMain.handle('pty-kill', async (_event, id) => {
         console.log(`IPC Request: Kill PTY ID: ${id}`);
         if (!id) {
@@ -5461,7 +5748,7 @@ function setupIpcHandlers() {
             return { success: false, error: "Missing terminal ID." };
         }
         try {
-            killPtyProcess(id); // Use the helper function
+            killPtyProcess(id);
             return { success: true };
         }
         catch (error) {
@@ -5470,7 +5757,7 @@ function setupIpcHandlers() {
             return { success: false, error: errorMsg };
         }
     });
-    // --- Dialog Handler --- (NO CHANGES NEEDED)
+    // --- Dialog Handler ---
     electron_1.ipcMain.handle('dialog:openDirectory', async () => {
         if (!mainWindow)
             return null;
@@ -5485,7 +5772,7 @@ function setupIpcHandlers() {
             return filePaths[0];
         }
     });
-    // --- File System Handlers --- (NO CHANGES NEEDED)
+    // --- File System Handlers ---
     // Read Directory Handler
     electron_1.ipcMain.handle('fs:readDirectory', async (_event, folderPath) => {
         console.log(`IPC Request: Reading directory - ${folderPath}`);
@@ -5493,7 +5780,6 @@ function setupIpcHandlers() {
             if (!folderPath || typeof folderPath !== 'string') {
                 throw new Error("Invalid folder path provided.");
             }
-            // Verify path exists and is a directory
             const stats = await promises_1.default.stat(folderPath);
             if (!stats.isDirectory()) {
                 throw new Error(`Path is not a directory: ${folderPath}`);
@@ -5504,7 +5790,6 @@ function setupIpcHandlers() {
                 path: node_path_1.default.join(folderPath, dirent.name),
                 isDirectory: dirent.isDirectory(),
             }));
-            // Optional: Sort entries (folders first, then alphabetically)
             entries.sort((a, b) => {
                 if (a.isDirectory && !b.isDirectory)
                     return -1;
@@ -5518,7 +5803,6 @@ function setupIpcHandlers() {
         catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             console.error(`IPC Error: Failed to read directory ${folderPath}:`, errorMsg);
-            // Add specific checks for common errors
             if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES')
                     return { success: false, error: `Permission denied: ${folderPath}` };
@@ -5539,10 +5823,6 @@ function setupIpcHandlers() {
             if (!stats.isFile()) {
                 throw new Error(`Path is not a file: ${filePath}`);
             }
-            // Add size check?
-            // if (stats.size > 10 * 1024 * 1024) { // e.g., 10MB limit
-            //    throw new Error(`File is too large to open (> 10MB): ${filePath}`);
-            //}
             const content = await promises_1.default.readFile(filePath, { encoding: 'utf-8' });
             console.log(`IPC Success: Read file ${filePath}`);
             return { success: true, content: content };
@@ -5561,7 +5841,10 @@ function setupIpcHandlers() {
     });
     // Save File Handler
     electron_1.ipcMain.handle('fs:saveFile', async (_event, filePath, content) => {
-        console.log(`IPC [fs:saveFile]: Saving file - ${filePath} (content length: ${content?.length ?? 0})`); // DEBUG LOG
+        // *** ADDED LOGS ***
+        console.log(`[Main IPC -> fs:saveFile] Received save request for: ${filePath}`);
+        console.log(`[Main IPC -> fs:saveFile] Received content length: ${content?.length ?? 'undefined'}`);
+        console.log(`[Main IPC -> fs:saveFile] Received content start:`, content?.substring(0, 50) + '...');
         try {
             if (!filePath || typeof filePath !== 'string') {
                 throw new Error("Invalid file path provided.");
@@ -5569,24 +5852,27 @@ function setupIpcHandlers() {
             if (content === undefined || content === null) {
                 throw new Error("Invalid content provided for saving.");
             }
-            // Add checks for directory existence if needed? fs.writeFile usually creates dirs if possible.
             await promises_1.default.writeFile(filePath, content, { encoding: 'utf-8' });
-            console.log(`IPC [fs:saveFile]: Successfully wrote file ${filePath}`); // DEBUG LOG
+            // *** MODIFIED LOG ***
+            console.log(`[Main IPC -> fs:saveFile] fs.writeFile SUCCEEDED for ${filePath}. Returning { success: true }`);
             return { success: true };
         }
         catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`IPC Error [fs:saveFile]: Failed to save file ${filePath}:`, errorMsg); // DEBUG LOG
+            // *** MODIFIED LOG ***
+            console.error(`[Main IPC -> fs:saveFile] fs.writeFile FAILED for ${filePath}:`, errorMsg);
             if (error instanceof Error && 'code' in error) {
                 if (error.code === 'EACCES')
                     return { success: false, error: `Permission denied: ${filePath}` };
                 if (error.code === 'ENOENT')
                     return { success: false, error: `Directory not found for file: ${filePath}` }; // Or similar
             }
+            // *** ADDED LOG ***
+            console.log(`[Main IPC -> fs:saveFile] Returning { success: false, error: ${errorMsg} }`);
             return { success: false, error: errorMsg };
         }
     });
-    // --- App/Window Control Handlers --- (NO CHANGES NEEDED)
+    // --- App/Window Control Handlers ---
     electron_1.ipcMain.handle('app:quit', () => {
         console.log("IPC: Received app:quit request.");
         electron_1.app.quit();
@@ -5616,11 +5902,9 @@ function setupIpcHandlers() {
 electron_1.app.whenReady().then(() => {
     console.log('App is ready.');
     setupIpcHandlers();
-    createApplicationMenu(); // <<< CREATE THE MENU HERE
+    createApplicationMenu();
     createWindow();
     electron_1.app.on('activate', () => {
-        // On macOS it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
         if (electron_1.BrowserWindow.getAllWindows().length === 0) {
             console.log('App activated, creating window.');
             createWindow();
@@ -5628,16 +5912,12 @@ electron_1.app.whenReady().then(() => {
     });
 });
 electron_1.app.on('window-all-closed', () => {
-    // Quit when all windows are closed, except on macOS. There, it's common
-    // for applications and their menu bar to stay active until the user quits
-    // explicitly with Cmd + Q.
     console.log('All windows closed.');
     if (process.platform !== 'darwin') {
         electron_1.app.quit();
     }
 });
 electron_1.app.on('will-quit', () => {
-    // Kill ALL remaining PTY processes on quit
     console.log(`App will quit. Killing ${ptyInstances.size} PTY process(es).`);
     ptyInstances.forEach((pty, id) => {
         console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
@@ -5651,17 +5931,12 @@ electron_1.app.on('will-quit', () => {
     ptyInstances.clear();
 });
 process.on('uncaughtException', (error) => {
-    // Log unhandled errors from the main process
     console.error('Uncaught Main Process Exception:', error);
-    // Avoid showing dialog for common errors like EPIPE if not critical
     if (error.message.includes('EPIPE')) {
         console.warn("Ignoring EPIPE error in main process.");
         return;
     }
-    // Show a dialog for other errors
     electron_1.dialog.showErrorBox('Unhandled Main Process Error', `${error.name}: ${error.message}\n${error.stack ?? ''}`);
-    // Consider if app.quit() is appropriate here, might depend on the error
-    // app.quit();
 });
 // --- END FILE: src/main/index.ts ---
 --- END FILE: dist-electron/main/index.js ---

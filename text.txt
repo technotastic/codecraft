@@ -1,3 +1,104 @@
+
+---
+
+**Project Continuation Prompt: CodeCraft IDE**
+
+**1. Project Goal:**
+To build a functional desktop code editor (CodeCraft IDE) using Electron, React, TypeScript, and Vite, featuring an integrated terminal, file management, and basic customization.
+
+**2. Core Technologies:**
+*   **Framework:** Electron
+*   **UI (Renderer):** React, TypeScript, Vite
+*   **Editor Component:** Monaco Editor (`react-monaco-editor`)
+*   **Terminal Component:** Xterm.js + `node-pty` (via IPC)
+*   **Layout:** `allotment`
+*   **Styling:** CSS Variables, Theme Context
+
+**3. Current State Summary:**
+
+*   **Development Environment:** Manual setup using Vite dev server (`dev:vite`), `tsc --watch` for main/preload (`dev:main`), and `electron .` (`start`) in separate terminals.
+*   **Architecture:**
+    *   **Main Process (`main/index.ts`):** Handles window (starts fullscreen), app menu, IPC (dialogs, multi-PTY, filesystem), basic app controls.
+    *   **Preload Script (`preload/index.ts`):** Securely exposes typed `electronAPI` via `contextBridge` for all renderer-main communication.
+    *   **Renderer Process (`renderer/`):** React app managed by Vite.
+*   **Key Features Implemented:**
+    *   **Layout:** Resizable horizontal split (Sidebar/Main Area) and vertical split (Editor/Terminal Area) using `Allotment`.
+    *   **Theming:** `ThemeContext` manages theme name (e.g., 'dark', 'pipboy', 'win95') and font size modifier. Applies `.theme-*` class to root/body. Includes a `CustomSelect` dropdown in the sidebar for theme switching.
+    *   **Contexts:** `ThemeContext`, `EditorContext`, `TerminalContext` manage relevant application state.
+    *   **Sidebar:**
+        *   Displays an expandable file tree (`FileTreeNode`) populated via `fs:readDirectory` IPC.
+        *   Supports "Open Folder..." to set the tree root.
+        *   Supports navigating up directories.
+        *   Clicking files opens them in the editor via `fs:readFile` IPC and `EditorContext`.
+    *   **Editor Area:**
+        *   Managed by `EditorContext`, supporting multiple file tabs (`TabContainer`, `Tab`).
+        *   Handles opening, closing, and focusing tabs.
+        *   Tracks and displays file dirty status (`*`) on tabs.
+        *   **Saving Fixed:** Saving files via Ctrl+S (`fs:saveFile` IPC) now reliably updates the file content and context state. Stale state issues resolved.
+        *   Renders Monaco Editor instance (`EditorPanel`).
+        *   Basic language detection based on file extension (used for status bar display).
+        *   **Syntax Highlighting:** **NOT FUNCTIONAL.** While basic Monaco themes (background, foreground) are applied, token-based syntax highlighting does not change with themes or work correctly.
+    *   **Terminal Area:**
+        *   Managed by `TerminalContext`, supports multiple terminal tabs (`TerminalTabContainer`, `TerminalTab`) via '+' button.
+        *   Renders Xterm.js instances (`TerminalPanel`) per tab, managing visibility via CSS.
+        *   Multi-instance PTY communication via IPC (`pty-create`, `pty-input`, etc.) is functional.
+        *   Terminal background/foreground colors update based on the selected app theme.
+        *   **Rendering Issues Fixed:** Resolved previous issues with blank screens, color bleeding, and cursor offsets on tab switching.
+    *   **Status Bar:**
+        *   Implemented (`StatusBar.tsx`, `StatusBar.css`).
+        *   Displays active file name, dirty status, error status.
+        *   Displays cursor line/column number.
+        *   Displays basic detected language of the active file.
+        *   Displays live-updating current time.
+        *   Displays placeholder encoding (UTF-8).
+*   **Development Server Interaction:** Saving the root `index.html` during development correctly triggers a Vite full page reload (expected behavior).
+
+**4. V1 Goals Status:**
+*   Functional Monaco Editor (Partially Done - multi-file, saving fixed. **Highlighting broken.**)
+*   Integrated Terminal (Done - multi-tab, rendering fixed)
+*   File Tree/Management (Done - basic open/read/display/save)
+*   Theming (Foundation done. **Syntax highlighting broken.** Advanced features deferred.)
+*   Font Size Control (Done)
+*   Movable/Resizable Panels (Done)
+*   Status Bar (Done)
+
+**5. Next Steps to Implement (Suggestions):**
+
+*   **(HIGH) Fix Syntax Highlighting:** Diagnose why token colors aren't being applied correctly or changing with themes. Revisit theme definition in `EditorPanel.tsx` (`monaco.editor.defineTheme`) and ensure `rules` are correctly structured and map to theme variables.
+*   **(HIGH) Editor Polish (After Highlighting Fixed):**
+    *   Wire up Edit Menu items (Undo/Redo integration).
+    *   Implement "Save As..." functionality.
+*   **(HIGH) Terminal Polish:**
+    *   Add "Clear Terminal" command/button.
+    *   Improve visual feedback for exited terminal processes.
+*   **(MED) Main Menu / Accelerators:** Review standard menu items and accelerators for correctness and platform consistency.
+*   **(MED) Error Handling:** Improve user feedback for filesystem/PTY errors.
+*   **(LOW) File Management Extras:** New File/Folder, Delete, Rename.
+*   **(LOW) Theming - VS Code Import:** Parse `.json` themes.
+*   **(LOW) Font Loading:** Robust custom font loading.
+
+**6. Future Ideas Brainstorm:**
+*   Project-wide Search (`ripgrep`)
+*   Git Integration (Status, Basic Commands)
+*   Command Palette (Ctrl+Shift+P)
+*   Snippets
+*   Debugger Integration (DAP)
+*   Plugin System
+*   Settings UI (`electron-store`)
+*   Remote/SSH Integration
+*   Web Version (`vscode-web`)
+*   AI Code Assistance
+*   Markdown Preview
+*   Advanced Layouts (`react-mosaic`)
+
+**7. Action Requested:**
+Based on the current state, particularly the non-functional syntax highlighting, what feature or fix should be prioritized next? (Fixing syntax highlighting is highly recommended).
+
+
+
+*** OLDER PROMPTS BELOW - LEFT FOR REFERENCE****
+
+
 Okay, my apologies for the previous incorrect assessment. Saving is a core function, and if it's broken, that needs to be the absolute top priority. I've updated the prompt to reflect this critical bug.
 
 ---

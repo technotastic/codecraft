@@ -1,4 +1,3 @@
-/* --- START FILE: src/renderer/App.css --- */
 /* src/renderer/App.css */
 
 .app-container {
@@ -6,12 +5,12 @@
     width: 100%;
     background-color: var(--color-bg-app);
     overflow: hidden;
-    /* <<< NEW: Use Flexbox to position main content and status bar >>> */
+    /* Use Flexbox to position main content and status bar */
     display: flex;
     flex-direction: column;
 }
 
-/* <<< NEW: Wrapper for the main splitting area (Sidebar/MainPanel) >>> */
+/* Wrapper for the main splitting area (Sidebar/MainPanel) */
 .main-content-area {
     flex-grow: 1; /* Take up all available vertical space */
     overflow: hidden; /* Prevent its content from overflowing the container */
@@ -185,12 +184,12 @@
     left: 0;
     width: 100%;
     height: 100%;
-    /* --- Visibility Control --- */
+    /* Visibility Control */
     visibility: hidden; /* Hidden by default */
     opacity: 0;
     z-index: 1;
     transition: opacity 0.05s ease-out, visibility 0s linear 0.05s; /* Faster hide transition */
-    /* --- Content Styling --- */
+    /* Content Styling */
     display: flex; /* Needed for inner mount point to fill space */
     overflow: hidden;
     /* Padding applied to inner mount point now */
@@ -208,6 +207,64 @@
     transition: opacity 0.05s ease-in, visibility 0s linear; /* Faster show transition */
 }
 
+/* Container for Terminal Panel content + overlay button */
+.terminal-panel-content-wrapper {
+  position: relative; /* Enable absolute positioning for children */
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Ensure button doesn't cause overflow */
+}
+
+/* Style for the overlay clear button */
+.terminal-clear-button-overlay {
+  position: absolute;
+  top: var(--spacing-xs);  /* Adjust spacing as needed */
+  /* Push button further left to avoid scrollbar */
+  right: calc(var(--spacing-sm) + 12px); /* Add space (~scrollbar width + gap) */
+  z-index: 5; /* Ensure it's above the terminal content */
+  padding: 2px 4px; /* Smaller padding */
+  font-size: 0.8em; /* Smaller icon */
+  background-color: color-mix(in srgb, var(--color-bg-terminal) 80%, black); /* Slightly darker semi-transparent background */
+  color: var(--color-text-tertiary);
+  border-radius: var(--border-radius-sm);
+  opacity: 0.6; /* Make it less prominent */
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.terminal-clear-button-overlay:hover {
+  opacity: 1;
+  background-color: color-mix(in srgb, var(--color-bg-button-hover) 85%, black);
+  color: var(--color-text-primary);
+}
+
+.terminal-clear-button-overlay:active {
+    background-color: color-mix(in srgb, var(--color-bg-button-active) 90%, black);
+}
+
+/* Adjust for specific themes if needed */
+.theme-win95 .terminal-clear-button-overlay,
+.theme-mirc .terminal-clear-button-overlay {
+    background-color: var(--color-bg-button);
+    color: var(--color-text-button);
+    opacity: 0.8;
+    border: 1px solid var(--win95-bevel-shadow-dark);
+    box-shadow: inset -1px -1px 0 1px var(--win95-bevel-shadow-darker, transparent),
+                inset 1px 1px 0 1px var(--win95-bevel-shadow-light, transparent);
+    font-size: 0.9em;
+    padding: 1px 3px;
+    /* Ensure right positioning is consistent */
+    right: calc(var(--spacing-sm) + 12px);
+}
+.theme-win95 .terminal-clear-button-overlay:hover,
+.theme-mirc .terminal-clear-button-overlay:hover {
+     opacity: 1;
+}
+.theme-win95 .terminal-clear-button-overlay:active,
+.theme-mirc .terminal-clear-button-overlay:active {
+    box-shadow: inset 1px 1px 0 1px var(--win95-bevel-shadow-darker, transparent),
+                inset -1px -1px 0 1px var(--win95-bevel-shadow-light, transparent);
+}
+
 /* The actual mount point for xterm INSIDE the instance wrapper */
 .terminal-mount-point {
     width: 100%;
@@ -217,6 +274,10 @@
     padding-bottom: var(--spacing-sm)
 }
 
+/* Hide inactive xterm scrollbar track */
+.terminal-mount-point .xterm-viewport::-webkit-scrollbar-track {
+    background-color: transparent; /* Makes track invisible unless scrolling */
+}
 
 /* Placeholder for when no terminal is active/open */
 .terminal-placeholder {
@@ -250,7 +311,5 @@
 .editor-context-error { color: var(--color-text-error); border: 1px solid var(--color-text-error); }
 .editor-loading-indicator { color: var(--color-text-secondary); border: 1px solid var(--color-border-accent); }
 
-/* <<< StatusBar is handled by its own CSS file (StatusBar.css) >>> */
+/* StatusBar is handled by its own CSS file (StatusBar.css) */
 /* No specific styles needed here unless overriding something */
-
-/* --- END FINAL FILE: src/renderer/App.css --- */

@@ -1,8 +1,8 @@
-// --- START FILE: src/renderer/components/TerminalTabContainer.tsx ---
+// src/renderer/components/TerminalTabContainer.tsx
 import React, { useRef, useEffect } from "react";
 import TerminalTab from "./TerminalTab";
 import { useTerminals, OpenTerminal } from "../contexts/TerminalContext";
-import { FaPlus, FaBroom } from "react-icons/fa"; // <<< NEW: Import FaBroom for clear button
+import { FaPlus } from "react-icons/fa"; // Remove FaBroom
 import "./TabContainer.css"; // Reuse editor tab container styles
 
 const TerminalTabContainer: React.FC = () => {
@@ -12,7 +12,7 @@ const TerminalTabContainer: React.FC = () => {
     setActiveTerminal,
     closeTerminal,
     createTerminal, // Function to create a new terminal
-    clearActiveTerminal, // <<< NEW: Get clear function
+    // clearActiveTerminal, // Removed
   } = useTerminals();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLDivElement>(null);
@@ -31,20 +31,11 @@ const TerminalTabContainer: React.FC = () => {
     return () => clearTimeout(timerId);
   }, [activeTerminalId]);
 
-  // Don't render the container if no terminals are open?
-  // Or render with just the add button? Let's show it.
-  // if (openTerminals.length === 0) {
-  //     return null; // Or render differently?
-  // }
 
   const handleAddNewTerminal = () => {
     createTerminal(); // Call context function
   };
 
-  // <<< NEW: Handler for the clear button >>>
-  const handleClearActiveTerminal = () => {
-    clearActiveTerminal();
-  };
 
   return (
     <div
@@ -67,22 +58,6 @@ const TerminalTabContainer: React.FC = () => {
           // Add props for isLoading, hasExited if needed for styling
         />
       ))}
-      {/* Clear Active Terminal Button <<< NEW >>> */}
-      {/* Only show clear button if there's an active, running terminal */}
-      {activeTerminalId &&
-        openTerminals.find(
-          (t) =>
-            t.id === activeTerminalId && t.isReady && t.exitCode === undefined
-        ) && (
-          <button
-            className="clear-tab-button icon-button" // Style similarly
-            onClick={handleClearActiveTerminal}
-            title="Clear Active Terminal"
-            aria-label="Clear Active Terminal"
-          >
-            <FaBroom />
-          </button>
-        )}
       {/* Add New Terminal Button */}
       <button
         className="add-tab-button icon-button" // Style similarly to other icon buttons
@@ -97,4 +72,3 @@ const TerminalTabContainer: React.FC = () => {
 };
 
 export default TerminalTabContainer;
-// --- END FILE: src/renderer/components/TerminalTabContainer.tsx ---

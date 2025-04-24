@@ -358,6 +358,8 @@ The application structure includes:
 
 --- START FILE: test.txt ---
 Testing testing 123
+
+321 gnitset gnitseT
 --- END FILE: test.txt ---
 
 --- START FILE: tsconfig.json ---
@@ -504,286 +506,419 @@ declare module 'path-browserify';
 --- START FILE: src/renderer/contexts/TerminalContext.tsx ---
 // --- START FILE: src/renderer/contexts/TerminalContext.tsx ---
 import React, {
-    createContext,
-    useState,
-    useContext,
-    ReactNode, // <<< Ensure comma is here if needed, and closing bracket below is correct
-    useCallback,
-    useMemo,
-    useRef,
-    useEffect,
-} from 'react';
-import { v4 as uuidv4 } from 'uuid'; // Use UUID for unique IDs
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+} from "react";
+import { v4 as uuidv4 } from "uuid"; // Use UUID for unique IDs
 
 // Define the structure for an open terminal session
 export interface OpenTerminal {
-    id: string;
-    title: string;
-    isLoading: boolean; // Is the backend PTY starting up?
-    isReady: boolean; // Has the backend PTY confirmed creation?
-    exitCode?: number | null; // Store exit code if process terminates (null means exited normally with 0 or unknown, number is specific code)
-    error?: string | null; // Store any errors related to this terminal
+  id: string;
+  title: string;
+  isLoading: boolean; // Is the backend PTY starting up?
+  isReady: boolean; // Has the backend PTY confirmed creation?
+  exitCode?: number | null; // Store exit code if process terminates (null means exited normally with 0 or unknown, number is specific code)
+  error?: string | null; // Store any errors related to this terminal
 }
 
 // Define the shape of the context properties
 interface TerminalContextProps {
-    openTerminals: OpenTerminal[];
-    activeTerminalId: string | null;
-    createTerminal: (initialCols?: number, initialRows?: number) => void;
-    closeTerminal: (terminalId: string) => void;
-    setActiveTerminal: (terminalId: string | null) => void;
-    writeToActiveTerminal: (data: string) => void;
-    resizeActiveTerminal: (cols: number, rows: number) => void;
-    getActiveTerminal: () => OpenTerminal | undefined;
+  openTerminals: OpenTerminal[];
+  activeTerminalId: string | null;
+  createTerminal: (initialCols?: number, initialRows?: number) => void;
+  closeTerminal: (terminalId: string) => void;
+  setActiveTerminal: (terminalId: string | null) => void;
+  writeToActiveTerminal: (data: string) => void;
+  resizeActiveTerminal: (cols: number, rows: number) => void;
+  clearActiveTerminal: () => void; // <<< NEW FUNCTION ADDED
+  getActiveTerminal: () => OpenTerminal | undefined;
 }
 
 // Create the context
-const TerminalContext = createContext<TerminalContextProps | undefined>(undefined);
+const TerminalContext = createContext<TerminalContextProps | undefined>(
+  undefined
+);
 
 // Define the props for the provider component
 interface TerminalProviderProps {
-    children: ReactNode; // Prop type for children components
+  children: ReactNode; // Prop type for children components
 }
 
 // Create the provider component
-export const TerminalProvider: React.FC<TerminalProviderProps> = ({ children }) => {
-    const [openTerminals, setOpenTerminals] = useState<OpenTerminal[]>([]);
-    const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
-    const globalListenersAttached = useRef(false);
+export const TerminalProvider: React.FC<TerminalProviderProps> = ({
+  children,
+}) => {
+  const [openTerminals, setOpenTerminals] = useState<OpenTerminal[]>([]);
+  const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
+  const globalListenersAttached = useRef(false);
 
-    // Helper to update a specific terminal in the state
-    const updateTerminalState = useCallback((terminalId: string, updates: Partial<OpenTerminal>) => {
-        setOpenTerminals(prevTerminals =>
-            prevTerminals.map(term =>
-                term.id === terminalId ? { ...term, ...updates } : term
-            )
-        );
-    }, []); // No dependencies needed as setOpenTerminals is stable
+  // Helper to update a specific terminal in the state
+  const updateTerminalState = useCallback(
+    (terminalId: string, updates: Partial<OpenTerminal>) => {
+      setOpenTerminals((prevTerminals) =>
+        prevTerminals.map((term) =>
+          term.id === terminalId ? { ...term, ...updates } : term
+        )
+      );
+    },
+    []
+  ); // No dependencies needed as setOpenTerminals is stable
 
-     // Helper to get the active terminal object
-     const getActiveTerminal = useCallback((): OpenTerminal | undefined => {
-        return openTerminals.find(t => t.id === activeTerminalId);
-    }, [openTerminals, activeTerminalId]); // Depends on these state values
+  // Helper to get the active terminal object
+  const getActiveTerminal = useCallback((): OpenTerminal | undefined => {
+    return openTerminals.find((t) => t.id === activeTerminalId);
+  }, [openTerminals, activeTerminalId]); // Depends on these state values
 
+  // Function to create a new terminal tab and request backend PTY
+  const createTerminal = useCallback(
+    async (initialCols: number = 80, initialRows: number = 24) => {
+      const newId = uuidv4();
+      // Default title based on the number of terminals *about* to exist
+      const newTerminalTitle = `Terminal ${openTerminals.length + 1}`;
+      const newTerminal: OpenTerminal = {
+        id: newId,
+        title: newTerminalTitle,
+        isLoading: true,
+        isReady: false,
+        error: null,
+        exitCode: undefined, // Use undefined initially to mean "not exited"
+      };
 
-    // Function to create a new terminal tab and request backend PTY
-    const createTerminal = useCallback(async (initialCols: number = 80, initialRows: number = 24) => {
-        const newId = uuidv4();
-        // Default title based on the number of terminals *about* to exist
-        const newTerminalTitle = `Terminal ${openTerminals.length + 1}`;
-        const newTerminal: OpenTerminal = {
-            id: newId,
-            title: newTerminalTitle,
-            isLoading: true,
-            isReady: false,
+      console.log(
+        `TerminalContext: Creating new terminal tab (ID: ${newId}, Title: ${newTerminalTitle})`
+      );
+      // Update state first
+      setOpenTerminals((prev) => [...prev, newTerminal]);
+      setActiveTerminalId(newId); // Make the new terminal active immediately
+
+      // Request backend PTY creation
+      console.log(`TerminalContext: Requesting backend PTY for ID ${newId}...`);
+      try {
+        // Ensure cols/rows are valid before sending
+        const colsToSend = Math.max(1, initialCols);
+        const rowsToSend = Math.max(1, initialRows);
+        const result = await window.electronAPI.term_create({
+          id: newId,
+          cols: colsToSend,
+          rows: rowsToSend,
+        });
+        if (result?.success) {
+          console.log(
+            `TerminalContext: Backend PTY creation request successful for ID ${newId}`
+          );
+          // Mark as ready now that the main process acknowledged creation
+          updateTerminalState(newId, {
+            isLoading: false,
+            isReady: true,
             error: null,
-            exitCode: undefined, // Use undefined initially to mean "not exited"
-        };
+          });
+        } else {
+          console.error(
+            `TerminalContext: Backend PTY creation failed for ID ${newId}:`,
+            result?.error
+          );
+          updateTerminalState(newId, {
+            isLoading: false,
+            isReady: false,
+            error: `Backend Error: ${result?.error || "Unknown error"}`,
+          });
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error(
+          `TerminalContext: IPC Error creating PTY for ID ${newId}:`,
+          errorMsg
+        );
+        updateTerminalState(newId, {
+          isLoading: false,
+          isReady: false,
+          error: `IPC Error: ${errorMsg}`,
+        });
+      }
+    },
+    [openTerminals.length, updateTerminalState]
+  ); // Dependency on length for title, and update helper
 
-        console.log(`TerminalContext: Creating new terminal tab (ID: ${newId}, Title: ${newTerminalTitle})`);
-        // Update state first
-        setOpenTerminals(prev => [...prev, newTerminal]);
-        setActiveTerminalId(newId); // Make the new terminal active immediately
+  // Function to close a terminal tab and kill backend PTY
+  const closeTerminal = useCallback(
+    async (terminalId: string) => {
+      console.log(
+        `TerminalContext: Requesting to close terminal ID: ${terminalId}`
+      );
+      // Find the index BEFORE filtering, needed for setting the next active tab
+      const terminalToCloseIndex = openTerminals.findIndex(
+        (t) => t.id === terminalId
+      );
+      const terminalToClose = openTerminals[terminalToCloseIndex];
 
-        // Request backend PTY creation
-        console.log(`TerminalContext: Requesting backend PTY for ID ${newId}...`);
+      if (terminalToCloseIndex === -1 || !terminalToClose) {
+        console.warn(
+          `TerminalContext: Cannot close terminal ID ${terminalId}, not found.`
+        );
+        return;
+      }
+
+      // Remove from renderer state
+      const remainingTerminals = openTerminals.filter(
+        (t) => t.id !== terminalId
+      );
+      setOpenTerminals(remainingTerminals);
+
+      // Determine next active terminal if the closed one was active
+      if (activeTerminalId === terminalId) {
+        let nextActiveId: string | null = null;
+        if (remainingTerminals.length > 0) {
+          // Try to activate the tab that was visually before the closed one,
+          // otherwise the new last tab. Max(0,...) handles closing the first tab.
+          const nextIndex = Math.min(
+            remainingTerminals.length - 1,
+            Math.max(0, terminalToCloseIndex - 1)
+          );
+          nextActiveId = remainingTerminals[nextIndex]?.id || null;
+        }
+        console.log(
+          `TerminalContext: Setting next active terminal to: ${nextActiveId}`
+        );
+        setActiveTerminalId(nextActiveId); // Update active ID state
+      }
+
+      // Tell main process to kill the backend PTY
+      // Only kill if it seems like it could be running (was ready or loading AND hasn't reported an exit code yet)
+      if (
+        (terminalToClose.isReady || terminalToClose.isLoading) &&
+        terminalToClose.exitCode === undefined
+      ) {
+        console.log(
+          `TerminalContext: Sending kill request for backend PTY ID: ${terminalId}`
+        );
         try {
-            // Ensure cols/rows are valid before sending
-            const colsToSend = Math.max(1, initialCols);
-            const rowsToSend = Math.max(1, initialRows);
-            const result = await window.electronAPI.term_create({ id: newId, cols: colsToSend, rows: rowsToSend });
-            if (result?.success) {
-                console.log(`TerminalContext: Backend PTY creation request successful for ID ${newId}`);
-                // Mark as ready now that the main process acknowledged creation
-                updateTerminalState(newId, { isLoading: false, isReady: true, error: null });
-            } else {
-                console.error(`TerminalContext: Backend PTY creation failed for ID ${newId}:`, result?.error);
-                updateTerminalState(newId, { isLoading: false, isReady: false, error: `Backend Error: ${result?.error || 'Unknown error'}` });
-            }
+          await window.electronAPI.term_kill(terminalId);
+          console.log(
+            `TerminalContext: Backend kill request acknowledged for ID: ${terminalId}`
+          );
         } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error(`TerminalContext: IPC Error creating PTY for ID ${newId}:`, errorMsg);
-            updateTerminalState(newId, { isLoading: false, isReady: false, error: `IPC Error: ${errorMsg}` });
+          console.error(
+            `TerminalContext: IPC Error sending kill request for PTY ID ${terminalId}:`,
+            err
+          );
         }
+      } else {
+        console.log(
+          `TerminalContext: No kill request needed for ID ${terminalId} (state: isLoading=${terminalToClose.isLoading}, isReady=${terminalToClose.isReady}, exitCode=${terminalToClose.exitCode}).`
+        );
+      }
+    },
+    [openTerminals, activeTerminalId, setActiveTerminalId]
+  ); // Depends on state and the setter for active ID
 
-    }, [openTerminals.length, updateTerminalState]); // Dependency on length for title, and update helper
+  // Function to set the active terminal
+  const setActiveTerminal = useCallback(
+    (terminalId: string | null) => {
+      // Prevent unnecessary state updates if already active
+      if (terminalId !== activeTerminalId) {
+        console.log(
+          `TerminalContext: Setting active terminal ID to: ${terminalId}`
+        );
+        setActiveTerminalId(terminalId);
+      }
+    },
+    [activeTerminalId]
+  ); // Depends only on activeTerminalId for comparison
 
-    // Function to close a terminal tab and kill backend PTY
-    const closeTerminal = useCallback(async (terminalId: string) => {
-        console.log(`TerminalContext: Requesting to close terminal ID: ${terminalId}`);
-        // Find the index BEFORE filtering, needed for setting the next active tab
-        const terminalToCloseIndex = openTerminals.findIndex(t => t.id === terminalId);
-        const terminalToClose = openTerminals[terminalToCloseIndex];
+  // Function to send data to the *active* terminal's backend PTY
+  const writeToActiveTerminal = useCallback(
+    (data: string) => {
+      if (!activeTerminalId) {
+        console.warn("TerminalContext: Cannot write data, no active terminal.");
+        return;
+      }
+      // Find the active terminal to ensure it's ready and not exited before sending
+      const activeTerm = openTerminals.find((t) => t.id === activeTerminalId); // Use raw state here
+      if (activeTerm?.isReady && activeTerm.exitCode === undefined) {
+        // console.log(`TerminalContext: Writing data to active terminal ID ${activeTerminalId}`); // Very verbose
+        window.electronAPI.term_write(activeTerminalId, data);
+      } else {
+        console.warn(
+          `TerminalContext: Cannot write data, active terminal ${activeTerminalId} not ready or has exited.`
+        );
+      }
+    },
+    [activeTerminalId, openTerminals]
+  ); // Depends on activeId and the list to find the term
 
-        if (terminalToCloseIndex === -1 || !terminalToClose) {
-            console.warn(`TerminalContext: Cannot close terminal ID ${terminalId}, not found.`);
-            return;
-        }
+  // Function to resize the *active* terminal's backend PTY
+  const resizeActiveTerminal = useCallback(
+    (cols: number, rows: number) => {
+      if (!activeTerminalId) {
+        console.warn("TerminalContext: Cannot resize, no active terminal.");
+        return;
+      }
+      // Ensure cols/rows are valid positive numbers
+      if (cols <= 0 || rows <= 0) {
+        console.warn(
+          `TerminalContext: Attempted to resize terminal ${activeTerminalId} with invalid dimensions: ${cols}x${rows}`
+        );
+        return;
+      }
+      // Find the active terminal to ensure it's ready and not exited
+      const activeTerm = openTerminals.find((t) => t.id === activeTerminalId); // Use raw state
+      if (activeTerm?.isReady && activeTerm.exitCode === undefined) {
+        // console.log(`TerminalContext: Resizing active terminal ID ${activeTerminalId} to ${cols}x${rows}`); // Verbose
+        window.electronAPI.term_resize(activeTerminalId, { cols, rows });
+      } else {
+        console.warn(
+          `TerminalContext: Cannot resize, active terminal ${activeTerminalId} not ready or has exited.`
+        );
+      }
+    },
+    [activeTerminalId, openTerminals]
+  ); // Depends on activeId and the list
 
-        // Remove from renderer state
-        const remainingTerminals = openTerminals.filter(t => t.id !== terminalId);
-        setOpenTerminals(remainingTerminals);
+  // --- Global IPC Listener Setup (runs once) ---
+  useEffect(() => {
+    if (globalListenersAttached.current) {
+      // console.log("TerminalContext: Global listeners already attached."); // DEBUG
+      return;
+    }
 
-        // Determine next active terminal if the closed one was active
-        if (activeTerminalId === terminalId) {
-            let nextActiveId: string | null = null;
-            if (remainingTerminals.length > 0) {
-                // Try to activate the tab that was visually before the closed one,
-                // otherwise the new last tab. Max(0,...) handles closing the first tab.
-                const nextIndex = Math.min(remainingTerminals.length - 1, Math.max(0, terminalToCloseIndex -1));
-                nextActiveId = remainingTerminals[nextIndex]?.id || null;
-            }
-            console.log(`TerminalContext: Setting next active terminal to: ${nextActiveId}`);
-            setActiveTerminalId(nextActiveId); // Update active ID state
-        }
+    console.log(
+      "TerminalContext: Attaching global IPC listeners (term_onData, term_onExit, term_onError)..."
+    );
 
-        // Tell main process to kill the backend PTY
-        // Only kill if it seems like it could be running (was ready or loading AND hasn't reported an exit code yet)
-        if ((terminalToClose.isReady || terminalToClose.isLoading) && terminalToClose.exitCode === undefined) {
-            console.log(`TerminalContext: Sending kill request for backend PTY ID: ${terminalId}`);
-            try {
-                await window.electronAPI.term_kill(terminalId);
-                console.log(`TerminalContext: Backend kill request acknowledged for ID: ${terminalId}`);
-            } catch (err) {
-                 console.error(`TerminalContext: IPC Error sending kill request for PTY ID ${terminalId}:`, err);
-            }
-        } else {
-             console.log(`TerminalContext: No kill request needed for ID ${terminalId} (state: isLoading=${terminalToClose.isLoading}, isReady=${terminalToClose.isReady}, exitCode=${terminalToClose.exitCode}).`);
-        }
+    // Data received FROM main process for a specific terminal ID
+    const handleData = (terminalId: string, data: string) => {
+      // console.log(`TerminalContext: Routing data for ID ${terminalId}`); // Very Verbose
+      const event = new CustomEvent<{ data: string }>(
+        `terminal-data-${terminalId}`,
+        { detail: { data } }
+      );
+      window.dispatchEvent(event);
+    };
+    const unsubscribeData = window.electronAPI.term_onData(handleData);
 
-    }, [openTerminals, activeTerminalId, setActiveTerminalId]); // Depends on state and the setter for active ID
+    // Exit signal FROM main process for a specific terminal ID
+    const handleExit = (terminalId: string, code?: number) => {
+      console.log(
+        `TerminalContext: Received exit signal for ID ${terminalId}, code: ${code}`
+      );
+      const exitCodeToStore = typeof code === "number" ? code : null; // Treat undefined exit as null
+      updateTerminalState(terminalId, {
+        isLoading: false,
+        isReady: false,
+        exitCode: exitCodeToStore,
+      });
+      const event = new CustomEvent<{ code?: number | null }>(
+        `terminal-exit-${terminalId}`,
+        { detail: { code: exitCodeToStore } }
+      );
+      window.dispatchEvent(event);
+    };
+    const unsubscribeExit = window.electronAPI.term_onExit(handleExit);
 
-    // Function to set the active terminal
-    const setActiveTerminal = useCallback((terminalId: string | null) => {
-        // Prevent unnecessary state updates if already active
-        if (terminalId !== activeTerminalId) {
-             console.log(`TerminalContext: Setting active terminal ID to: ${terminalId}`);
-            setActiveTerminalId(terminalId);
-        }
-    }, [activeTerminalId]); // Depends only on activeTerminalId for comparison
+    // Error signal FROM main process for a specific terminal ID
+    const handleError = (terminalId: string, errorMessage: string) => {
+      console.error(
+        `TerminalContext: Received error signal for ID ${terminalId}: ${errorMessage}`
+      );
+      // Mark as not loading/ready and store the error
+      updateTerminalState(terminalId, {
+        isLoading: false,
+        isReady: false,
+        error: errorMessage,
+      });
+      const event = new CustomEvent<{ error: string }>(
+        `terminal-error-${terminalId}`,
+        { detail: { error: errorMessage } }
+      );
+      window.dispatchEvent(event);
+    };
+    const unsubscribeError = window.electronAPI.term_onError(handleError);
 
-    // Function to send data to the *active* terminal's backend PTY
-    const writeToActiveTerminal = useCallback((data: string) => {
-        if (!activeTerminalId) {
-             console.warn("TerminalContext: Cannot write data, no active terminal.");
-             return;
-        }
-        // Find the active terminal to ensure it's ready and not exited before sending
-        const activeTerm = openTerminals.find(t => t.id === activeTerminalId); // Use raw state here
-        if (activeTerm?.isReady && activeTerm.exitCode === undefined) {
-             // console.log(`TerminalContext: Writing data to active terminal ID ${activeTerminalId}`); // Very verbose
-             window.electronAPI.term_write(activeTerminalId, data);
-        } else {
-             console.warn(`TerminalContext: Cannot write data, active terminal ${activeTerminalId} not ready or has exited.`);
-        }
-    }, [activeTerminalId, openTerminals]); // Depends on activeId and the list to find the term
+    globalListenersAttached.current = true;
+    console.log("TerminalContext: Global listeners attached successfully.");
 
-    // Function to resize the *active* terminal's backend PTY
-    const resizeActiveTerminal = useCallback((cols: number, rows: number) => {
-        if (!activeTerminalId) {
-             console.warn("TerminalContext: Cannot resize, no active terminal.");
-             return;
-        }
-         // Ensure cols/rows are valid positive numbers
-         if (cols <= 0 || rows <= 0) {
-            console.warn(`TerminalContext: Attempted to resize terminal ${activeTerminalId} with invalid dimensions: ${cols}x${rows}`);
-            return;
-         }
-         // Find the active terminal to ensure it's ready and not exited
-         const activeTerm = openTerminals.find(t => t.id === activeTerminalId); // Use raw state
-         if (activeTerm?.isReady && activeTerm.exitCode === undefined) {
-            // console.log(`TerminalContext: Resizing active terminal ID ${activeTerminalId} to ${cols}x${rows}`); // Verbose
-            window.electronAPI.term_resize(activeTerminalId, { cols, rows });
-         } else {
-             console.warn(`TerminalContext: Cannot resize, active terminal ${activeTerminalId} not ready or has exited.`);
-         }
-    }, [activeTerminalId, openTerminals]); // Depends on activeId and the list
-
-
-    // --- Global IPC Listener Setup (runs once) ---
-    useEffect(() => {
-        if (globalListenersAttached.current) {
-            // console.log("TerminalContext: Global listeners already attached."); // DEBUG
-            return;
-        }
-
-        console.log("TerminalContext: Attaching global IPC listeners (term_onData, term_onExit, term_onError)...");
-
-        // Data received FROM main process for a specific terminal ID
-        const handleData = (terminalId: string, data: string) => {
-            // console.log(`TerminalContext: Routing data for ID ${terminalId}`); // Very Verbose
-            const event = new CustomEvent< { data: string } >(`terminal-data-${terminalId}`, { detail: { data } });
-            window.dispatchEvent(event);
-        };
-        const unsubscribeData = window.electronAPI.term_onData(handleData);
-
-        // Exit signal FROM main process for a specific terminal ID
-        const handleExit = (terminalId: string, code?: number) => {
-            console.log(`TerminalContext: Received exit signal for ID ${terminalId}, code: ${code}`);
-            const exitCodeToStore = (typeof code === 'number') ? code : null; // Treat undefined exit as null
-            updateTerminalState(terminalId, { isLoading: false, isReady: false, exitCode: exitCodeToStore });
-            const event = new CustomEvent<{ code?: number | null }>(`terminal-exit-${terminalId}`, { detail: { code: exitCodeToStore } });
-            window.dispatchEvent(event);
-        };
-        const unsubscribeExit = window.electronAPI.term_onExit(handleExit);
-
-        // Error signal FROM main process for a specific terminal ID
-        const handleError = (terminalId: string, errorMessage: string) => {
-             console.error(`TerminalContext: Received error signal for ID ${terminalId}: ${errorMessage}`);
-             // Mark as not loading/ready and store the error
-             updateTerminalState(terminalId, { isLoading: false, isReady: false, error: errorMessage });
-             const event = new CustomEvent<{ error: string }>(`terminal-error-${terminalId}`, { detail: { error: errorMessage } });
-             window.dispatchEvent(event);
-        };
-        const unsubscribeError = window.electronAPI.term_onError(handleError);
-
-        globalListenersAttached.current = true;
-        console.log("TerminalContext: Global listeners attached successfully.");
-
-        // Cleanup global listeners on provider unmount
-        return () => {
-            console.log("TerminalContext: Cleaning up global IPC listeners...");
-            unsubscribeData();
-            unsubscribeExit();
-            unsubscribeError();
-            globalListenersAttached.current = false;
-            console.log("TerminalContext: Global listeners cleaned up.");
-        };
+    // Cleanup global listeners on provider unmount
+    return () => {
+      console.log("TerminalContext: Cleaning up global IPC listeners...");
+      unsubscribeData();
+      unsubscribeExit();
+      unsubscribeError();
+      globalListenersAttached.current = false;
+      console.log("TerminalContext: Global listeners cleaned up.");
+    };
     // updateTerminalState is stable due to its definition with useCallback and empty deps array
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [updateTerminalState]); // Run only once on mount
+  }, [updateTerminalState]); // Run only once on mount
 
-    // --- Context Value ---
-    // Use useMemo to prevent unnecessary re-renders of consumers
-    const contextValue = useMemo(() => ({
-        openTerminals,
-        activeTerminalId,
-        createTerminal,
-        closeTerminal,
-        setActiveTerminal,
-        writeToActiveTerminal,
-        resizeActiveTerminal,
-        getActiveTerminal,
-    }), [
-        openTerminals, activeTerminalId, createTerminal, closeTerminal,
-        setActiveTerminal, writeToActiveTerminal, resizeActiveTerminal, getActiveTerminal
-    ]);
+  // --- NEW FUNCTION: Clear Active Terminal ---
+  const clearActiveTerminal = useCallback(() => {
+    if (!activeTerminalId) {
+      console.warn("TerminalContext: Cannot clear, no active terminal.");
+      return;
+    }
+    // Find the active terminal to ensure it's ready and not exited before sending clear event
+    const activeTerm = openTerminals.find((t) => t.id === activeTerminalId);
+    if (activeTerm?.isReady && activeTerm.exitCode === undefined) {
+      console.log(
+        `TerminalContext: Dispatching clear event for active terminal ID ${activeTerminalId}`
+      );
+      const event = new CustomEvent(`terminal-clear-${activeTerminalId}`);
+      window.dispatchEvent(event);
+    } else {
+      console.warn(
+        `TerminalContext: Cannot clear, active terminal ${activeTerminalId} not ready or has exited.`
+      );
+    }
+  }, [activeTerminalId, openTerminals]); // Depends on activeId and the list
 
-    return (
-        <TerminalContext.Provider value={contextValue}>
-            {children}
-        </TerminalContext.Provider>
-    );
+  // --- Context Value ---
+  // Use useMemo to prevent unnecessary re-renders of consumers
+  const contextValue = useMemo(
+    () => ({
+      openTerminals,
+      activeTerminalId,
+      createTerminal,
+      closeTerminal,
+      setActiveTerminal,
+      writeToActiveTerminal,
+      resizeActiveTerminal,
+      clearActiveTerminal, // <<< ADDED HERE
+      getActiveTerminal,
+    }),
+    [
+      openTerminals,
+      activeTerminalId,
+      createTerminal,
+      closeTerminal,
+      setActiveTerminal,
+      writeToActiveTerminal,
+      resizeActiveTerminal,
+      clearActiveTerminal, // <<< ADDED HERE
+      getActiveTerminal,
+    ]
+  );
+
+  return (
+    <TerminalContext.Provider value={contextValue}>
+      {children}
+    </TerminalContext.Provider>
+  );
 };
 
 // --- Hook to use the context ---
 // Ensure this is exactly 'export const useTerminals'
 export const useTerminals = (): TerminalContextProps => {
-    const context = useContext(TerminalContext);
-    if (context === undefined) {
-        throw new Error('useTerminals must be used within a TerminalProvider');
-    }
-    return context;
+  const context = useContext(TerminalContext);
+  if (context === undefined) {
+    throw new Error("useTerminals must be used within a TerminalProvider");
+  }
+  return context;
 };
 // --- END FILE: src/renderer/contexts/TerminalContext.tsx ---
 --- END FILE: src/renderer/contexts/TerminalContext.tsx ---
@@ -2280,413 +2415,778 @@ input[type="text"]:focus, textarea:focus {
 --- END FILE: src/renderer/index.css ---
 
 --- START FILE: src/renderer/components/TerminalTabContainer.tsx ---
-// --- START FILE: src/renderer/components/TerminalTabContainer.tsx ---
-import React, { useRef, useEffect } from 'react';
-import TerminalTab from './TerminalTab';
-import { useTerminals, OpenTerminal } from '../contexts/TerminalContext';
-import { FaPlus } from 'react-icons/fa'; // Icon for add button
-import './TabContainer.css'; // Reuse editor tab container styles
+// src/renderer/components/TerminalTabContainer.tsx
+import React, { useRef, useEffect } from "react";
+import TerminalTab from "./TerminalTab";
+import { useTerminals, OpenTerminal } from "../contexts/TerminalContext";
+import { FaPlus } from "react-icons/fa"; // Remove FaBroom
+import "./TabContainer.css"; // Reuse editor tab container styles
 
 const TerminalTabContainer: React.FC = () => {
-    const {
-        openTerminals,
-        activeTerminalId,
-        setActiveTerminal,
-        closeTerminal,
-        createTerminal // Function to create a new terminal
-    } = useTerminals();
-    const containerRef = useRef<HTMLDivElement>(null);
-    const activeTabRef = useRef<HTMLDivElement>(null);
+  const {
+    openTerminals,
+    activeTerminalId,
+    setActiveTerminal,
+    closeTerminal,
+    createTerminal, // Function to create a new terminal
+    // clearActiveTerminal, // Removed
+  } = useTerminals();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLDivElement>(null);
 
-    // Effect to scroll the active tab into view when it changes
-    useEffect(() => {
-        const timerId = setTimeout(() => {
-            if (activeTabRef.current) {
-                activeTabRef.current.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'nearest',
-                });
-            }
-        }, 0);
-        return () => clearTimeout(timerId);
-    }, [activeTerminalId]);
+  // Effect to scroll the active tab into view when it changes
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      if (activeTabRef.current) {
+        activeTabRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "nearest",
+        });
+      }
+    }, 0);
+    return () => clearTimeout(timerId);
+  }, [activeTerminalId]);
 
-    // Don't render the container if no terminals are open?
-    // Or render with just the add button? Let's show it.
-    // if (openTerminals.length === 0) {
-    //     return null; // Or render differently?
-    // }
 
-    const handleAddNewTerminal = () => {
-        createTerminal(); // Call context function
-    }
+  const handleAddNewTerminal = () => {
+    createTerminal(); // Call context function
+  };
 
-    return (
-        <div ref={containerRef} className="tab-container terminal-tab-container" role="tablist" aria-label="Open terminal tabs">
-            {openTerminals.map((term: OpenTerminal) => (
-                <TerminalTab
-                    key={term.id}
-                    ref={term.id === activeTerminalId ? activeTabRef : null}
-                    terminalId={term.id}
-                    title={term.title}
-                    isActive={term.id === activeTerminalId}
-                    isLoading={term.isLoading}
-                    hasExited={term.exitCode !== null && term.exitCode !== undefined} // Adjusted check for exit code
-                    onClick={setActiveTerminal}
-                    onClose={closeTerminal}
-                    // Add props for isLoading, hasExited if needed for styling
-                />
-            ))}
-             {/* Add New Terminal Button */}
-             <button
-                className="add-tab-button icon-button" // Style similarly to other icon buttons
-                onClick={handleAddNewTerminal}
-                title="New Terminal Tab"
-                aria-label="Create New Terminal Tab"
-            >
-                <FaPlus />
-            </button>
-        </div>
-    );
+
+  return (
+    <div
+      ref={containerRef}
+      className="tab-container terminal-tab-container"
+      role="tablist"
+      aria-label="Open terminal tabs"
+    >
+      {openTerminals.map((term: OpenTerminal) => (
+        <TerminalTab
+          key={term.id}
+          ref={term.id === activeTerminalId ? activeTabRef : null}
+          terminalId={term.id}
+          title={term.title}
+          isActive={term.id === activeTerminalId}
+          isLoading={term.isLoading}
+          hasExited={term.exitCode !== null && term.exitCode !== undefined} // Adjusted check for exit code
+          onClick={setActiveTerminal}
+          onClose={closeTerminal}
+          // Add props for isLoading, hasExited if needed for styling
+        />
+      ))}
+      {/* Add New Terminal Button */}
+      <button
+        className="add-tab-button icon-button" // Style similarly to other icon buttons
+        onClick={handleAddNewTerminal}
+        title="New Terminal Tab"
+        aria-label="Create New Terminal Tab"
+      >
+        <FaPlus />
+      </button>
+    </div>
+  );
 };
 
 export default TerminalTabContainer;
-// --- END FILE: src/renderer/components/TerminalTabContainer.tsx ---
 --- END FILE: src/renderer/components/TerminalTabContainer.tsx ---
 
 --- START FILE: src/renderer/components/TerminalPanel.tsx ---
-import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { Terminal, ITerminalOptions, ITheme } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import 'xterm/css/xterm.css';
-import { useTheme, ThemeName } from '../contexts/ThemeContext';
-import { useTerminals } from '../contexts/TerminalContext';
-import process from 'process'; // Assuming polyfill is working
+// src/renderer/components/TerminalPanel.tsx
+import React, { useRef, useEffect, useCallback, useState } from "react";
+import { Terminal, ITerminalOptions, ITheme } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
+import "xterm/css/xterm.css";
+import { FaBroom } from 'react-icons/fa'; // Import clear icon
+import { useTheme, ThemeName } from "../contexts/ThemeContext";
+import { useTerminals, OpenTerminal } from "../contexts/TerminalContext"; // Import OpenTerminal type
+import process from "process"; // Assuming polyfill is working
 
 // Base options
-const baseTerminalOptions: Omit<ITerminalOptions, 'theme'> = {
-    cursorBlink: true,
-    fontFamily: 'var(--font-family-mono)',
-    scrollback: 1000,
-    convertEol: true,
-    windowsMode: typeof process !== 'undefined' && process.platform === 'win32',
-    allowProposedApi: true,
+const baseTerminalOptions: Omit<ITerminalOptions, "theme"> = {
+  cursorBlink: true,
+  fontFamily: "var(--font-family-mono)",
+  scrollback: 1000,
+  convertEol: true,
+  windowsMode: typeof process !== "undefined" && process.platform === "win32",
+  allowProposedApi: true,
 };
 
-// Terminal themes (keep as before)
+// Terminal themes
 const terminalThemes: Record<ThemeName, ITheme> = {
-    light: { background: '#ffffff', foreground: '#333333', cursor: '#333333', selectionBackground: '#d5e5f6', selectionForeground: '#000000', black: '#000000', red: '#cd3131', green: '#0dbc79', yellow: '#e5e510', blue: '#2472c8', magenta: '#bc3fbc', cyan: '#11a8cd', white: '#e5e5e5', brightBlack: '#666666', brightRed: '#f14c4c', brightGreen: '#23d18b', brightYellow: '#f5f543', brightBlue: '#3b8eea', brightMagenta: '#d670d6', brightCyan: '#29b8db', brightWhite: '#e5e5e5', },
-    dark: { background: '#1e1e1e', foreground: '#cccccc', cursor: '#cccccc', selectionBackground: '#094771', selectionForeground: '#ffffff', black: '#000000', red: '#cd3131', green: '#0dbc79', yellow: '#e5e510', blue: '#2472c8', magenta: '#bc3fbc', cyan: '#11a8cd', white: '#e5e5e5', brightBlack: '#666666', brightRed: '#f14c4c', brightGreen: '#23d18b', brightYellow: '#f5f543', brightBlue: '#3b8eea', brightMagenta: '#d670d6', brightCyan: '#29b8db', brightWhite: '#e5e5e5', },
-    win95: { background: '#000080', foreground: '#c0c0c0', cursor: '#c0c0c0', selectionBackground: '#c0c0c0', selectionForeground: '#000080', black: '#000000', red: '#800000', green: '#008000', yellow: '#808000', blue: '#000080', magenta: '#800080', cyan: '#008080', white: '#c0c0c0', brightBlack: '#808080', brightRed: '#ff0000', brightGreen: '#00ff00', brightYellow: '#ffff00', brightBlue: '#0000ff', brightMagenta: '#ff00ff', brightCyan: '#00ffff', brightWhite: '#ffffff', },
-    pipboy: { background: '#0a1a0f', foreground: '#15ff60', cursor: '#15ff60', cursorAccent: '#0a1a0f', selectionBackground: '#10b445', selectionForeground: '#0a1a0f', black: '#050d07', red: '#0a702a', green: '#15ff60', yellow: '#10b445', blue: '#0a702a', magenta: '#10b445', cyan: '#15ff60', white: '#a0ffc0', brightBlack: '#0a702a', brightRed: '#10b445', brightGreen: '#a0ffc0', brightYellow: '#e0ffe0', brightBlue: '#10b445', brightMagenta: '#a0ffc0', brightCyan: '#e0ffe0', brightWhite: '#ffffff', },
-    mirc: { background: '#000000', foreground: '#00ff00', cursor: '#00ff00', selectionBackground: '#008000', selectionForeground: '#ffffff', black: '#000000', red: '#800000', green: '#008000', yellow: '#808000', blue: '#000080', magenta: '#800080', cyan: '#008080', white: '#c0c0c0', brightBlack: '#808080', brightRed: '#ff0000', brightGreen: '#00ff00', brightYellow: '#ffff00', brightBlue: '#0000ff', brightMagenta: '#ff00ff', brightCyan: '#00ffff', brightWhite: '#ffffff', },
-    qbasic: { background: '#0000AA', foreground: '#FFFF55', cursor: '#FFFFFF', selectionBackground: '#555555', selectionForeground: '#FFFFFF', black: '#000000', red: '#AA0000', green: '#00AA00', yellow: '#AA5500', blue: '#0000AA', magenta: '#AA00AA', cyan: '#00AAAA', white: '#AAAAAA', brightBlack: '#555555', brightRed: '#FF5555', brightGreen: '#55FF55', brightYellow: '#FFFF55', brightBlue: '#5555FF', brightMagenta: '#FF55FF', brightCyan: '#55FFFF', brightWhite: '#FFFFFF', },
-    orange: { background: '#201500', foreground: '#FFA500', cursor: '#FFA500', cursorAccent: '#201500', selectionBackground: '#D98C00', selectionForeground: '#201500', black: '#100A00', red: '#D98C00', green: '#FFA500', yellow: '#FFC04D', blue: '#D98C00', magenta: '#FFA500', cyan: '#FFC04D', white: '#FFE0B3', brightBlack: '#5A3D00', brightRed: '#FFC04D', brightGreen: '#FFE0B3', brightYellow: '#FFF5E0', brightBlue: '#FFC04D', brightMagenta: '#FFE0B3', brightCyan: '#FFF5E0', brightWhite: '#FFFFFF', },
-    cga: { background: '#000000', foreground: '#55FFFF', cursor: '#FFFFFF', selectionBackground: '#55FFFF', selectionForeground: '#000000', black: '#000000', red: '#FF5555', green: '#55FF55', yellow: '#FFFF55', blue: '#5555FF', magenta: '#FF55FF', cyan: '#55FFFF', white: '#FFFFFF', brightBlack: '#555555', brightRed: '#FF5555', brightGreen: '#55FF55', brightYellow: '#FFFF55', brightBlue: '#5555FF', brightMagenta: '#FF55FF', brightCyan: '#55FFFF', brightWhite: '#FFFFFF', },
-    atari: { background: '#000000', foreground: '#3FFFCF', cursor: '#D87050', selectionBackground: '#D87050', selectionForeground: '#000000', black: '#000000', red: '#D87050', green: '#3FFFCF', yellow: '#D8D850', blue: '#5070D8', magenta: '#D870D8', cyan: '#3FFFCF', white: '#AAAAAA', brightBlack: '#444444', brightRed: '#F0A080', brightGreen: '#7FFFEF', brightYellow: '#F0F080', brightBlue: '#80A0F0', brightMagenta: '#F0A0F0', brightCyan: '#7FFFEF', brightWhite: '#FFFFFF', },
-    snes: { background: '#2F2F4F', foreground: '#E0E0FF', cursor: '#E0E040', selectionBackground: '#8080FF', selectionForeground: '#2F2F4F', black: '#101020', red: '#E04040', green: '#40C040', yellow: '#E0E040', blue: '#8080FF', magenta: '#C080FF', cyan: '#80C0FF', white: '#E0E0FF', brightBlack: '#505070', brightRed: '#FF7070', brightGreen: '#70F070', brightYellow: '#F0F070', brightBlue: '#B0B0FF', brightMagenta: '#F0B0FF', brightCyan: '#B0F0FF', brightWhite: '#FFFFFF', },
-    bw_tv: { background: '#000000', foreground: '#cccccc', cursor: '#ffffff', selectionBackground: '#cccccc', selectionForeground: '#000000', black: '#000000', red: '#888888', green: '#aaaaaa', yellow: '#bbbbbb', blue: '#888888', magenta: '#aaaaaa', cyan: '#bbbbbb', white: '#cccccc', brightBlack: '#555555', brightRed: '#aaaaaa', brightGreen: '#cccccc', brightYellow: '#dddddd', brightBlue: '#aaaaaa', brightMagenta: '#cccccc', brightCyan: '#dddddd', brightWhite: '#ffffff', }
+  light: {
+    background: "#ffffff",
+    foreground: "#333333",
+    cursor: "#333333",
+    selectionBackground: "#d5e5f6",
+    selectionForeground: "#000000",
+    black: "#000000",
+    red: "#cd3131",
+    green: "#0dbc79",
+    yellow: "#e5e510",
+    blue: "#2472c8",
+    magenta: "#bc3fbc",
+    cyan: "#11a8cd",
+    white: "#e5e5e5",
+    brightBlack: "#666666",
+    brightRed: "#f14c4c",
+    brightGreen: "#23d18b",
+    brightYellow: "#f5f543",
+    brightBlue: "#3b8eea",
+    brightMagenta: "#d670d6",
+    brightCyan: "#29b8db",
+    brightWhite: "#e5e5e5",
+  },
+  dark: {
+    background: "#1e1e1e",
+    foreground: "#cccccc",
+    cursor: "#cccccc",
+    selectionBackground: "#094771",
+    selectionForeground: "#ffffff",
+    black: "#000000",
+    red: "#cd3131",
+    green: "#0dbc79",
+    yellow: "#e5e510",
+    blue: "#2472c8",
+    magenta: "#bc3fbc",
+    cyan: "#11a8cd",
+    white: "#e5e5e5",
+    brightBlack: "#666666",
+    brightRed: "#f14c4c",
+    brightGreen: "#23d18b",
+    brightYellow: "#f5f543",
+    brightBlue: "#3b8eea",
+    brightMagenta: "#d670d6",
+    brightCyan: "#29b8db",
+    brightWhite: "#e5e5e5",
+  },
+  win95: {
+    background: "#000080",
+    foreground: "#c0c0c0",
+    cursor: "#c0c0c0",
+    selectionBackground: "#c0c0c0",
+    selectionForeground: "#000080",
+    black: "#000000",
+    red: "#800000",
+    green: "#008000",
+    yellow: "#808000",
+    blue: "#000080",
+    magenta: "#800080",
+    cyan: "#008080",
+    white: "#c0c0c0",
+    brightBlack: "#808080",
+    brightRed: "#ff0000",
+    brightGreen: "#00ff00",
+    brightYellow: "#ffff00",
+    brightBlue: "#0000ff",
+    brightMagenta: "#ff00ff",
+    brightCyan: "#00ffff",
+    brightWhite: "#ffffff",
+  },
+  pipboy: {
+    background: "#0a1a0f",
+    foreground: "#15ff60",
+    cursor: "#15ff60",
+    cursorAccent: "#0a1a0f",
+    selectionBackground: "#10b445",
+    selectionForeground: "#0a1a0f",
+    black: "#050d07",
+    red: "#0a702a",
+    green: "#15ff60",
+    yellow: "#10b445",
+    blue: "#0a702a",
+    magenta: "#10b445",
+    cyan: "#15ff60",
+    white: "#a0ffc0",
+    brightBlack: "#0a702a",
+    brightRed: "#10b445",
+    brightGreen: "#a0ffc0",
+    brightYellow: "#e0ffe0",
+    brightBlue: "#10b445",
+    brightMagenta: "#a0ffc0",
+    brightCyan: "#e0ffe0",
+    brightWhite: "#ffffff",
+  },
+  mirc: {
+    background: "#000000",
+    foreground: "#00ff00",
+    cursor: "#00ff00",
+    selectionBackground: "#008000",
+    selectionForeground: "#ffffff",
+    black: "#000000",
+    red: "#800000",
+    green: "#008000",
+    yellow: "#808000",
+    blue: "#000080",
+    magenta: "#800080",
+    cyan: "#008080",
+    white: "#c0c0c0",
+    brightBlack: "#808080",
+    brightRed: "#ff0000",
+    brightGreen: "#00ff00",
+    brightYellow: "#ffff00",
+    brightBlue: "#0000ff",
+    brightMagenta: "#ff00ff",
+    brightCyan: "#00ffff",
+    brightWhite: "#ffffff",
+  },
+  qbasic: {
+    background: "#0000AA",
+    foreground: "#FFFF55",
+    cursor: "#FFFFFF",
+    selectionBackground: "#555555",
+    selectionForeground: "#FFFFFF",
+    black: "#000000",
+    red: "#AA0000",
+    green: "#00AA00",
+    yellow: "#AA5500",
+    blue: "#0000AA",
+    magenta: "#AA00AA",
+    cyan: "#00AAAA",
+    white: "#AAAAAA",
+    brightBlack: "#555555",
+    brightRed: "#FF5555",
+    brightGreen: "#55FF55",
+    brightYellow: "#FFFF55",
+    brightBlue: "#5555FF",
+    brightMagenta: "#FF55FF",
+    brightCyan: "#55FFFF",
+    brightWhite: "#FFFFFF",
+  },
+  orange: {
+    background: "#201500",
+    foreground: "#FFA500",
+    cursor: "#FFA500",
+    cursorAccent: "#201500",
+    selectionBackground: "#D98C00",
+    selectionForeground: "#201500",
+    black: "#100A00",
+    red: "#D98C00",
+    green: "#FFA500",
+    yellow: "#FFC04D",
+    blue: "#D98C00",
+    magenta: "#FFA500",
+    cyan: "#FFC04D",
+    white: "#FFE0B3",
+    brightBlack: "#5A3D00",
+    brightRed: "#FFC04D",
+    brightGreen: "#FFE0B3",
+    brightYellow: "#FFF5E0",
+    brightBlue: "#FFC04D",
+    brightMagenta: "#FFE0B3",
+    brightCyan: "#FFF5E0",
+    brightWhite: "#FFFFFF",
+  },
+  cga: {
+    background: "#000000",
+    foreground: "#55FFFF",
+    cursor: "#FFFFFF",
+    selectionBackground: "#55FFFF",
+    selectionForeground: "#000000",
+    black: "#000000",
+    red: "#FF5555",
+    green: "#55FF55",
+    yellow: "#FFFF55",
+    blue: "#5555FF",
+    magenta: "#FF55FF",
+    cyan: "#55FFFF",
+    white: "#FFFFFF",
+    brightBlack: "#555555",
+    brightRed: "#FF5555",
+    brightGreen: "#55FF55",
+    brightYellow: "#FFFF55",
+    brightBlue: "#5555FF",
+    brightMagenta: "#FF55FF",
+    brightCyan: "#55FFFF",
+    brightWhite: "#FFFFFF",
+  },
+  atari: {
+    background: "#000000",
+    foreground: "#3FFFCF",
+    cursor: "#D87050",
+    selectionBackground: "#D87050",
+    selectionForeground: "#000000",
+    black: "#000000",
+    red: "#D87050",
+    green: "#3FFFCF",
+    yellow: "#D8D850",
+    blue: "#5070D8",
+    magenta: "#D870D8",
+    cyan: "#3FFFCF",
+    white: "#AAAAAA",
+    brightBlack: "#444444",
+    brightRed: "#F0A080",
+    brightGreen: "#7FFFEF",
+    brightYellow: "#F0F080",
+    brightBlue: "#80A0F0",
+    brightMagenta: "#F0A0F0",
+    brightCyan: "#7FFFEF",
+    brightWhite: "#FFFFFF",
+  },
+  snes: {
+    background: "#2F2F4F",
+    foreground: "#E0E0FF",
+    cursor: "#E0E040",
+    selectionBackground: "#8080FF",
+    selectionForeground: "#2F2F4F",
+    black: "#101020",
+    red: "#E04040",
+    green: "#40C040",
+    yellow: "#E0E040",
+    blue: "#8080FF",
+    magenta: "#C080FF",
+    cyan: "#80C0FF",
+    white: "#E0E0FF",
+    brightBlack: "#505070",
+    brightRed: "#FF7070",
+    brightGreen: "#70F070",
+    brightYellow: "#F0F070",
+    brightBlue: "#B0B0FF",
+    brightMagenta: "#F0B0FF",
+    brightCyan: "#B0F0FF",
+    brightWhite: "#FFFFFF",
+  },
+  bw_tv: {
+    background: "#000000",
+    foreground: "#cccccc",
+    cursor: "#ffffff",
+    selectionBackground: "#cccccc",
+    selectionForeground: "#000000",
+    black: "#000000",
+    red: "#888888",
+    green: "#aaaaaa",
+    yellow: "#bbbbbb",
+    blue: "#888888",
+    magenta: "#aaaaaa",
+    cyan: "#bbbbbb",
+    white: "#cccccc",
+    brightBlack: "#555555",
+    brightRed: "#aaaaaa",
+    brightGreen: "#cccccc",
+    brightYellow: "#dddddd",
+    brightBlue: "#aaaaaa",
+    brightMagenta: "#cccccc",
+    brightCyan: "#dddddd",
+    brightWhite: "#ffffff",
+  },
 };
 
 interface TerminalPanelProps {
-    id: string;
-    isActive: boolean;
+  id: string;
+  isActive: boolean;
 }
 
 const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
-    const { theme } = useTheme();
-    const { writeToActiveTerminal, resizeActiveTerminal, getActiveTerminal } = useTerminals();
-    const terminalMountRef = useRef<HTMLDivElement | null>(null);
-    const terminalInstanceRef = useRef<Terminal | null>(null);
-    const fitAddonRef = useRef<FitAddon | null>(null);
-    const [isReady, setIsReady] = useState(() => {
-        const termState = getActiveTerminal();
-        return termState?.id === id ? termState.isReady : false;
-    });
-    const initialCheckDone = useRef(false);
-    const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const xtermResizeListener = useRef<ReturnType<Terminal['onResize']> | null>(null);
-    // *** CORRECTED TYPE FOR ACTIVATION HANDLE ***
-    const activationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { theme } = useTheme();
+  const {
+    writeToActiveTerminal,
+    resizeActiveTerminal,
+    getActiveTerminal,
+    clearActiveTerminal,
+    openTerminals // Get the list to find the current terminal's state
+  } = useTerminals();
 
-    // Helper function to get terminal font size
-    const getTerminalFontSize = useCallback((): number => {
-        if (typeof document === 'undefined') return 13;
-        try {
-            const fontSizeValue = getComputedStyle(document.documentElement).getPropertyValue('--font-size-terminal');
-            return parseInt(fontSizeValue?.replace('px', '').trim() || '13', 10);
-        } catch (e) { return 13; }
-    }, []);
+  const terminalMountRef = useRef<HTMLDivElement | null>(null);
+  const terminalInstanceRef = useRef<Terminal | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  // Local isReady state is still useful for effect logic, but not for button visibility
+  const [isReady, setIsReady] = useState(() => {
+    const termState = getActiveTerminal(); // Check initial state from context
+    return termState?.id === id ? termState.isReady : false;
+  });
+  const initialCheckDone = useRef(false);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const xtermResizeListener = useRef<ReturnType<Terminal["onResize"]> | null>(
+    null
+  );
+  const activationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Helper function to just fit the addon
-    const fitTerminal = useCallback(() => {
-        if (fitAddonRef.current && terminalInstanceRef.current) {
-            try {
-                fitAddonRef.current.fit();
-            } catch(e) { console.warn(`TerminalPanel [${id}]: Error during fitTerminal():`, e); }
-        }
-    }, [id]);
+  // --- Get the *current* state of this terminal directly from context ---
+  // This will update whenever the context updates, triggering re-renders
+  const currentTerminalState: OpenTerminal | undefined = openTerminals.find(t => t.id === id);
 
+  // Helper function to get terminal font size
+  const getTerminalFontSize = useCallback((): number => {
+    if (typeof document === "undefined") return 13;
+    try {
+      const fontSizeValue = getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--font-size-terminal");
+      return parseInt(fontSizeValue?.replace("px", "").trim() || "13", 10);
+    } catch (e) {
+      return 13;
+    }
+  }, []);
 
-    // --- Effect 1: Create Frontend Terminal Instance & Addon (Mount Logic) ---
-    useEffect(() => {
-        if (!terminalInstanceRef.current && terminalMountRef.current) {
-            console.log(`TerminalPanel [${id}]: Effect 1 - Creating Frontend Instance.`);
-            const container = terminalMountRef.current;
-            container.innerHTML = '';
+  // Helper function to just fit the addon
+  const fitTerminal = useCallback(() => {
+    if (fitAddonRef.current && terminalInstanceRef.current) {
+      try {
+        fitAddonRef.current.fit();
+      } catch (e) {
+        console.warn(`TerminalPanel [${id}]: Error during fitTerminal():`, e);
+      }
+    }
+  }, [id]);
 
-            const term = new Terminal({
-                ...baseTerminalOptions,
-                theme: terminalThemes[theme] || terminalThemes['dark'],
-                fontSize: getTerminalFontSize(),
-            });
-            const addon = new FitAddon();
-            terminalInstanceRef.current = term;
-            fitAddonRef.current = addon;
-            term.loadAddon(addon);
-            term.open(container);
-            console.log(`TerminalPanel [${id}]: Effect 1 - Instance attached.`);
-            // Initial fit deferred
-        }
-        return () => {
-            console.log(`TerminalPanel [${id}]: Effect 1 Cleanup - Unmounting.`);
-            if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
-            if (activationTimeoutRef.current) clearTimeout(activationTimeoutRef.current); // Clear activation timeout too
-            try { xtermResizeListener.current?.dispose(); xtermResizeListener.current = null;} catch(e){}
-            try { fitAddonRef.current?.dispose(); fitAddonRef.current = null; } catch(e) {}
-            if (terminalInstanceRef.current) {
-                terminalInstanceRef.current.dispose();
-                terminalInstanceRef.current = null;
-            }
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]);
+  // --- Effect 1: Create Frontend Terminal Instance & Addon (Mount Logic) ---
+  useEffect(() => {
+    if (!terminalInstanceRef.current && terminalMountRef.current) {
+      console.log(
+        `TerminalPanel [${id}]: Effect 1 - Creating Frontend Instance.`
+      );
+      const container = terminalMountRef.current;
+      container.innerHTML = "";
 
-
-    // --- Effect 2: Setup Listeners (IPC, Input, Xterm Resize), Initial State Check ---
-    useEffect(() => {
-        const term = terminalInstanceRef.current;
-        if (!term) return;
-
-        console.log(`TerminalPanel [${id}]: Effect 2 - Setting up listeners.`);
-        let isEffectMounted = true;
+      const term = new Terminal({
+        ...baseTerminalOptions,
+        theme: terminalThemes[theme] || terminalThemes["dark"],
+        fontSize: getTerminalFontSize(),
+      });
+      const addon = new FitAddon();
+      terminalInstanceRef.current = term;
+      fitAddonRef.current = addon;
+      term.loadAddon(addon);
+      term.open(container);
+      console.log(`TerminalPanel [${id}]: Effect 1 - Instance attached.`);
+      // Initial fit deferred
+    }
+    return () => {
+      console.log(`TerminalPanel [${id}]: Effect 1 Cleanup - Unmounting.`);
+      if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
+      if (activationTimeoutRef.current)
+        clearTimeout(activationTimeoutRef.current); // Clear activation timeout too
+      try {
         xtermResizeListener.current?.dispose();
-
-        // Xterm's onResize Listener -> Notifies Backend
-        xtermResizeListener.current = term.onResize(({ cols, rows }) => {
-             // console.log(`TerminalPanel [${id}]: Xterm onResize event: ${cols}x${rows}`);
-             if (isActive && isReady) {
-                 if (cols > 0 && rows > 0) {
-                     // console.log(`TerminalPanel [${id}]: Notifying backend size ${cols}x${rows} from onResize.`);
-                     resizeActiveTerminal(cols, rows);
-                 }
-             }
-        });
-
-        // Input Forwarding
-        const dataListener = term.onData((data: string) => {
-            if (isActive && isEffectMounted) writeToActiveTerminal(data);
-        });
-
-        // Event Listeners (IPC via custom events)
-        const handleDataEvent = (event: CustomEvent<{ data: string }>) => {
-             if (isEffectMounted && terminalInstanceRef.current) {
-                terminalInstanceRef.current.write(event.detail.data);
-                 const currentCtxState = getActiveTerminal();
-                 if(currentCtxState?.id === id && currentCtxState.isReady && !isReady) setIsReady(true);
-            }
-        };
-        const dataEventName = `terminal-data-${id}`;
-        window.addEventListener(dataEventName, handleDataEvent as EventListener);
-
-        const handleExitEvent = (event: CustomEvent<{ code?: number | null }>) => {
-             if (isEffectMounted && terminalInstanceRef.current) {
-                 setIsReady(false);
-                 if (!initialCheckDone.current) initialCheckDone.current = true;
-                 terminalInstanceRef.current.writeln(`\n\n[Process exited with code ${event.detail.code ?? 'N/A'}]`);
-                 terminalInstanceRef.current.options.cursorBlink = false;
-                 terminalInstanceRef.current.options.disableStdin = true;
-             }
-        };
-        const exitEventName = `terminal-exit-${id}`;
-        window.addEventListener(exitEventName, handleExitEvent as EventListener);
-
-         const handleErrorEvent = (event: CustomEvent<{ error: string }>) => {
-            if (isEffectMounted && terminalInstanceRef.current) {
-                 setIsReady(false);
-                 if (!initialCheckDone.current) initialCheckDone.current = true;
-                terminalInstanceRef.current.writeln(`\n\n[Backend Error: ${event.detail.error}]`);
-           }
-         };
-        const errorEventName = `terminal-error-${id}`;
-        window.addEventListener(errorEventName, handleErrorEvent as EventListener);
-
-        // Initial State Check
-        if (!initialCheckDone.current && term) {
-             const currentCtxState = getActiveTerminal();
-             if(currentCtxState?.id === id) {
-                 console.log(`TerminalPanel [${id}]: Effect 2 - Initial state check.`);
-                 setIsReady(currentCtxState.isReady);
-                 if (!currentCtxState.isReady) {
-                     if (currentCtxState.isLoading) term.writeln("Connecting to backend shell...");
-                     else if (currentCtxState.error) term.writeln(`\n\n[Failed to connect: ${currentCtxState.error}]`);
-                     else if (currentCtxState.exitCode !== undefined) {
-                          term.writeln(`\n\n[Process exited with code ${currentCtxState.exitCode ?? 'N/A'}]`);
-                          term.options.cursorBlink = false;
-                          term.options.disableStdin = true;
-                     }
-                 }
-                 initialCheckDone.current = true;
-             }
-         }
-        // Cleanup
-        return () => {
-            isEffectMounted = false;
-            console.log(`TerminalPanel [${id}]: Effect 2 Cleanup.`);
-            try { xtermResizeListener.current?.dispose(); xtermResizeListener.current = null;} catch(e){}
-            try { dataListener?.dispose(); } catch (e) {}
-            window.removeEventListener(dataEventName, handleDataEvent as EventListener);
-            window.removeEventListener(exitEventName, handleExitEvent as EventListener);
-            window.removeEventListener(errorEventName, handleErrorEvent as EventListener);
-        };
+        xtermResizeListener.current = null;
+      } catch (e) {}
+      try {
+        fitAddonRef.current?.dispose();
+        fitAddonRef.current = null;
+      } catch (e) {}
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.dispose();
+        terminalInstanceRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, isActive, isReady, writeToActiveTerminal, resizeActiveTerminal, getActiveTerminal]);
+  }, [id]);
+
+  // --- Effect 2: Setup Listeners (IPC, Input, Xterm Resize, Clear), Initial State Check ---
+  useEffect(() => {
+    const term = terminalInstanceRef.current;
+    if (!term) return;
+
+    console.log(`TerminalPanel [${id}]: Effect 2 - Setting up listeners.`);
+    let isEffectMounted = true;
+    xtermResizeListener.current?.dispose();
+
+    // Xterm's onResize Listener -> Notifies Backend
+    // Use local isReady here to prevent sending resize before backend confirms
+    xtermResizeListener.current = term.onResize(({ cols, rows }) => {
+      if (isActive && isReady) {
+        if (cols > 0 && rows > 0) {
+          resizeActiveTerminal(cols, rows);
+        }
+      }
+    });
+
+    // Input Forwarding
+    const dataListener = term.onData((data: string) => {
+      if (isActive && isEffectMounted) writeToActiveTerminal(data);
+    });
+
+    // Event Listeners (IPC via custom events)
+    const handleDataEvent = (event: CustomEvent<{ data: string }>) => {
+      if (isEffectMounted && terminalInstanceRef.current) {
+        terminalInstanceRef.current.write(event.detail.data);
+        // Update local isReady state if context confirms readiness
+        // Use direct context check here too, or rely on component re-render
+        const ctxState = openTerminals.find(t => t.id === id); // Check live context state
+        if (ctxState?.isReady && !isReady) {
+           setIsReady(true); // Sync local state if needed
+        }
+      }
+    };
+    const dataEventName = `terminal-data-${id}`;
+    window.addEventListener(dataEventName, handleDataEvent as EventListener);
+
+    const handleExitEvent = (event: CustomEvent<{ code?: number | null }>) => {
+      if (isEffectMounted && terminalInstanceRef.current) {
+        setIsReady(false); // Update local state
+        if (!initialCheckDone.current) initialCheckDone.current = true;
+        terminalInstanceRef.current.writeln(
+          `\n\n[Process exited with code ${event.detail.code ?? "N/A"}]`
+        );
+        terminalInstanceRef.current.options.cursorBlink = false;
+        terminalInstanceRef.current.options.disableStdin = true;
+      }
+    };
+    const exitEventName = `terminal-exit-${id}`;
+    window.addEventListener(exitEventName, handleExitEvent as EventListener);
+
+    const handleErrorEvent = (event: CustomEvent<{ error: string }>) => {
+      if (isEffectMounted && terminalInstanceRef.current) {
+        setIsReady(false); // Update local state
+        if (!initialCheckDone.current) initialCheckDone.current = true;
+        terminalInstanceRef.current.writeln(
+          `\n\n[Backend Error: ${event.detail.error}]`
+        );
+      }
+    };
+    const errorEventName = `terminal-error-${id}`;
+    window.addEventListener(errorEventName, handleErrorEvent as EventListener);
+
+    // Listener for Clear Event
+    const handleClearEvent = () => {
+      if (isEffectMounted && terminalInstanceRef.current) {
+        console.log(
+          `TerminalPanel [${id}]: Received clear event. Clearing terminal buffer.`
+        );
+        terminalInstanceRef.current.clear();
+      }
+    };
+    const clearEventName = `terminal-clear-${id}`;
+    window.addEventListener(clearEventName, handleClearEvent as EventListener);
 
 
-    // --- Effect 3: Handle Container Resizing (Debounced Observer on the Wrapper) ---
-    useEffect(() => {
-        const wrapperElement = terminalMountRef.current?.parentElement;
-        if (!wrapperElement || !terminalInstanceRef.current || !fitAddonRef.current) return;
-
-        const handleResize = () => {
-            if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
-            resizeTimeoutRef.current = setTimeout(() => {
-                 // console.log(`TerminalPanel [${id}]: Effect 3 - Debounced resize executing fitTerminal().`);
-                 fitTerminal(); // Fit frontend. Backend notified via onResize.
-            }, 100); // Keep debounce reasonable
-        };
-
-        console.log(`TerminalPanel [${id}]: Effect 3 - Setting up ResizeObserver on wrapper.`);
-        const resizeObserver = new ResizeObserver(handleResize);
-        resizeObserver.observe(wrapperElement);
-        requestAnimationFrame(() => fitTerminal()); // Initial fit
-
-        // Cleanup
-        return () => {
-            console.log(`TerminalPanel [${id}]: Effect 3 Cleanup - Disconnecting ResizeObserver.`);
-            if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
-             if (wrapperElement) resizeObserver.unobserve(wrapperElement);
-            resizeObserver.disconnect();
-        };
+    // Initial State Check (Sync local isReady)
+    if (!initialCheckDone.current && term) {
+       // Use currentTerminalState fetched outside useEffect
+      if (currentTerminalState) {
+        console.log(`TerminalPanel [${id}]: Effect 2 - Initial state check.`);
+        // Sync local state with context state found during this render cycle
+        if(currentTerminalState.isReady !== isReady) {
+            setIsReady(currentTerminalState.isReady);
+        }
+        if (!currentTerminalState.isReady) {
+          // Display initial messages based on context state
+          if (currentTerminalState.isLoading)
+            term.writeln("Connecting to backend shell...");
+          else if (currentTerminalState.error)
+            term.writeln(`\n\n[Failed to connect: ${currentTerminalState.error}]`);
+          else if (currentTerminalState.exitCode !== undefined) {
+            term.writeln(
+              `\n\n[Process exited with code ${
+                currentTerminalState.exitCode ?? "N/A"
+              }]`
+            );
+            term.options.cursorBlink = false;
+            term.options.disableStdin = true;
+          }
+        }
+        initialCheckDone.current = true;
+      }
+    }
+    // Cleanup
+    return () => {
+      isEffectMounted = false;
+      console.log(`TerminalPanel [${id}]: Effect 2 Cleanup.`);
+      try {
+        xtermResizeListener.current?.dispose();
+        xtermResizeListener.current = null;
+      } catch (e) {}
+      try {
+        dataListener?.dispose();
+      } catch (e) {}
+      window.removeEventListener(
+        dataEventName,
+        handleDataEvent as EventListener
+      );
+      window.removeEventListener(
+        exitEventName,
+        handleExitEvent as EventListener
+      );
+      window.removeEventListener(
+        errorEventName,
+        handleErrorEvent as EventListener
+      );
+      window.removeEventListener(
+        clearEventName,
+        handleClearEvent as EventListener
+      ); // Remove clear listener
+    };
+    // Add openTerminals to dependency array to re-run if context changes
+    // Add currentTerminalState as dependency (or derived values like currentTerminalState.isReady)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, fitTerminal]);
+  }, [
+    id,
+    isActive,
+    isReady, // Keep local isReady for internal effect logic guards
+    writeToActiveTerminal,
+    resizeActiveTerminal,
+    openTerminals, // Add this dependency
+    currentTerminalState?.isReady // Depend on the context readiness
+  ]);
 
+  // --- Effect 3: Handle Container Resizing (Debounced Observer on the Wrapper) ---
+  useEffect(() => {
+    const wrapperElement = terminalMountRef.current?.parentElement;
+    if (!wrapperElement || !terminalInstanceRef.current || !fitAddonRef.current)
+      return;
 
-     // --- Effect 4: Handle Theme/Font Changes ---
-     useEffect(() => {
-        const term = terminalInstanceRef.current;
-        if (!term) return;
-        let optionsChanged = false;
-        const currentThemeName = theme;
-        const currentTerminalTheme = terminalThemes[currentThemeName] || terminalThemes['dark'];
-        const currentFontSize = getTerminalFontSize();
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
+      resizeTimeoutRef.current = setTimeout(() => {
+        fitTerminal();
+      }, 100);
+    };
 
-        if (term.options.theme !== currentTerminalTheme) {
-            term.options.theme = currentTerminalTheme; optionsChanged = true;
-        }
-        if (term.options.fontSize !== currentFontSize) {
-            term.options.fontSize = currentFontSize; optionsChanged = true;
-        }
-        if (optionsChanged) {
-             console.log(`TerminalPanel [${id}]: Effect 4 - Options changed, refitting frontend.`);
-             requestAnimationFrame(() => fitTerminal()); // Fit frontend only
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [theme, id, getTerminalFontSize, fitTerminal]);
-
-
-    // --- Effect 5: Handle Activation (Fit, Explicit Backend Resize, Refresh, Scroll, Focus) ---
-    useEffect(() => {
-        const term = terminalInstanceRef.current;
-        // Use the ref for the timeout ID
-        let currentActivationTimeoutId: NodeJS.Timeout | null = null;
-
-        // Only run when THIS panel becomes active
-        if (isActive && term) {
-            console.log(`TerminalPanel [${id}]: Effect 5 - Activating panel.`);
-
-            // Schedule the activation steps using setTimeout
-            const runActivationSteps = () => {
-                activationTimeoutRef.current = null; // Clear ref once timeout runs
-                if (!terminalInstanceRef.current || !fitAddonRef.current) return; // Check refs
-                const currentTerm = terminalInstanceRef.current;
-
-                console.log(`TerminalPanel [${id}]: Effect 5 - Running activation steps.`);
-                try {
-                    // 1. Fit terminal
-                    console.log(`TerminalPanel [${id}]: Effect 5 - Fitting.`);
-                    fitTerminal(); // Triggers onResize internally
-                    const calculatedCols = currentTerm.cols;
-                    const calculatedRows = currentTerm.rows;
-                    console.log(`TerminalPanel [${id}]: Effect 5 - Fit complete. Dims: ${calculatedCols}x${calculatedRows}`);
-
-                    // 2. Explicitly Notify Backend on Activation
-                    if (isReady && calculatedCols > 0 && calculatedRows > 0) {
-                         console.log(`TerminalPanel [${id}]: Effect 5 - EXPLICIT backend resize notification: ${calculatedCols}x${calculatedRows}.`);
-                         resizeActiveTerminal(calculatedCols, calculatedRows);
-                    } else { /* log skip */ }
-
-                    // 3. Refresh viewport forcefully
-                    if (currentTerm.rows > 0) {
-                        currentTerm.refresh(0, currentTerm.rows - 1);
-                        console.log(`TerminalPanel [${id}]: Effect 5 - Refresh complete.`);
-                    }
-
-                    // 4. Scroll to cursor line
-                    const cursorY = currentTerm.buffer.active.cursorY;
-                    if (cursorY >= 0 && cursorY < currentTerm.buffer.active.length) {
-                        currentTerm.scrollToLine(cursorY);
-                    } else { currentTerm.scrollToBottom(); /* Fallback */ }
-
-                    // 5. Focus if ready
-                    if (isReady) {
-                        console.log(`TerminalPanel [${id}]: Effect 5 - Focusing.`);
-                        currentTerm.focus();
-                    }
-                    console.log(`TerminalPanel [${id}]: Effect 5 - Activation sequence finished.`);
-                } catch (e) {
-                    console.warn(`TerminalPanel [${id}]: Effect 5 - Error during activation sequence:`, e);
-                }
-            };
-
-            // Use regular setTimeout
-            currentActivationTimeoutId = setTimeout(runActivationSteps, 100); // Keep delay reasonable
-            activationTimeoutRef.current = currentActivationTimeoutId; // Store in ref
-        }
-
-        // Cleanup for Effect 5
-        return () => {
-            // Clear timeout using the ID stored in the ref
-            if (activationTimeoutRef.current) {
-                 clearTimeout(activationTimeoutRef.current);
-                 activationTimeoutRef.current = null;
-            }
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isActive, isReady, id, fitTerminal, resizeActiveTerminal]);
-
-
-    // --- Render the inner div where xterm will mount ---
-    return (
-        <div
-            ref={terminalMountRef}
-            className="terminal-mount-point" // Use a specific class for the inner div
-            style={{ width: '100%', height: '100%', overflow: 'hidden' }} // Fill the parent (.terminal-panel-instance)
-        >
-            {/* Xterm instance mounts here */}
-        </div>
+    console.log(
+      `TerminalPanel [${id}]: Effect 3 - Setting up ResizeObserver on wrapper.`
     );
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(wrapperElement);
+    requestAnimationFrame(() => fitTerminal()); // Initial fit
+
+    // Cleanup
+    return () => {
+      console.log(
+        `TerminalPanel [${id}]: Effect 3 Cleanup - Disconnecting ResizeObserver.`
+      );
+      if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
+      if (wrapperElement) resizeObserver.unobserve(wrapperElement);
+      resizeObserver.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, fitTerminal]);
+
+  // --- Effect 4: Handle Theme/Font Changes ---
+  useEffect(() => {
+    const term = terminalInstanceRef.current;
+    if (!term) return;
+    let optionsChanged = false;
+    const currentThemeName = theme;
+    const currentTerminalTheme =
+      terminalThemes[currentThemeName] || terminalThemes["dark"];
+    const currentFontSize = getTerminalFontSize();
+
+    if (term.options.theme !== currentTerminalTheme) {
+      term.options.theme = currentTerminalTheme;
+      optionsChanged = true;
+    }
+    if (term.options.fontSize !== currentFontSize) {
+      term.options.fontSize = currentFontSize;
+      optionsChanged = true;
+    }
+    if (optionsChanged) {
+      console.log(
+        `TerminalPanel [${id}]: Effect 4 - Options changed, refitting frontend.`
+      );
+      requestAnimationFrame(() => fitTerminal()); // Fit frontend only
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme, id, getTerminalFontSize, fitTerminal]);
+
+  // --- Effect 5: Handle Activation (Fit, Explicit Backend Resize, Refresh, Scroll, Focus) ---
+  useEffect(() => {
+    const term = terminalInstanceRef.current;
+    let currentActivationTimeoutId: NodeJS.Timeout | null = null;
+
+    if (isActive && term) {
+      console.log(`TerminalPanel [${id}]: Effect 5 - Activating panel.`);
+      const runActivationSteps = () => {
+        activationTimeoutRef.current = null;
+        if (!terminalInstanceRef.current || !fitAddonRef.current) return;
+        const currentTerm = terminalInstanceRef.current;
+
+        console.log(
+          `TerminalPanel [${id}]: Effect 5 - Running activation steps.`
+        );
+        try {
+          console.log(`TerminalPanel [${id}]: Effect 5 - Fitting.`);
+          fitTerminal(); // Triggers onResize internally
+          const calculatedCols = currentTerm.cols;
+          const calculatedRows = currentTerm.rows;
+          console.log(
+            `TerminalPanel [${id}]: Effect 5 - Fit complete. Dims: ${calculatedCols}x${calculatedRows}`
+          );
+
+          // Use local isReady guard here is okay
+          if (isReady && calculatedCols > 0 && calculatedRows > 0) {
+            console.log(
+              `TerminalPanel [${id}]: Effect 5 - EXPLICIT backend resize notification: ${calculatedCols}x${calculatedRows}.`
+            );
+            resizeActiveTerminal(calculatedCols, calculatedRows);
+          }
+
+          if (currentTerm.rows > 0) {
+            currentTerm.refresh(0, currentTerm.rows - 1);
+            console.log(`TerminalPanel [${id}]: Effect 5 - Refresh complete.`);
+          }
+
+          const cursorY = currentTerm.buffer.active.cursorY;
+          if (cursorY >= 0 && cursorY < currentTerm.buffer.active.length) {
+            currentTerm.scrollToLine(cursorY);
+          } else {
+            currentTerm.scrollToBottom();
+          }
+
+          // Use local isReady guard here
+          if (isReady) {
+            console.log(`TerminalPanel [${id}]: Effect 5 - Focusing.`);
+            currentTerm.focus();
+          }
+          console.log(
+            `TerminalPanel [${id}]: Effect 5 - Activation sequence finished.`
+          );
+        } catch (e) {
+          console.warn(
+            `TerminalPanel [${id}]: Effect 5 - Error during activation sequence:`,
+            e
+          );
+        }
+      };
+
+      currentActivationTimeoutId = setTimeout(runActivationSteps, 100);
+      activationTimeoutRef.current = currentActivationTimeoutId;
+    }
+
+    // Cleanup
+    return () => {
+      if (activationTimeoutRef.current) {
+        clearTimeout(activationTimeoutRef.current);
+        activationTimeoutRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, isReady, id, fitTerminal, resizeActiveTerminal]); // Keep isReady dependency for guards within effect
+
+  // Handler for the clear button
+  const handleClearClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent focus shifts if needed
+      console.log(`TerminalPanel [${id}]: Clear button clicked.`);
+      clearActiveTerminal(); // Call the context function
+  };
+
+  // --- Render: Wrapper + Clear Button + Mount Point ---
+  return (
+    // Wrapper div for positioning
+    <div className="terminal-panel-content-wrapper">
+      {/* --- MODIFIED CONDITION --- */}
+      {/* Show button if:
+          - This panel is the active one (`isActive` prop)
+          - The *context* says this terminal is ready (`currentTerminalState?.isReady`)
+          - The *context* says this terminal has not exited (`currentTerminalState?.exitCode === undefined`)
+      */}
+      {isActive && currentTerminalState?.isReady && currentTerminalState?.exitCode === undefined && (
+        <button
+          className="terminal-clear-button-overlay icon-button"
+          onClick={handleClearClick}
+          title="Clear Terminal Scrollback and Viewport"
+          aria-label="Clear Terminal"
+        >
+          <FaBroom />
+        </button>
+      )}
+      {/* Mount point remains the same */}
+      <div
+        ref={terminalMountRef}
+        className="terminal-mount-point" // Original class for xterm mounting
+        style={{ width: "100%", height: "100%", overflow: "hidden" }}
+      ></div>
+    </div>
+  );
 };
 
 export default TerminalPanel;
@@ -4318,7 +4818,6 @@ export default CustomSelect;
 --- END FILE: src/renderer/components/CustomSelect.tsx ---
 
 --- START FILE: src/renderer/App.css ---
-/* --- START FILE: src/renderer/App.css --- */
 /* src/renderer/App.css */
 
 .app-container {
@@ -4326,12 +4825,12 @@ export default CustomSelect;
     width: 100%;
     background-color: var(--color-bg-app);
     overflow: hidden;
-    /* <<< NEW: Use Flexbox to position main content and status bar >>> */
+    /* Use Flexbox to position main content and status bar */
     display: flex;
     flex-direction: column;
 }
 
-/* <<< NEW: Wrapper for the main splitting area (Sidebar/MainPanel) >>> */
+/* Wrapper for the main splitting area (Sidebar/MainPanel) */
 .main-content-area {
     flex-grow: 1; /* Take up all available vertical space */
     overflow: hidden; /* Prevent its content from overflowing the container */
@@ -4505,12 +5004,12 @@ export default CustomSelect;
     left: 0;
     width: 100%;
     height: 100%;
-    /* --- Visibility Control --- */
+    /* Visibility Control */
     visibility: hidden; /* Hidden by default */
     opacity: 0;
     z-index: 1;
     transition: opacity 0.05s ease-out, visibility 0s linear 0.05s; /* Faster hide transition */
-    /* --- Content Styling --- */
+    /* Content Styling */
     display: flex; /* Needed for inner mount point to fill space */
     overflow: hidden;
     /* Padding applied to inner mount point now */
@@ -4528,6 +5027,64 @@ export default CustomSelect;
     transition: opacity 0.05s ease-in, visibility 0s linear; /* Faster show transition */
 }
 
+/* Container for Terminal Panel content + overlay button */
+.terminal-panel-content-wrapper {
+  position: relative; /* Enable absolute positioning for children */
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Ensure button doesn't cause overflow */
+}
+
+/* Style for the overlay clear button */
+.terminal-clear-button-overlay {
+  position: absolute;
+  top: var(--spacing-xs);  /* Adjust spacing as needed */
+  /* Push button further left to avoid scrollbar */
+  right: calc(var(--spacing-sm) + 12px); /* Add space (~scrollbar width + gap) */
+  z-index: 5; /* Ensure it's above the terminal content */
+  padding: 2px 4px; /* Smaller padding */
+  font-size: 0.8em; /* Smaller icon */
+  background-color: color-mix(in srgb, var(--color-bg-terminal) 80%, black); /* Slightly darker semi-transparent background */
+  color: var(--color-text-tertiary);
+  border-radius: var(--border-radius-sm);
+  opacity: 0.6; /* Make it less prominent */
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.terminal-clear-button-overlay:hover {
+  opacity: 1;
+  background-color: color-mix(in srgb, var(--color-bg-button-hover) 85%, black);
+  color: var(--color-text-primary);
+}
+
+.terminal-clear-button-overlay:active {
+    background-color: color-mix(in srgb, var(--color-bg-button-active) 90%, black);
+}
+
+/* Adjust for specific themes if needed */
+.theme-win95 .terminal-clear-button-overlay,
+.theme-mirc .terminal-clear-button-overlay {
+    background-color: var(--color-bg-button);
+    color: var(--color-text-button);
+    opacity: 0.8;
+    border: 1px solid var(--win95-bevel-shadow-dark);
+    box-shadow: inset -1px -1px 0 1px var(--win95-bevel-shadow-darker, transparent),
+                inset 1px 1px 0 1px var(--win95-bevel-shadow-light, transparent);
+    font-size: 0.9em;
+    padding: 1px 3px;
+    /* Ensure right positioning is consistent */
+    right: calc(var(--spacing-sm) + 12px);
+}
+.theme-win95 .terminal-clear-button-overlay:hover,
+.theme-mirc .terminal-clear-button-overlay:hover {
+     opacity: 1;
+}
+.theme-win95 .terminal-clear-button-overlay:active,
+.theme-mirc .terminal-clear-button-overlay:active {
+    box-shadow: inset 1px 1px 0 1px var(--win95-bevel-shadow-darker, transparent),
+                inset -1px -1px 0 1px var(--win95-bevel-shadow-light, transparent);
+}
+
 /* The actual mount point for xterm INSIDE the instance wrapper */
 .terminal-mount-point {
     width: 100%;
@@ -4537,6 +5094,10 @@ export default CustomSelect;
     padding-bottom: var(--spacing-sm)
 }
 
+/* Hide inactive xterm scrollbar track */
+.terminal-mount-point .xterm-viewport::-webkit-scrollbar-track {
+    background-color: transparent; /* Makes track invisible unless scrolling */
+}
 
 /* Placeholder for when no terminal is active/open */
 .terminal-placeholder {
@@ -4570,10 +5131,8 @@ export default CustomSelect;
 .editor-context-error { color: var(--color-text-error); border: 1px solid var(--color-text-error); }
 .editor-loading-indicator { color: var(--color-text-secondary); border: 1px solid var(--color-border-accent); }
 
-/* <<< StatusBar is handled by its own CSS file (StatusBar.css) >>> */
+/* StatusBar is handled by its own CSS file (StatusBar.css) */
 /* No specific styles needed here unless overriding something */
-
-/* --- END FINAL FILE: src/renderer/App.css --- */
 --- END FILE: src/renderer/App.css ---
 
 --- START FILE: src/main/env.d.ts ---

@@ -1,9 +1,11 @@
+// src/renderer/components/TerminalPanel.tsx
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { Terminal, ITerminalOptions, ITheme } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
+import { FaBroom } from 'react-icons/fa'; // Import clear icon
 import { useTheme, ThemeName } from "../contexts/ThemeContext";
-import { useTerminals } from "../contexts/TerminalContext";
+import { useTerminals, OpenTerminal } from "../contexts/TerminalContext"; // Import OpenTerminal type
 import process from "process"; // Assuming polyfill is working
 
 // Base options
@@ -16,7 +18,7 @@ const baseTerminalOptions: Omit<ITerminalOptions, "theme"> = {
   allowProposedApi: true,
 };
 
-// Terminal themes (keep as before)
+// Terminal themes
 const terminalThemes: Record<ThemeName, ITheme> = {
   light: {
     background: "#ffffff",
@@ -282,13 +284,20 @@ interface TerminalPanelProps {
 
 const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
   const { theme } = useTheme();
-  const { writeToActiveTerminal, resizeActiveTerminal, getActiveTerminal } =
-    useTerminals();
+  const {
+    writeToActiveTerminal,
+    resizeActiveTerminal,
+    getActiveTerminal,
+    clearActiveTerminal,
+    openTerminals // Get the list to find the current terminal's state
+  } = useTerminals();
+
   const terminalMountRef = useRef<HTMLDivElement | null>(null);
   const terminalInstanceRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  // Local isReady state is still useful for effect logic, but not for button visibility
   const [isReady, setIsReady] = useState(() => {
-    const termState = getActiveTerminal();
+    const termState = getActiveTerminal(); // Check initial state from context
     return termState?.id === id ? termState.isReady : false;
   });
   const initialCheckDone = useRef(false);
@@ -297,6 +306,10 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
     null
   );
   const activationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // --- Get the *current* state of this terminal directly from context ---
+  // This will update whenever the context updates, triggering re-renders
+  const currentTerminalState: OpenTerminal | undefined = openTerminals.find(t => t.id === id);
 
   // Helper function to get terminal font size
   const getTerminalFontSize = useCallback((): number => {
@@ -375,11 +388,10 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
     xtermResizeListener.current?.dispose();
 
     // Xterm's onResize Listener -> Notifies Backend
+    // Use local isReady here to prevent sending resize before backend confirms
     xtermResizeListener.current = term.onResize(({ cols, rows }) => {
-      // console.log(`TerminalPanel [${id}]: Xterm onResize event: ${cols}x${rows}`);
       if (isActive && isReady) {
         if (cols > 0 && rows > 0) {
-          // console.log(`TerminalPanel [${id}]: Notifying backend size ${cols}x${rows} from onResize.`);
           resizeActiveTerminal(cols, rows);
         }
       }
@@ -394,9 +406,12 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
     const handleDataEvent = (event: CustomEvent<{ data: string }>) => {
       if (isEffectMounted && terminalInstanceRef.current) {
         terminalInstanceRef.current.write(event.detail.data);
-        const currentCtxState = getActiveTerminal();
-        if (currentCtxState?.id === id && currentCtxState.isReady && !isReady)
-          setIsReady(true);
+        // Update local isReady state if context confirms readiness
+        // Use direct context check here too, or rely on component re-render
+        const ctxState = openTerminals.find(t => t.id === id); // Check live context state
+        if (ctxState?.isReady && !isReady) {
+           setIsReady(true); // Sync local state if needed
+        }
       }
     };
     const dataEventName = `terminal-data-${id}`;
@@ -404,7 +419,7 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
 
     const handleExitEvent = (event: CustomEvent<{ code?: number | null }>) => {
       if (isEffectMounted && terminalInstanceRef.current) {
-        setIsReady(false);
+        setIsReady(false); // Update local state
         if (!initialCheckDone.current) initialCheckDone.current = true;
         terminalInstanceRef.current.writeln(
           `\n\n[Process exited with code ${event.detail.code ?? "N/A"}]`
@@ -418,7 +433,7 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
 
     const handleErrorEvent = (event: CustomEvent<{ error: string }>) => {
       if (isEffectMounted && terminalInstanceRef.current) {
-        setIsReady(false);
+        setIsReady(false); // Update local state
         if (!initialCheckDone.current) initialCheckDone.current = true;
         terminalInstanceRef.current.writeln(
           `\n\n[Backend Error: ${event.detail.error}]`
@@ -428,7 +443,7 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
     const errorEventName = `terminal-error-${id}`;
     window.addEventListener(errorEventName, handleErrorEvent as EventListener);
 
-    // <<< NEW: Listener for Clear Event >>>
+    // Listener for Clear Event
     const handleClearEvent = () => {
       if (isEffectMounted && terminalInstanceRef.current) {
         console.log(
@@ -439,23 +454,27 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
     };
     const clearEventName = `terminal-clear-${id}`;
     window.addEventListener(clearEventName, handleClearEvent as EventListener);
-    // <<< END NEW >>>
 
-    // Initial State Check
+
+    // Initial State Check (Sync local isReady)
     if (!initialCheckDone.current && term) {
-      const currentCtxState = getActiveTerminal();
-      if (currentCtxState?.id === id) {
+       // Use currentTerminalState fetched outside useEffect
+      if (currentTerminalState) {
         console.log(`TerminalPanel [${id}]: Effect 2 - Initial state check.`);
-        setIsReady(currentCtxState.isReady);
-        if (!currentCtxState.isReady) {
-          if (currentCtxState.isLoading)
+        // Sync local state with context state found during this render cycle
+        if(currentTerminalState.isReady !== isReady) {
+            setIsReady(currentTerminalState.isReady);
+        }
+        if (!currentTerminalState.isReady) {
+          // Display initial messages based on context state
+          if (currentTerminalState.isLoading)
             term.writeln("Connecting to backend shell...");
-          else if (currentCtxState.error)
-            term.writeln(`\n\n[Failed to connect: ${currentCtxState.error}]`);
-          else if (currentCtxState.exitCode !== undefined) {
+          else if (currentTerminalState.error)
+            term.writeln(`\n\n[Failed to connect: ${currentTerminalState.error}]`);
+          else if (currentTerminalState.exitCode !== undefined) {
             term.writeln(
               `\n\n[Process exited with code ${
-                currentCtxState.exitCode ?? "N/A"
+                currentTerminalState.exitCode ?? "N/A"
               }]`
             );
             term.options.cursorBlink = false;
@@ -491,16 +510,19 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
       window.removeEventListener(
         clearEventName,
         handleClearEvent as EventListener
-      ); // <<< NEW: Remove clear listener
+      ); // Remove clear listener
     };
+    // Add openTerminals to dependency array to re-run if context changes
+    // Add currentTerminalState as dependency (or derived values like currentTerminalState.isReady)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     id,
     isActive,
-    isReady,
+    isReady, // Keep local isReady for internal effect logic guards
     writeToActiveTerminal,
     resizeActiveTerminal,
-    getActiveTerminal,
+    openTerminals, // Add this dependency
+    currentTerminalState?.isReady // Depend on the context readiness
   ]);
 
   // --- Effect 3: Handle Container Resizing (Debounced Observer on the Wrapper) ---
@@ -512,9 +534,8 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
     const handleResize = () => {
       if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
       resizeTimeoutRef.current = setTimeout(() => {
-        // console.log(`TerminalPanel [${id}]: Effect 3 - Debounced resize executing fitTerminal().`);
-        fitTerminal(); // Fit frontend. Backend notified via onResize.
-      }, 100); // Keep debounce reasonable
+        fitTerminal();
+      }, 100);
     };
 
     console.log(
@@ -566,24 +587,19 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
   // --- Effect 5: Handle Activation (Fit, Explicit Backend Resize, Refresh, Scroll, Focus) ---
   useEffect(() => {
     const term = terminalInstanceRef.current;
-    // Use the ref for the timeout ID
     let currentActivationTimeoutId: NodeJS.Timeout | null = null;
 
-    // Only run when THIS panel becomes active
     if (isActive && term) {
       console.log(`TerminalPanel [${id}]: Effect 5 - Activating panel.`);
-
-      // Schedule the activation steps using setTimeout
       const runActivationSteps = () => {
-        activationTimeoutRef.current = null; // Clear ref once timeout runs
-        if (!terminalInstanceRef.current || !fitAddonRef.current) return; // Check refs
+        activationTimeoutRef.current = null;
+        if (!terminalInstanceRef.current || !fitAddonRef.current) return;
         const currentTerm = terminalInstanceRef.current;
 
         console.log(
           `TerminalPanel [${id}]: Effect 5 - Running activation steps.`
         );
         try {
-          // 1. Fit terminal
           console.log(`TerminalPanel [${id}]: Effect 5 - Fitting.`);
           fitTerminal(); // Triggers onResize internally
           const calculatedCols = currentTerm.cols;
@@ -592,31 +608,27 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
             `TerminalPanel [${id}]: Effect 5 - Fit complete. Dims: ${calculatedCols}x${calculatedRows}`
           );
 
-          // 2. Explicitly Notify Backend on Activation
+          // Use local isReady guard here is okay
           if (isReady && calculatedCols > 0 && calculatedRows > 0) {
             console.log(
               `TerminalPanel [${id}]: Effect 5 - EXPLICIT backend resize notification: ${calculatedCols}x${calculatedRows}.`
             );
             resizeActiveTerminal(calculatedCols, calculatedRows);
-          } else {
-            /* log skip */
           }
 
-          // 3. Refresh viewport forcefully
           if (currentTerm.rows > 0) {
             currentTerm.refresh(0, currentTerm.rows - 1);
             console.log(`TerminalPanel [${id}]: Effect 5 - Refresh complete.`);
           }
 
-          // 4. Scroll to cursor line
           const cursorY = currentTerm.buffer.active.cursorY;
           if (cursorY >= 0 && cursorY < currentTerm.buffer.active.length) {
             currentTerm.scrollToLine(cursorY);
           } else {
-            currentTerm.scrollToBottom(); /* Fallback */
+            currentTerm.scrollToBottom();
           }
 
-          // 5. Focus if ready
+          // Use local isReady guard here
           if (isReady) {
             console.log(`TerminalPanel [${id}]: Effect 5 - Focusing.`);
             currentTerm.focus();
@@ -632,30 +644,53 @@ const TerminalPanel: React.FC<TerminalPanelProps> = ({ id, isActive }) => {
         }
       };
 
-      // Use regular setTimeout
-      currentActivationTimeoutId = setTimeout(runActivationSteps, 100); // Keep delay reasonable
-      activationTimeoutRef.current = currentActivationTimeoutId; // Store in ref
+      currentActivationTimeoutId = setTimeout(runActivationSteps, 100);
+      activationTimeoutRef.current = currentActivationTimeoutId;
     }
 
-    // Cleanup for Effect 5
+    // Cleanup
     return () => {
-      // Clear timeout using the ID stored in the ref
       if (activationTimeoutRef.current) {
         clearTimeout(activationTimeoutRef.current);
         activationTimeoutRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, isReady, id, fitTerminal, resizeActiveTerminal]);
+  }, [isActive, isReady, id, fitTerminal, resizeActiveTerminal]); // Keep isReady dependency for guards within effect
 
-  // --- Render the inner div where xterm will mount ---
+  // Handler for the clear button
+  const handleClearClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent focus shifts if needed
+      console.log(`TerminalPanel [${id}]: Clear button clicked.`);
+      clearActiveTerminal(); // Call the context function
+  };
+
+  // --- Render: Wrapper + Clear Button + Mount Point ---
   return (
-    <div
-      ref={terminalMountRef}
-      className="terminal-mount-point" // Use a specific class for the inner div
-      style={{ width: "100%", height: "100%", overflow: "hidden" }} // Fill the parent (.terminal-panel-instance)
-    >
-      {/* Xterm instance mounts here */}
+    // Wrapper div for positioning
+    <div className="terminal-panel-content-wrapper">
+      {/* --- MODIFIED CONDITION --- */}
+      {/* Show button if:
+          - This panel is the active one (`isActive` prop)
+          - The *context* says this terminal is ready (`currentTerminalState?.isReady`)
+          - The *context* says this terminal has not exited (`currentTerminalState?.exitCode === undefined`)
+      */}
+      {isActive && currentTerminalState?.isReady && currentTerminalState?.exitCode === undefined && (
+        <button
+          className="terminal-clear-button-overlay icon-button"
+          onClick={handleClearClick}
+          title="Clear Terminal Scrollback and Viewport"
+          aria-label="Clear Terminal"
+        >
+          <FaBroom />
+        </button>
+      )}
+      {/* Mount point remains the same */}
+      <div
+        ref={terminalMountRef}
+        className="terminal-mount-point" // Original class for xterm mounting
+        style={{ width: "100%", height: "100%", overflow: "hidden" }}
+      ></div>
     </div>
   );
 };

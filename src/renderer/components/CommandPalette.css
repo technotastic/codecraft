@@ -7,16 +7,16 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align palette to the top */
-    padding-top: 10vh; /* Add some top padding */
-    z-index: 1000; /* Ensure it's above everything else */
+    align-items: flex-start;
+    padding-top: 10vh;
+    z-index: 1000;
 }
 
 .command-palette-container {
-    background-color: var(--color-bg-sidebar); /* Use a background color from theme */
+    background-color: var(--color-bg-sidebar);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border-accent);
     border-radius: var(--border-radius-md);
@@ -25,7 +25,7 @@
     max-width: 600px;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevents content spill */
+    overflow: hidden;
 }
 
 .command-palette-input {
@@ -49,7 +49,7 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 60vh; /* Limit list height */
+    max-height: 60vh;
     overflow-y: auto;
     flex-grow: 1;
     scrollbar-width: thin;
@@ -66,10 +66,14 @@
 .command-palette-item {
     padding: var(--spacing-xs) var(--spacing-md);
     cursor: pointer;
-    border-bottom: 1px solid var(--color-border); /* Separator line */
+    border-bottom: 1px solid var(--color-border);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    /* Use Flexbox for icon alignment */
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm); /* Space between icon and label */
 }
 .command-palette-item:last-child {
     border-bottom: none;
@@ -83,24 +87,47 @@
     background-color: var(--color-bg-selected);
     color: var(--color-text-inverse);
 }
+/* Ensure icon color matches selected text color */
+.command-palette-item.selected .command-palette-icon {
+    color: var(--color-text-inverse);
+}
+
 
 .command-palette-item.no-results {
     font-style: italic;
     color: var(--color-text-tertiary);
     cursor: default;
+    justify-content: center; /* Center the no results text */
 }
 .command-palette-item.no-results:hover,
 .command-palette-item.no-results.selected {
-    background-color: transparent; /* No hover/selection effect */
+    background-color: transparent;
     color: var(--color-text-tertiary);
 }
+
+/* Icon Styling */
+.command-palette-icon {
+    font-size: 1em; /* Match text size or adjust slightly */
+    color: var(--color-text-secondary); /* Use secondary color */
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    width: 1.2em; /* Give icon a consistent width */
+    text-align: center;
+}
+
+.command-palette-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* --- Theme Specific Overrides --- */
 
 /* Win95/mIRC Specifics */
 .theme-win95 .command-palette-container,
 .theme-mirc .command-palette-container {
     border: none;
     border-radius: 0;
-    /* Add bevel */
     box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent),
                 inset -1px -1px var(--win95-bevel-shadow-light, transparent),
                 1px 1px 0 1px var(--win95-bevel-shadow-darker, transparent),
@@ -110,9 +137,9 @@
 .theme-mirc .command-palette-input {
     border-radius: 0;
     border-bottom: none;
-     box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent), /* Inset dark */
-                inset -1px -1px var(--win95-bevel-shadow-light, transparent); /* Inset light */
-    margin: 2px; /* Make space for container bevel */
+     box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent),
+                inset -1px -1px var(--win95-bevel-shadow-light, transparent);
+    margin: 2px;
     width: calc(100% - 4px);
 }
 .theme-win95 .command-palette-input:focus,
@@ -122,7 +149,7 @@
 }
 .theme-win95 .command-palette-list,
 .theme-mirc .command-palette-list {
-    margin: 0 2px 2px 2px; /* Spacing within bevel */
+    margin: 0 2px 2px 2px;
 }
 .theme-win95 .command-palette-item,
 .theme-mirc .command-palette-item {
@@ -133,6 +160,15 @@
     background-color: var(--color-bg-selected);
     color: var(--color-text-inverse);
 }
+.theme-win95 .command-palette-item.selected .command-palette-icon,
+.theme-mirc .command-palette-item.selected .command-palette-icon {
+    color: var(--color-text-inverse);
+}
+.theme-win95 .command-palette-icon,
+.theme-mirc .command-palette-icon {
+    color: var(--color-text-secondary);
+}
+
 
 /* Pip-Boy Specifics */
 .theme-pipboy .command-palette-container {
@@ -157,6 +193,12 @@
 }
 .theme-pipboy .command-palette-item.selected {
     background-color: var(--pipboy-green-dark);
+    color: var(--pipboy-bg);
+}
+.theme-pipboy .command-palette-icon {
+    color: var(--pipboy-green);
+}
+.theme-pipboy .command-palette-item.selected .command-palette-icon {
     color: var(--pipboy-bg);
 }
 /* --- END FILE: src/renderer/components/CommandPalette.css --- */

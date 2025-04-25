@@ -1,17 +1,17 @@
 // --- START FILE: src/renderer/App.tsx ---
 // src/renderer/App.tsx
-import React, { useEffect } from 'react'; // <<< Import useEffect
-import { Allotment } from 'allotment'; // Import Allotment
-import 'allotment/dist/style.css'; // Ensure styles are imported
+import React, { useEffect, useState, useCallback } from 'react'; // <<< Import useState, useCallback
+import { Allotment } from 'allotment';
+import 'allotment/dist/style.css';
 import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
-import StatusBar from './components/StatusBar'; // <<< NEW: Import StatusBar
-import './App.css'; // Import the layout styles
+import StatusBar from './components/StatusBar';
+import CommandPalette from './components/CommandPalette'; // <<< NEW: Import CommandPalette
+import './App.css';
 
 // Helper function to get initial sidebar width from CSS variable
 const getSidebarInitialSize = (): number => {
-  // Ensure document exists before trying to access it
-  if (typeof document === 'undefined') return 150; // Default for non-browser env
+  if (typeof document === 'undefined') return 150;
   try {
       const widthValue = getComputedStyle(document.documentElement)
                            .getPropertyValue('--sidebar-width')?.trim() || '150px';
@@ -24,60 +24,62 @@ const getSidebarInitialSize = (): number => {
 
 
 function App() {
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false); // <<< NEW: State for palette
 
-  // Effect for keyboard shortcuts (no changes needed here)
+  const toggleCommandPalette = useCallback(() => {
+    setIsCommandPaletteOpen(prev => !prev);
+  }, []);
+
+  // Effect for keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Use Ctrl+Alt modifiers for less conflict potential in WSL
       const ctrlAlt = event.ctrlKey && event.altKey;
+      const ctrlShift = event.ctrlKey && event.shiftKey; // <<< NEW: For palette shortcut
+      const metaShift = event.metaKey && event.shiftKey; // <<< NEW: For Mac palette shortcut
 
-      if (ctrlAlt && event.key.toLowerCase() === 'q') { // Ctrl+Alt+Q to Quit
+      if (ctrlAlt && event.key.toLowerCase() === 'q') {
         console.log("Renderer: Ctrl+Alt+Q detected, requesting app quit.");
-        event.preventDefault(); // Prevent potential browser/OS action
+        event.preventDefault();
         window.electronAPI.app_quit();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'f') { // Ctrl+Alt+F to Toggle Fullscreen
+      } else if (ctrlAlt && event.key.toLowerCase() === 'f') {
         console.log("Renderer: Ctrl+Alt+F detected, requesting fullscreen toggle.");
         event.preventDefault();
         window.electronAPI.window_toggleFullscreen();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'i') { // Ctrl+Alt+I to Toggle DevTools
+      } else if (ctrlAlt && event.key.toLowerCase() === 'i') {
          console.log("Renderer: Ctrl+Alt+I detected, requesting devtools toggle.");
          event.preventDefault();
          window.electronAPI.window_toggleDevTools();
+      } else if ((ctrlShift || metaShift) && event.key.toLowerCase() === 'p') { // <<< NEW: Palette shortcut
+          console.log("Renderer: Ctrl/Cmd+Shift+P detected, toggling command palette.");
+          event.preventDefault();
+          toggleCommandPalette(); // <<< NEW: Call toggle function
       }
-        // Can add more shortcuts here (e.g., Ctrl+S handled in EditorPanel)
     };
 
-    console.log("Adding global keyboard shortcuts listener.");
+    console.log("Adding global keyboard shortcuts listener (including Cmd/Ctrl+Shift+P)."); // Updated log
     window.addEventListener('keydown', handleKeyDown);
 
-    // Cleanup function to remove the listener when the component unmounts
     return () => {
       console.log("Removing global keyboard shortcuts listener.");
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []); // Empty dependency array ensures this effect runs only once on mount
+  }, [toggleCommandPalette]); // <<< NEW: Add toggleCommandPalette dependency
 
   return (
-    // The app-container is now a flex container for the main content and status bar
     <div className="app-container">
       {/* Main content area (Allotment for Sidebar/MainPanel split) */}
       <div className="main-content-area">
         <Allotment>
           <Allotment.Pane
-            preferredSize={getSidebarInitialSize()} // Use CSS var for initial width
-            minSize={150}  // Minimum width for the sidebar (matches default)
-            maxSize={500}  // Maximum width for the sidebar
-            snap           // Enable snapping
+            preferredSize={getSidebarInitialSize()}
+            minSize={150}
+            maxSize={500}
+            snap
           >
-            {/* Sidebar takes the first pane */}
             <Sidebar />
           </Allotment.Pane>
 
-          <Allotment.Pane
-            minSize={300} // Minimum width for the main content area
-            // No preferredSize needed here, it will take remaining space
-          >
-            {/* MainPanel (containing the vertical editor/terminal split) takes the second pane */}
+          <Allotment.Pane minSize={300} >
             <MainPanel />
           </Allotment.Pane>
         </Allotment>
@@ -85,6 +87,12 @@ function App() {
 
       {/* Status Bar rendered below the main content area */}
       <StatusBar />
+
+      {/* Command Palette rendered conditionally as an overlay */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+      />
     </div>
   );
 }

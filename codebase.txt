@@ -1473,18 +1473,18 @@ import React, {
 --- START FILE: src/renderer/App.tsx ---
 // --- START FILE: src/renderer/App.tsx ---
 // src/renderer/App.tsx
-import React, { useEffect } from 'react'; // <<< Import useEffect
-import { Allotment } from 'allotment'; // Import Allotment
-import 'allotment/dist/style.css'; // Ensure styles are imported
+import React, { useEffect, useState, useCallback } from 'react'; // <<< Import useState, useCallback
+import { Allotment } from 'allotment';
+import 'allotment/dist/style.css';
 import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
-import StatusBar from './components/StatusBar'; // <<< NEW: Import StatusBar
-import './App.css'; // Import the layout styles
+import StatusBar from './components/StatusBar';
+import CommandPalette from './components/CommandPalette'; // <<< NEW: Import CommandPalette
+import './App.css';
 
 // Helper function to get initial sidebar width from CSS variable
 const getSidebarInitialSize = (): number => {
-  // Ensure document exists before trying to access it
-  if (typeof document === 'undefined') return 150; // Default for non-browser env
+  if (typeof document === 'undefined') return 150;
   try {
       const widthValue = getComputedStyle(document.documentElement)
                            .getPropertyValue('--sidebar-width')?.trim() || '150px';
@@ -1497,60 +1497,62 @@ const getSidebarInitialSize = (): number => {
 
 
 function App() {
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false); // <<< NEW: State for palette
 
-  // Effect for keyboard shortcuts (no changes needed here)
+  const toggleCommandPalette = useCallback(() => {
+    setIsCommandPaletteOpen(prev => !prev);
+  }, []);
+
+  // Effect for keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Use Ctrl+Alt modifiers for less conflict potential in WSL
       const ctrlAlt = event.ctrlKey && event.altKey;
+      const ctrlShift = event.ctrlKey && event.shiftKey; // <<< NEW: For palette shortcut
+      const metaShift = event.metaKey && event.shiftKey; // <<< NEW: For Mac palette shortcut
 
-      if (ctrlAlt && event.key.toLowerCase() === 'q') { // Ctrl+Alt+Q to Quit
+      if (ctrlAlt && event.key.toLowerCase() === 'q') {
         console.log("Renderer: Ctrl+Alt+Q detected, requesting app quit.");
-        event.preventDefault(); // Prevent potential browser/OS action
+        event.preventDefault();
         window.electronAPI.app_quit();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'f') { // Ctrl+Alt+F to Toggle Fullscreen
+      } else if (ctrlAlt && event.key.toLowerCase() === 'f') {
         console.log("Renderer: Ctrl+Alt+F detected, requesting fullscreen toggle.");
         event.preventDefault();
         window.electronAPI.window_toggleFullscreen();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'i') { // Ctrl+Alt+I to Toggle DevTools
+      } else if (ctrlAlt && event.key.toLowerCase() === 'i') {
          console.log("Renderer: Ctrl+Alt+I detected, requesting devtools toggle.");
          event.preventDefault();
          window.electronAPI.window_toggleDevTools();
+      } else if ((ctrlShift || metaShift) && event.key.toLowerCase() === 'p') { // <<< NEW: Palette shortcut
+          console.log("Renderer: Ctrl/Cmd+Shift+P detected, toggling command palette.");
+          event.preventDefault();
+          toggleCommandPalette(); // <<< NEW: Call toggle function
       }
-        // Can add more shortcuts here (e.g., Ctrl+S handled in EditorPanel)
     };
 
-    console.log("Adding global keyboard shortcuts listener.");
+    console.log("Adding global keyboard shortcuts listener (including Cmd/Ctrl+Shift+P)."); // Updated log
     window.addEventListener('keydown', handleKeyDown);
 
-    // Cleanup function to remove the listener when the component unmounts
     return () => {
       console.log("Removing global keyboard shortcuts listener.");
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []); // Empty dependency array ensures this effect runs only once on mount
+  }, [toggleCommandPalette]); // <<< NEW: Add toggleCommandPalette dependency
 
   return (
-    // The app-container is now a flex container for the main content and status bar
     <div className="app-container">
       {/* Main content area (Allotment for Sidebar/MainPanel split) */}
       <div className="main-content-area">
         <Allotment>
           <Allotment.Pane
-            preferredSize={getSidebarInitialSize()} // Use CSS var for initial width
-            minSize={150}  // Minimum width for the sidebar (matches default)
-            maxSize={500}  // Maximum width for the sidebar
-            snap           // Enable snapping
+            preferredSize={getSidebarInitialSize()}
+            minSize={150}
+            maxSize={500}
+            snap
           >
-            {/* Sidebar takes the first pane */}
             <Sidebar />
           </Allotment.Pane>
 
-          <Allotment.Pane
-            minSize={300} // Minimum width for the main content area
-            // No preferredSize needed here, it will take remaining space
-          >
-            {/* MainPanel (containing the vertical editor/terminal split) takes the second pane */}
+          <Allotment.Pane minSize={300} >
             <MainPanel />
           </Allotment.Pane>
         </Allotment>
@@ -1558,6 +1560,12 @@ function App() {
 
       {/* Status Bar rendered below the main content area */}
       <StatusBar />
+
+      {/* Command Palette rendered conditionally as an overlay */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+      />
     </div>
   );
 }
@@ -4202,6 +4210,213 @@ export default FileTreeNode;
 /* --- END FILE: src/renderer/components/TabContainer.css --- */
 --- END FILE: src/renderer/components/TabContainer.css ---
 
+--- START FILE: src/renderer/components/CommandPalette.css ---
+/* --- START FILE: src/renderer/components/CommandPalette.css --- */
+/* src/renderer/components/CommandPalette.css */
+
+.command-palette-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 10vh;
+    z-index: 1000;
+}
+
+.command-palette-container {
+    background-color: var(--color-bg-sidebar);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-accent);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-md);
+    width: 90%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.command-palette-input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-lg);
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-input);
+    color: var(--color-text-primary);
+    box-sizing: border-box;
+}
+
+.command-palette-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-border-focus);
+    box-shadow: 0 1px 0 0 var(--color-border-focus);
+}
+
+.command-palette-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    flex-grow: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg);
+}
+
+/* Scrollbar Styling */
+.command-palette-list::-webkit-scrollbar { width: 8px; }
+.command-palette-list::-webkit-scrollbar-track { background: var(--scrollbar-track-bg); }
+.command-palette-list::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb-bg); border-radius: 4px; }
+.command-palette-list::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black); }
+
+
+.command-palette-item {
+    padding: var(--spacing-xs) var(--spacing-md);
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Use Flexbox for icon alignment */
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm); /* Space between icon and label */
+}
+.command-palette-item:last-child {
+    border-bottom: none;
+}
+
+.command-palette-item:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.command-palette-item.selected {
+    background-color: var(--color-bg-selected);
+    color: var(--color-text-inverse);
+}
+/* Ensure icon color matches selected text color */
+.command-palette-item.selected .command-palette-icon {
+    color: var(--color-text-inverse);
+}
+
+
+.command-palette-item.no-results {
+    font-style: italic;
+    color: var(--color-text-tertiary);
+    cursor: default;
+    justify-content: center; /* Center the no results text */
+}
+.command-palette-item.no-results:hover,
+.command-palette-item.no-results.selected {
+    background-color: transparent;
+    color: var(--color-text-tertiary);
+}
+
+/* Icon Styling */
+.command-palette-icon {
+    font-size: 1em; /* Match text size or adjust slightly */
+    color: var(--color-text-secondary); /* Use secondary color */
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    width: 1.2em; /* Give icon a consistent width */
+    text-align: center;
+}
+
+.command-palette-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* --- Theme Specific Overrides --- */
+
+/* Win95/mIRC Specifics */
+.theme-win95 .command-palette-container,
+.theme-mirc .command-palette-container {
+    border: none;
+    border-radius: 0;
+    box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent),
+                inset -1px -1px var(--win95-bevel-shadow-light, transparent),
+                1px 1px 0 1px var(--win95-bevel-shadow-darker, transparent),
+                -1px -1px 0 1px var(--win95-bevel-shadow-lighter, transparent);
+}
+.theme-win95 .command-palette-input,
+.theme-mirc .command-palette-input {
+    border-radius: 0;
+    border-bottom: none;
+     box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent),
+                inset -1px -1px var(--win95-bevel-shadow-light, transparent);
+    margin: 2px;
+    width: calc(100% - 4px);
+}
+.theme-win95 .command-palette-input:focus,
+.theme-mirc .command-palette-input:focus {
+    box-shadow: inset 1px 1px var(--win95-bevel-shadow-dark, transparent),
+                inset -1px -1px var(--win95-bevel-shadow-light, transparent);
+}
+.theme-win95 .command-palette-list,
+.theme-mirc .command-palette-list {
+    margin: 0 2px 2px 2px;
+}
+.theme-win95 .command-palette-item,
+.theme-mirc .command-palette-item {
+     border-bottom: 1px solid var(--color-border);
+}
+.theme-win95 .command-palette-item.selected,
+.theme-mirc .command-palette-item.selected {
+    background-color: var(--color-bg-selected);
+    color: var(--color-text-inverse);
+}
+.theme-win95 .command-palette-item.selected .command-palette-icon,
+.theme-mirc .command-palette-item.selected .command-palette-icon {
+    color: var(--color-text-inverse);
+}
+.theme-win95 .command-palette-icon,
+.theme-mirc .command-palette-icon {
+    color: var(--color-text-secondary);
+}
+
+
+/* Pip-Boy Specifics */
+.theme-pipboy .command-palette-container {
+    border-color: var(--pipboy-green);
+    background-color: var(--pipboy-bg);
+}
+.theme-pipboy .command-palette-input {
+    background-color: var(--pipboy-bg-lighter);
+    border-bottom-color: var(--pipboy-green-dark);
+    color: var(--pipboy-green);
+}
+.theme-pipboy .command-palette-input:focus {
+    border-bottom-color: var(--pipboy-green);
+    box-shadow: 0 1px 0 0 var(--pipboy-green);
+}
+.theme-pipboy .command-palette-item {
+     border-bottom-color: var(--pipboy-green-dark);
+     color: var(--pipboy-green);
+}
+.theme-pipboy .command-palette-item:hover {
+     background-color: var(--pipboy-green-darker);
+}
+.theme-pipboy .command-palette-item.selected {
+    background-color: var(--pipboy-green-dark);
+    color: var(--pipboy-bg);
+}
+.theme-pipboy .command-palette-icon {
+    color: var(--pipboy-green);
+}
+.theme-pipboy .command-palette-item.selected .command-palette-icon {
+    color: var(--pipboy-bg);
+}
+/* --- END FILE: src/renderer/components/CommandPalette.css --- */
+--- END FILE: src/renderer/components/CommandPalette.css ---
+
 --- START FILE: src/renderer/components/EditorPanel.tsx ---
 // --- START FILE: src/renderer/components/EditorPanel.tsx ---
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
@@ -4653,6 +4868,193 @@ export default EditorPanel;
     background: color-mix(in srgb, var(--scrollbar-thumb-bg) 80%, black);
   }
 --- END FILE: src/renderer/components/CustomSelect.css ---
+
+--- START FILE: src/renderer/components/CommandPalette.tsx ---
+// --- START FILE: src/renderer/components/CommandPalette.tsx ---
+import React, { useState, useEffect, useRef, useCallback, useMemo, ComponentType } from 'react'; // Import ComponentType
+import { useTheme, ThemeName } from '../contexts/ThemeContext';
+import { useTerminals } from '../contexts/TerminalContext';
+// --- Icon Imports ---
+import {
+    FaPalette, FaTerminal, FaFolderOpen, FaSignOutAlt, FaTools, FaExpandAlt,
+    FaMinusSquare, FaPlusSquare, FaRedo // Removed FaFont, Added specific icons
+} from 'react-icons/fa';
+// Import other icons as needed
+import './CommandPalette.css';
+
+interface Command {
+    id: string;
+    label: string;
+    execute: () => void | Promise<void>;
+    icon?: ComponentType<{ className?: string }>; // Optional icon component type
+}
+
+interface CommandPaletteProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+// Define theme options statically here if not exported from context
+const availableThemes: { value: ThemeName; label: string }[] = [
+    { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' },
+    { value: 'win95', label: 'Win95' }, { value: 'pipboy', label: 'Pip-Boy' },
+    { value: 'mirc', label: 'mIRC' }, { value: 'qbasic', label: 'QBasic' },
+    { value: 'orange', label: 'Amber' }, { value: 'cga', label: 'CGA' },
+    { value: 'atari', label: 'Atari 2600' }, { value: 'snes', label: 'SNES' },
+    { value: 'bw_tv', label: 'B&W TV' },
+];
+
+const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
+    // Add fontSize functions from context
+    const { setTheme, increaseFontSize, decreaseFontSize, resetFontSize } = useTheme();
+    const { createTerminal } = useTerminals();
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const listRef = useRef<HTMLUListElement>(null);
+
+    // --- Define All Available Commands (WITH ICONS) ---
+    const allCommands = useMemo<Command[]>(() => {
+        const commands: Command[] = [
+            // --- App & Window Commands ---
+            { id: 'app.quit', label: 'Application: Quit', icon: FaSignOutAlt, execute: () => window.electronAPI.app_quit() },
+            { id: 'window.toggleDevTools', label: 'Developer: Toggle Developer Tools', icon: FaTools, execute: () => window.electronAPI.window_toggleDevTools() },
+            { id: 'window.toggleFullscreen', label: 'View: Toggle Fullscreen', icon: FaExpandAlt, execute: () => window.electronAPI.window_toggleFullscreen() },
+
+            // --- Terminal Commands ---
+            { id: 'terminal.new', label: 'Terminal: New Terminal', icon: FaTerminal, execute: createTerminal },
+            // { id: 'terminal.clear', label: 'Terminal: Clear Active Terminal', icon: FaBroom, execute: clearActiveTerminal }, // If added
+
+            // --- File Commands ---
+            {
+                id: 'file.openFolder',
+                label: 'File: Open Folder...',
+                icon: FaFolderOpen,
+                execute: async () => {
+                    await window.electronAPI.dialog_openDirectory();
+                }
+            },
+            // { id: 'file.save', label: 'File: Save Active File', icon: FaSave, execute: () => { /* ... */ } },
+
+            // --- View/Theme Commands ---
+            { id: 'view.increaseFontSize', label: 'View: Increase Font Size', icon: FaPlusSquare, execute: increaseFontSize },
+            { id: 'view.decreaseFontSize', label: 'View: Decrease Font Size', icon: FaMinusSquare, execute: decreaseFontSize },
+            { id: 'view.resetFontSize', label: 'View: Reset Font Size', icon: FaRedo, execute: resetFontSize }, // FaUndo or FaRedo could work
+
+             ...availableThemes.map(th => ({
+                id: `theme.set.${th.value}`,
+                label: `Theme: Set ${th.label}`,
+                icon: FaPalette, // Generic theme icon
+                execute: () => setTheme(th.value),
+            })),
+        ];
+        return commands.sort((a, b) => a.label.localeCompare(b.label));
+    }, [setTheme, createTerminal, increaseFontSize, decreaseFontSize, resetFontSize]); // Add new context functions to dependency array
+
+    // --- Filter Commands Based on Search Term ---
+    const filteredCommands = useMemo(() => {
+        if (!searchTerm.trim()) return allCommands;
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        // Simple filter, could be enhanced with fuzzy search later
+        return allCommands.filter(command =>
+            command.label.toLowerCase().includes(lowerSearchTerm)
+        );
+    }, [searchTerm, allCommands]);
+
+    // --- Effects (No change needed here) ---
+    useEffect(() => {
+        if (isOpen) {
+            setSearchTerm('');
+            setSelectedIndex(0);
+            const timer = setTimeout(() => inputRef.current?.focus(), 50);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen && listRef.current) {
+            const selectedElement = listRef.current.querySelector('.selected') as HTMLLIElement;
+            if (selectedElement) {
+                selectedElement.scrollIntoView({ block: 'nearest' });
+            }
+        }
+    }, [selectedIndex, isOpen, filteredCommands]);
+
+    // --- Event Handlers (No change needed here) ---
+    const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            onClose();
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            // Ensure selection wraps correctly within the bounds
+             setSelectedIndex(prev => Math.min(prev + 1, filteredCommands.length - 1));
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+             setSelectedIndex(prev => Math.max(prev - 1, 0));
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            if (filteredCommands[selectedIndex]) {
+                filteredCommands[selectedIndex].execute();
+                onClose();
+            }
+        }
+    }, [filteredCommands, selectedIndex, onClose]);
+
+    const handleItemClick = useCallback((index: number) => {
+        if (filteredCommands[index]) {
+            filteredCommands[index].execute();
+            onClose();
+        }
+    }, [filteredCommands, onClose]);
+
+    // --- Render ---
+    if (!isOpen) return null;
+
+    return (
+        <div className="command-palette-overlay" onMouseDown={onClose}>
+            <div className="command-palette-container" onMouseDown={e => e.stopPropagation()}>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Enter command..."
+                    value={searchTerm}
+                    onChange={e => { setSearchTerm(e.target.value); setSelectedIndex(0); }}
+                    onKeyDown={handleKeyDown}
+                    className="command-palette-input"
+                    aria-label="Command Palette Input"
+                    autoComplete="off"
+                />
+                <ul ref={listRef} className="command-palette-list" role="listbox">
+                    {filteredCommands.length > 0 ? (
+                        filteredCommands.map((command, index) => (
+                            <li
+                                key={command.id}
+                                className={`command-palette-item ${index === selectedIndex ? 'selected' : ''}`}
+                                onClick={() => handleItemClick(index)}
+                                onMouseEnter={() => setSelectedIndex(index)}
+                                role="option"
+                                aria-selected={index === selectedIndex}
+                                id={`command-palette-item-${index}`}
+                            >
+                                {/* Render Icon if it exists */}
+                                {command.icon && <command.icon className="command-palette-icon" />}
+                                <span className="command-palette-label">{command.label}</span>
+                            </li>
+                        ))
+                    ) : (
+                        <li className="command-palette-item no-results">No commands found</li>
+                    )}
+                </ul>
+            </div>
+        </div>
+    );
+};
+
+export default CommandPalette;
+// --- END FILE: src/renderer/components/CommandPalette.tsx ---
+--- END FILE: src/renderer/components/CommandPalette.tsx ---
 
 --- START FILE: src/renderer/components/Tab.tsx ---
 // --- START FILE: src/renderer/components/Tab.tsx ---

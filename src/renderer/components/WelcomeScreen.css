@@ -1,0 +1,93 @@
+/* src/renderer/components/WelcomeScreen.css */
+.welcome-screen-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: var(--color-bg-editor); /* Match editor background */
+    color: var(--color-text-secondary); /* Use secondary text color */
+    padding: var(--spacing-lg);
+    overflow: auto; /* Allow scrolling if content overflows */
+    user-select: none;
+}
+
+.welcome-content {
+    max-width: 600px;
+}
+
+.welcome-content h1 {
+    color: var(--color-text-heading);
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.welcome-content p {
+    font-size: var(--font-size-md);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.6;
+}
+
+.welcome-hints {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    text-align: left; /* Align hints to the left */
+    margin-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+}
+
+.hint-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+}
+
+.hint-icon {
+    font-size: 1.2em;
+    color: var(--color-text-accent);
+    flex-shrink: 0;
+}
+
+.icon-inline svg {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+/* Style keyboard keys */
+kbd {
+    background-color: var(--color-bg-sidebar);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    padding: 1px 4px;
+    font-family: var(--font-family-mono);
+    font-size: 0.9em;
+    box-shadow: inset 0 -1px 0 var(--color-border-accent);
+    color: var(--color-text-primary);
+}
+
+/* Win95/mIRC Keyboard Key Overrides */
+.theme-win95 kbd, .theme-mirc kbd {
+    border: none;
+    box-shadow: inset -1px -1px var(--win95-bevel-shadow-darker, transparent),
+                inset 1px 1px var(--win95-bevel-shadow-light, transparent),
+                inset -2px -2px var(--win95-bevel-shadow-dark, transparent),
+                inset 2px 2px var(--win95-bevel-shadow-lighter, transparent);
+    background-color: var(--color-bg-button);
+    color: var(--color-text-button);
+    padding: 2px 4px;
+    text-shadow: none;
+}
+
+/* Pip-Boy Keyboard Key Overrides */
+.theme-pipboy kbd {
+    border: 1px solid var(--pipboy-green-dark);
+    background-color: var(--pipboy-bg-lighter);
+    color: var(--pipboy-green);
+    box-shadow: none;
+}

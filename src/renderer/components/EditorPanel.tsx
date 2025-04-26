@@ -1,9 +1,11 @@
-// --- START FILE: src/renderer/components/EditorPanel.tsx ---
+// src/renderer/components/EditorPanel.tsx
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import MonacoEditor from 'react-monaco-editor';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
 import { useEditor } from '../contexts/EditorContext';
+import WelcomeScreen from './WelcomeScreen'; // Import the new component
+import './WelcomeScreen.css'; // Import the styles for the welcome screen
 
 // Helper function to safely get and parse font size from CSS variable
 const getEditorFontSize = (): number => {
@@ -59,6 +61,7 @@ const getLanguageFromPath = (filePath: string | null): string => {
 const EditorPanel: React.FC = () => {
     const { theme } = useTheme();
     const {
+        openFiles, // Need this to check if any files are open
         activeFilePath,
         getActiveFile,
         updateActiveFileDirtyState, // <-- Function to call
@@ -183,58 +186,75 @@ const EditorPanel: React.FC = () => {
         monacoInstance.editor.setTheme(getMonacoThemeName(theme));
         editor.updateOptions({ fontSize: getEditorFontSize() });
 
+        // Only set initial value if files are actually open during mount
+        // Otherwise, the WelcomeScreen will be shown.
         const initialActiveFile = getActiveFile();
-        if (initialActiveFile && initialActiveFile.content !== null) {
+        if (openFiles.length > 0 && initialActiveFile && initialActiveFile.content !== null) {
             console.log(`EditorDidMount: Setting initial model value for ${initialActiveFile.path}`);
             editor.setValue(initialActiveFile.content);
             lastSetModelPath.current = initialActiveFile.path;
             monacoInstance.editor.setModelLanguage(editor.getModel()!, getLanguageFromPath(initialActiveFile.path));
             const initialPosition = editor.getPosition();
             if (initialPosition) setCursorPosition(initialPosition);
-        } else {
-            editor.setValue('// Open a file from the sidebar...');
-            lastSetModelPath.current = null;
-            monacoInstance.editor.setModelLanguage(editor.getModel()!, 'plaintext');
-            setCursorPosition(null);
+            editor.getModel()?.pushStackElement();
+            editor.focus();
+        } else if (openFiles.length > 0) {
+             // Case where files are open, but maybe none are active yet or content is null
+             editor.setValue('// Loading file...'); // Placeholder while context loads
+             lastSetModelPath.current = null;
+             monacoInstance.editor.setModelLanguage(editor.getModel()!, 'plaintext');
+             setCursorPosition(null);
         }
-        editor.getModel()?.pushStackElement();
+        // If openFiles.length is 0, don't set any value here, WelcomeScreen shows
+
 
         // Attach the onChange listener - calls the MODIFIED handler
         changeListenerDisposable.current = editor.onDidChangeModelContent(() => {
-            handleInternalChange(); // This now calls the context function
+            // Only run change handler if files are open
+            if (openFiles.length > 0) {
+                handleInternalChange(); // This now calls the context function
+            }
         });
         console.log("EditorDidMount: Attached onDidChangeModelContent listener.");
 
         cursorListenerDisposable.current = editor.onDidChangeCursorPosition((e) => {
-            if (e.position) setCursorPosition(e.position);
-            else setCursorPosition(null);
+            // Only update cursor position if files are open
+            if (openFiles.length > 0) {
+                if (e.position) setCursorPosition(e.position);
+                else setCursorPosition(null);
+            } else {
+                 setCursorPosition(null); // Ensure cursor pos is null if no files open
+            }
         });
         console.log("EditorDidMount: Attached onDidChangeCursorPosition listener.");
 
         // Add Ctrl+S Command (No change here, relies on context save function)
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-            console.log(`[Ctrl+S Handler] Triggered.`);
-            const currentContent = editorRef.current?.getValue();
-            const activeFileNow = getActiveFile(); // Still useful to check *if* there's an active file
+             // Only save if files are open
+             if (openFiles.length > 0) {
+                console.log(`[Ctrl+S Handler] Triggered.`);
+                const currentContent = editorRef.current?.getValue();
+                const activeFileNow = getActiveFile(); // Still useful to check *if* there's an active file
 
-            console.log(`[Ctrl+S Handler] Content to save (length: ${currentContent?.length ?? 'undefined'}):`, currentContent?.substring(0, 50) + '...');
+                console.log(`[Ctrl+S Handler] Content to save (length: ${currentContent?.length ?? 'undefined'}):`, currentContent?.substring(0, 50) + '...');
 
-            if (activeFileNow && currentContent !== undefined) {
-                 // We no longer log dirty state here, context handles it
-                 console.log(`[Ctrl+S Handler] Active file: ${activeFileNow.path}. Calling saveActiveFile...`);
-                 saveActiveFile(currentContent)
-                    .then(() => {
-                        console.log(`[Ctrl+S Handler] saveActiveFile promise resolved (may or may not indicate success) for ${activeFileNow.path}.`);
-                    })
-                    .catch(err => {
-                        console.error(`[Ctrl+S Handler] Error during save operation for ${activeFileNow.path}:`, err);
-                    });
-            } else {
-                console.log(`[Ctrl+S Handler] No active file or content unavailable. Cannot save.`);
-            }
+                if (activeFileNow && currentContent !== undefined) {
+                     // We no longer log dirty state here, context handles it
+                     console.log(`[Ctrl+S Handler] Active file: ${activeFileNow.path}. Calling saveActiveFile...`);
+                     saveActiveFile(currentContent)
+                        .then(() => {
+                            console.log(`[Ctrl+S Handler] saveActiveFile promise resolved (may or may not indicate success) for ${activeFileNow.path}.`);
+                        })
+                        .catch(err => {
+                            console.error(`[Ctrl+S Handler] Error during save operation for ${activeFileNow.path}:`, err);
+                        });
+                } else {
+                    console.log(`[Ctrl+S Handler] No active file or content unavailable. Cannot save.`);
+                }
+             } else {
+                  console.log(`[Ctrl+S Handler] No files open. Cannot save.`);
+             }
          });
-
-        editor.focus();
 
         return () => {
              console.log("Editor unmounting, disposing listeners.");
@@ -245,11 +265,19 @@ const EditorPanel: React.FC = () => {
              editorRef.current = null;
              monacoRef.current = null;
         };
-    }, [theme, getMonacoThemeName, getActiveFile, handleInternalChange, saveActiveFile, updateActiveFileDirtyState, setCursorPosition]);
+    }, [theme, getMonacoThemeName, getActiveFile, handleInternalChange, saveActiveFile, updateActiveFileDirtyState, setCursorPosition, openFiles]); // Added openFiles
 
 
     // --- Effect to UPDATE editor content when ACTIVE file changes ---
     useEffect(() => {
+        // Skip this effect entirely if no files are open
+        if (openFiles.length === 0) {
+             console.log("No files open, skipping active file update effect.");
+             // Ensure last path ref is cleared if editor was previously showing a file
+             if (lastSetModelPath.current !== null) lastSetModelPath.current = null;
+             return;
+        }
+
         const editor = editorRef.current;
         const monaco = monacoRef.current;
 
@@ -266,15 +294,19 @@ const EditorPanel: React.FC = () => {
         }
 
         if (!activeFile) {
-            if (lastSetModelPath.current !== null) {
-                console.log("No active file, clearing editor.");
-                editor.setValue('');
-                lastSetModelPath.current = null;
-                monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
-                editor.updateOptions({ readOnly: true });
-                setCursorPosition(null);
-            }
-            return;
+            // This case happens when files are open, but the active one is null
+            // (e.g., after closing the last active tab but others remain)
+            // Keep the editor instance but maybe show a placeholder? Or leave it blank?
+            // Current logic below handles setting value to '' if activeFile.content is null
+             if (lastSetModelPath.current !== null) {
+                 console.log("Active file is now null (but other files may be open). Clearing editor display (temporarily).");
+                 editor.setValue(''); // Clear display, but keep editor instance
+                 lastSetModelPath.current = null; // Mark that no specific file model is currently set
+                 monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
+                 editor.updateOptions({ readOnly: true });
+                 setCursorPosition(null);
+             }
+             return;
         }
 
         // *** IMPORTANT: Check activeFile.content specifically ***
@@ -311,6 +343,8 @@ const EditorPanel: React.FC = () => {
              console.log(`Active file path ${activeFile.path} hasn't changed, skipping model update.`);
         } else {
              console.log(`Active file changed to ${activeFile.path} BUT content is null or still loading. Deferring editor model update.`);
+             // Optionally set a temporary loading message in the editor itself if desired
+             // editor.setValue('// Loading...');
         }
 
 
@@ -321,41 +355,50 @@ const EditorPanel: React.FC = () => {
              editor.updateOptions({ readOnly: shouldBeReadOnly });
         }
 
-    }, [activeFile, setCursorPosition]);
+    }, [activeFile, setCursorPosition, openFiles]); // Added openFiles
 
 
     // Effect to update theme and font size
     useEffect(() => {
+        // Only run if files are open (Monaco instance might exist but shouldn't be updated if welcome screen is showing)
+        if (openFiles.length === 0) return;
+
         const editor = editorRef.current;
         const monaco = monacoRef.current;
         if (editor && monaco) {
             monaco.editor.setTheme(getMonacoThemeName(theme));
             editor.updateOptions({ fontSize: getEditorFontSize() });
         }
-    }, [theme, getMonacoThemeName]);
+    }, [theme, getMonacoThemeName, openFiles]); // Added openFiles
 
 
     return (
         <div className="editor-panel" id="editor-panel-main">
-            {activeFile?.error && <div className="editor-context-error">Error: {activeFile.error}</div>}
-            {activeFile?.isLoading && <div className="editor-loading-indicator">Loading...</div>}
+            {/* Conditional Rendering: Show WelcomeScreen or Editor */}
+            {openFiles.length === 0 ? (
+                <WelcomeScreen />
+            ) : (
+                <>
+                    {/* Indicators shown only when editor is active */}
+                    {activeFile?.error && <div className="editor-context-error">Error: {activeFile.error}</div>}
+                    {activeFile?.isLoading && <div className="editor-loading-indicator">Loading...</div>}
 
-            <MonacoEditor
-                key={activeFilePath || 'no-file'}
-                width="100%"
-                height="100%"
-                language={getLanguageFromPath(activeFilePath)}
-                theme={getMonacoThemeName(theme)}
-                options={editorOptions}
-                // Value is primarily controlled by the useEffect hook reacting to activeFile
-                value={activeFile?.content ?? ''} // Provide default empty string
-                // onChange is technically optional now as we use the internal listener
-                // onChange={handleInternalChange} // This would call the *new* handleInternalChange
-                editorDidMount={editorDidMount}
-            />
+                    <MonacoEditor
+                        key={activeFilePath || 'editor-active'} // Key changes when active file changes or becomes null
+                        width="100%"
+                        height="100%"
+                        language={getLanguageFromPath(activeFilePath)} // Language based on current active path
+                        theme={getMonacoThemeName(theme)}
+                        options={editorOptions}
+                        value={activeFile?.content ?? ''} // Use activeFile context for value, default to empty string
+                        editorDidMount={editorDidMount}
+                        // onChange prop is not strictly necessary due to internal listener, but can leave it
+                        // onChange={handleInternalChange}
+                    />
+                </>
+            )}
         </div>
     );
 };
 
 export default EditorPanel;
-// --- END FILE: src/renderer/components/EditorPanel.tsx ---

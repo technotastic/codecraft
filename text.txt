@@ -1,3 +1,132 @@
+--- START FILE: text.txt ---
+
+---
+
+**Project Continuation Prompt: CodeCraft IDE (State after Fixing Recent Folders & Editor Theme)**
+
+**1. Project Goal:**
+To build a functional desktop code editor (CodeCraft IDE) using Electron, React, TypeScript, and Vite, featuring an integrated terminal, file management, and basic customization.
+
+**2. Core Technologies:**
+*   **Framework:** Electron
+*   **UI (Renderer):** React, TypeScript, Vite
+*   **Persistence:** `electron-store` (for recent folders)
+*   **Editor Component:** Monaco Editor (`react-monaco-editor`)
+*   **Terminal Component:** Xterm.js + `node-pty` (via IPC)
+*   **Layout:** `allotment`
+*   **Styling:** CSS Variables, Theme Context
+
+**3. Current State Summary:**
+
+*   **Development Environment:** Manual setup using Vite dev server (`dev:vite`), `tsc --watch` for main/preload (`dev:main`), and `electron .` (`start`) in separate terminals. **Node.js version upgraded to v20+** to support dependencies. `electron-store` downgraded to v8 to resolve ESM/CJS compatibility issues during build/runtime. Installation process stabilized.
+*   **Architecture:**
+    *   **Main Process (`main/index.ts`):** Handles window (starts fullscreen), app menu, IPC (dialogs, multi-PTY, filesystem, recent folders), basic app controls. Uses `electron-store@8` (CommonJS) for persisting recent folders list.
+    *   **Preload Script (`preload/index.ts`):** Securely exposes typed `electronAPI` via `contextBridge` for all renderer-main communication, including fetching recent folders.
+    *   **Renderer Process (`renderer/`):** React app managed by Vite.
+        *   **State Management:** `currentFolderPath` state lifted to `App.tsx` and passed down to `Sidebar`, `MainPanel`, `EditorPanel`, and `WelcomeScreen` via props to enable cross-component updates.
+*   **Key Features Implemented & Stable:**
+    *   **Layout:** Resizable horizontal split (Sidebar/Main Area) and vertical split (Editor/Terminal Area) using `Allotment`.
+    *   **Theming:** `ThemeContext` manages theme name and font size modifier. Applies `.theme-*` class to root/body. Includes a `CustomSelect` dropdown for theme switching. **Editor panel theme now correctly updates and matches the global theme when files are opened.** Base editor/terminal background/foreground colors update correctly. Monaco theme definitions updated to handle CSS variables more robustly.
+    *   **Contexts:** `ThemeContext`, `EditorContext`, `TerminalContext` manage relevant application state.
+    *   **Sidebar:**
+        *   Displays an expandable file tree (`FileTreeNode`) populated via `fs:readDirectory` IPC. Tree root controlled by `currentFolderPath` prop from `App`.
+        *   Supports "Open Folder..." (via button and File menu) which updates the `currentFolderPath` state in `App` via a callback prop.
+        *   Supports navigating up directories.
+        *   Clicking files opens them in the editor via `fs:readFile` IPC and `EditorContext`.
+    *   **Editor Area:**
+        *   Managed by `EditorContext`, supporting multiple file tabs (`TabContainer`, `Tab`).
+        *   Handles opening, closing, and focusing tabs.
+        *   Tracks and displays file dirty status (`*`) on tabs.
+        *   **Saving Confirmed Working:** Saving files via Ctrl+S (`fs:saveFile` IPC) reliably updates the file content and context state.
+        *   Renders Monaco Editor instance (`EditorPanel`) when files are open.
+        *   **Welcome Screen:** Displays (`WelcomeScreen.tsx`) when no files are open in the editor area.
+            *   Fetches and displays a list of recently opened folders from `electron-store` via IPC.
+            *   **Recent folders list is now clickable**, correctly updating the `currentFolderPath` state in `App` and loading the selected folder in the sidebar.
+        *   Basic language detection based on file extension (used for status bar display).
+    *   **Terminal Area:**
+        *   Managed by `TerminalContext`, supports multiple terminal tabs (`TerminalTabContainer`, `TerminalTab`) via '+' button.
+        *   Renders Xterm.js instances (`TerminalPanel`) per tab, managing visibility via CSS.
+        *   Multi-instance PTY communication via IPC (`pty-create`, `pty-input`, etc.) is functional.
+        *   Terminal background/foreground colors update based on the selected app theme.
+        *   Rendering issues (blank screens, color bleeding, cursor offsets) previously fixed remain fixed.
+        *   Clear Terminal Button functional.
+    *   **Status Bar:**
+        *   Implemented (`StatusBar.tsx`, `StatusBar.css`) and displays active file name, dirty status, error status, cursor line/column, basic detected language, live time, and placeholder encoding.
+    *   **Command Palette:** Basic implementation (`CommandPalette.tsx`) exists, toggled via `Ctrl/Cmd+Shift+P`. Includes commands for app/window control, new terminal, opening folders, theme switching, and font size adjustment.
+*   **Development Server Interaction:** Saving `index.html` triggers Vite reload.
+
+**4. Known Issues / Regressions & Failed Attempts:**
+
+*   **Syntax Highlighting (BROKEN):**
+    *   While base Monaco themes (background, foreground, selection, minimap) now apply correctly and respect the global theme, **token-based syntax highlighting does not work.**
+    *   Keywords, strings, comments, etc., do not receive distinct colors for any language. They seem to inherit the default foreground color.
+    *   Switching application themes updates base colors but does *not* affect token colors.
+    *   Previous attempts to fix this by adding `rules` to `defineTheme` have failed. Extreme caution required. The current `defineTheme` calls explicitly leave the `rules: []` array empty.
+*   **"Save As..." Feature Attempt (FAILED & REVERTED):**
+    *   An attempt to implement "Save As..." resulted in a blank screen.
+    *   **These changes remain fully reverted.**
+
+**5. V1 Goals Status (Reflecting Current State):**
+
+*   Functional Monaco Editor (Partially Done - multi-file, saving fixed, base theming fixed. **Highlighting broken.** "Save As..." failed.)
+*   Integrated Terminal (Done - multi-tab, rendering fixed, clear button added)
+*   File Tree/Management (Done - open/read/display/save, up navigation)
+*   Theming (Foundation done, base editor/terminal colors work. **Syntax highlighting broken.** Advanced features deferred.)
+*   Font Size Control (Done - via Command Palette)
+*   Movable/Resizable Panels (Done)
+*   Status Bar (Done)
+*   Welcome Screen (Done - includes clickable recent folders)
+*   Command Palette (Basic implementation Done)
+
+**6. Next Steps / Potential Tasks (Prioritization Needed):**
+
+*   **(CRITICAL BUG) Fix Syntax Highlighting:** This remains the top priority. Needs a *different approach*. Possible next steps:
+    *   Verify Monaco language services/workers are loading correctly in the Vite/Electron environment.
+    *   Try loading a pre-built community theme file (`.json`) for Monaco instead of using `defineTheme` to see if *any* tokenization works.
+    *   Investigate potential conflicts between Vite build process and Monaco's worker loading.
+*   **(HIGH) Implement "Save As..." Functionality:** Re-attempt carefully, starting with isolated main process logic.
+*   **(MED) Editor Polish:**
+    *   Wire up Edit Menu items (Undo/Redo should work via roles, need testing/verification).
+*   **(MED) Welcome Screen Polish:**
+    *   Make "Open Folder" hint button functional (requires passing handler down).
+    *   Add "New File" button/functionality.
+*   **(MED) Terminal Polish:**
+    *   Improve visual feedback for exited terminal processes (beyond tab title, e.g., dim panel).
+*   **(MED) Main Menu / Accelerators:** Review standard menu items and accelerators for correctness and platform consistency (e.g., Ctrl+O added for Open Folder).
+*   **(MED) Error Handling:** Improve user feedback for filesystem/PTY errors beyond current basic messages/console logs.
+*   **(LOW) File Management Extras:** New File/Folder, Delete, Rename.
+*   **(LOW) Theming - VS Code Import:** Parse `.json` themes.
+*   **(LOW) Font Loading:** Robust custom font loading.
+
+**7. Future Ideas Brainstorm:**
+*   Project-wide Search (`ripgrep`)
+*   Git Integration (Status, Basic Commands)
+*   Command Palette Enhancements (fuzzy search, more commands)
+*   Snippets
+*   Debugger Integration (DAP)
+*   Plugin System
+*   Settings UI (`electron-store`)
+*   Remote/SSH Integration
+*   Web Version (`vscode-web`)
+*   AI Code Assistance
+*   Markdown Preview
+*   Advanced Layouts (`react-mosaic`)
+
+**8. Action Requested for Next Session:**
+
+Given the recent fixes (recent folders, editor base theme) but the persistent critical bug (syntax highlighting):
+
+*   **Focus solely on diagnosing and attempting a fix for the BROKEN Syntax Highlighting.**
+*   Propose a **single, specific, and verifiable step** to investigate *why* token colors are not being applied. Avoid complex `defineTheme` modifications initially. Consider focusing on verifying language service/worker loading or trying a standard pre-built Monaco theme JSON file.
+*   Any proposed solution **MUST** prioritize stability and explain why it's unlikely to break the now-working base theming or other features.
+
+---
+
+This updated prompt reflects the successful integration of recent folders, the fix for the editor background theming, the state lifting refactor, and the dependency adjustments, while re-emphasizing the critical need to address syntax highlighting next.
+--- END FILE: text.txt ---
+
+
+****OLDER PROMPTS BELOW *****
 
 ---
 

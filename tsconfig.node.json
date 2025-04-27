@@ -1,47 +1,46 @@
 // tsconfig.node.json
 {
-    // No "extends"
-    "compilerOptions": {
-      "composite": true,            // Required by referencing config
-      "module": "CommonJS",         // Correct for Node/Electron main/preload
-      "moduleResolution": "Node",   // Correct module resolution
-      "target": "ESNext",           // Target modern JS for Electron
-      "lib": ["ESNext", "DOM"],     // Include necessary libs
+  // No "extends"
+  "compilerOptions": {
+    "composite": true,            // Required by referencing config
+    "module": "CommonJS",         // Correct for Node/Electron main/preload
+    // --- REVERT THIS LINE ---
+    "moduleResolution": "Node",   // <<< Revert back to "Node"
+    // --- END REVERT ---
+    "target": "ESNext",           // Target modern JS for Electron
+    "lib": ["ESNext", "DOM"],     // Include necessary libs
 
-      "noEmit": false,              // We MUST emit JS files
-      "outDir": "dist-electron",    // Output directory
-      "rootDir": "src",             // Source root directory
+    "noEmit": false,              // We MUST emit JS files
+    "outDir": "dist-electron",    // Output directory
+    "rootDir": "src",             // Source root directory
 
-      /* Base URL and Paths are needed if using aliases within main/preload code */
-      "baseUrl": ".",               // Define baseUrl if using paths
-      "paths": {                    // Keep paths if used within main/preload code
-        "@renderer/*": ["src/renderer/*"],
-        "@main/*": ["src/main/*"],
-        "@preload/*": ["src/preload/*"]
-        //"@shared/*": ["src/shared/*"]
-      },
-
-      "strict": true,                 // Enable strict checks
-      "esModuleInterop": true,        // Recommended for CJS/ESM interop
-      "forceConsistentCasingInFileNames": true, // Good practice
-      "skipLibCheck": false,          // *** Temporarily FALSE to force checks/emission ***
-
-      /* Node/Electron Specific Overrides */
-      "allowImportingTsExtensions": false, // No .ts imports in CJS output
-      "resolveJsonModule": true,          // Allow importing JSON
-      "isolatedModules": false            // Not isolated modules
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": ["src/renderer/*"],
+      "@main/*": ["src/main/*"],
+      "@preload/*": ["src/preload/*"]
     },
-    // Includes - Define what this config compiles
-    "include": [
-      "src/main/**/*.ts",             // Compile main process code
-      "src/preload/**/*.ts",          // Compile preload code
-      "src/shared.types.ts"           // Compile shared types if they exist (remove if not)
-    ],
-    // Excludes - Define what NOT to compile
-    "exclude": [
-      "node_modules",                 // Standard excludes
-      "dist",
-      "dist-electron",                // Exclude output from input
-      "src/renderer"                  // Exclude renderer code
-    ]
-  }
+
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    // --- CHANGE THIS LINE ---
+    "skipLibCheck": true,          // <<< Set back to TRUE (standard practice)
+    // --- END CHANGE ---
+
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": false
+  },
+  "include": [
+    "src/main/**/*.ts",
+    "src/preload/**/*.ts",
+    "src/shared.types.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-electron",
+    "src/renderer"
+  ]
+}

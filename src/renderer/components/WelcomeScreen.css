@@ -15,28 +15,130 @@
 
 .welcome-content {
     max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl); /* Add gap between sections */
 }
 
 .welcome-content h1 {
     color: var(--color-text-heading);
     font-size: var(--font-size-xl);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 0; /* Adjusted margin */
 }
 
 .welcome-content p {
     font-size: var(--font-size-md);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: 0; /* Adjusted margin */
     line-height: 1.6;
 }
 
+/* --- Section Styling --- */
+.recent-folders-section,
+.welcome-hints {
+    text-align: left; /* Align section content left */
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+}
+
+.recent-folders-section h2,
+.welcome-hints h2 {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.section-icon {
+    font-size: 0.9em; /* Slightly smaller icon */
+    color: var(--color-text-secondary);
+}
+
+/* --- Recent Folders List --- */
+.recent-folders-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs); /* Gap between list items */
+}
+
+.recent-folder-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    background-color: transparent;
+    border: 1px solid transparent; /* For spacing */
+    color: var(--color-text-primary);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    font-size: var(--font-size-sm);
+    overflow: hidden; /* Prevent content overflow */
+}
+
+.recent-folder-button:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-accent);
+}
+
+.recent-folder-button:active {
+    background-color: var(--color-bg-selected);
+    color: var(--color-text-inverse);
+}
+
+/* Style for disabled button (until click is implemented) */
+/* .recent-folder-button:disabled,
+.recent-folder-button:disabled:hover {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--color-text-tertiary);
+}
+.recent-folder-button:disabled .recent-folder-icon,
+.recent-folder-button:disabled .recent-folder-path {
+    color: var(--color-text-tertiary);
+} */
+
+
+.recent-folder-icon {
+    color: var(--color-text-accent);
+    flex-shrink: 0;
+    font-size: 1.1em;
+}
+
+.recent-folder-name {
+    font-weight: 500; /* Medium weight for name */
+    flex-shrink: 0; /* Prevent name from shrinking */
+    margin-right: var(--spacing-sm);
+}
+
+.recent-folder-path {
+    color: var(--color-text-tertiary);
+    font-size: 0.9em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-grow: 1; /* Allow path to take remaining space */
+}
+
+.no-recents-message {
+    font-style: italic;
+    color: var(--color-text-tertiary);
+}
+
+/* --- Hints Section --- */
 .welcome-hints {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    text-align: left; /* Align hints to the left */
-    margin-top: var(--spacing-lg);
-    border-top: 1px solid var(--color-border);
-    padding-top: var(--spacing-lg);
+    /* Removed top border/padding, handled by section styling */
 }
 
 .hint-item {
@@ -90,4 +192,21 @@ kbd {
     background-color: var(--pipboy-bg-lighter);
     color: var(--pipboy-green);
     box-shadow: none;
+}
+
+/* Pip-Boy Recents Override */
+.theme-pipboy .recent-folder-button:hover {
+    border-color: var(--pipboy-green-dark);
+}
+.theme-pipboy .recent-folder-button:active {
+    background-color: var(--pipboy-green-dark);
+    color: var(--pipboy-bg);
+}
+.theme-pipboy .recent-folder-button:active .recent-folder-icon,
+.theme-pipboy .recent-folder-button:active .recent-folder-name,
+.theme-pipboy .recent-folder-button:active .recent-folder-path {
+    color: var(--pipboy-bg);
+}
+.theme-pipboy .recent-folder-path {
+    color: color-mix(in srgb, var(--pipboy-green) 60%, black);
 }

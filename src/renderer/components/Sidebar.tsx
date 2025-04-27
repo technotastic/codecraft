@@ -1,14 +1,14 @@
-// --- START FILE: src/renderer/components/Sidebar.tsx ---
-import React, { useState, useEffect, useCallback } from 'react';
+// src/renderer/components/Sidebar.tsx
+import React, { /* useState, */ useEffect, useCallback } from 'react'; // Remove useState
 import path from 'path-browserify';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
-import { useEditor } from '../contexts/EditorContext'; // Import the hook
+import { useEditor } from '../contexts/EditorContext';
 import CustomSelect from './CustomSelect';
 import FileTreeNode from './FileTreeNode';
 import type { DirectoryEntry } from '../../shared.types';
 import { FaFolderOpen, FaLevelUpAlt } from 'react-icons/fa';
 
-// Theme options
+// Theme options (remain the same)
 const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' },
   { value: 'win95', label: 'Win95' }, { value: 'pipboy', label: 'Pip-Boy' },
@@ -18,39 +18,35 @@ const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'bw_tv', label: 'B&W TV' },
 ];
 
+// --- Define Props Interface ---
+interface SidebarProps {
+    currentFolderPath: string | null;
+    setCurrentFolderPath: (path: string | null) => void;
+    onOpenFolderRequest: () => void; // Expect the handler from App
+}
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({
+    currentFolderPath,    // Use prop
+    setCurrentFolderPath, // Use prop
+    onOpenFolderRequest   // Use prop
+}) => {
   const { theme, setTheme } = useTheme();
-  // Use the new context function
-  const { openOrFocusFile } = useEditor(); // Get openOrFocusFile from context
-  const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
-  const [rootDirectoryEntries, setRootDirectoryEntries] = useState<DirectoryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const { openOrFocusFile } = useEditor();
+  // Removed local state: const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
+  const [rootDirectoryEntries, setRootDirectoryEntries] = React.useState<DirectoryEntry[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [expandedFolders, setExpandedFolders] = React.useState<Record<string, boolean>>({});
 
-  const handleOpenFolder = async () => {
-    console.log('Requesting to open directory...');
-    setError(null);
-    setExpandedFolders({});
-    try {
-      const folderPath = await window.electronAPI.dialog_openDirectory();
-      if (folderPath) {
-        console.log(`Folder selected: ${folderPath}`);
-        setCurrentFolderPath(folderPath);
-      } else {
-        console.log('Folder selection cancelled.');
-      }
-    } catch (err) {
-      console.error('Error opening directory dialog:', err);
-      setError('Failed to open directory dialog.');
-    }
+  // Use the passed-in handler for the button click
+  const handleOpenFolder = () => {
+      onOpenFolderRequest();
   };
 
-  // Effect to read root directory
+  // Effect to read root directory (uses prop currentFolderPath)
    useEffect(() => {
     if (currentFolderPath) {
-      console.log(`Reading ROOT directory: ${currentFolderPath}`);
+      console.log(`Sidebar: Reading ROOT directory: ${currentFolderPath}`);
       setIsLoading(true);
       setError(null);
       setRootDirectoryEntries([]);
@@ -61,21 +57,23 @@ const Sidebar: React.FC = () => {
           if (response.success) {
             setRootDirectoryEntries(response.entries);
           } else {
-            console.error('Failed to read directory:', response.error);
+            console.error('Sidebar: Failed to read directory:', response.error);
             setError(`Error reading directory: ${response.error}`);
           }
         })
         .catch(err => {
-          console.error('IPC Error reading directory:', err);
+          console.error('Sidebar: IPC Error reading directory:', err);
           setError(`IPC Error: ${err.message || 'Unknown error'}`);
         })
         .finally(() => {
           setIsLoading(false);
         });
     } else {
-      setRootDirectoryEntries([]);
+      setRootDirectoryEntries([]); // Clear tree if no folder path
+      setError(null); // Clear error when folder is cleared
+      setExpandedFolders({}); // Clear expansion state
     }
-  }, [currentFolderPath]);
+  }, [currentFolderPath]); // Dependency is the prop
 
 
   const toggleFolderExpansion = useCallback((folderPath: string) => {
@@ -85,33 +83,29 @@ const Sidebar: React.FC = () => {
     }));
   }, []);
 
+  // Use the passed-in setter for going up
   const handleGoUp = () => {
     if (currentFolderPath) {
         const parentPath = path.dirname(currentFolderPath);
-        // Prevent going up from the root itself (e.g., '/')
         if (parentPath !== currentFolderPath) {
-            console.log(`Navigating up to: ${parentPath}`);
-            setCurrentFolderPath(parentPath);
-            // No need to clear expandedFolders here, keep state if returning
+            console.log(`Sidebar: Navigating up to: ${parentPath}`);
+            setCurrentFolderPath(parentPath); // Use prop setter
         } else {
-             console.log("Already at root, cannot go up further.");
+             console.log("Sidebar: Already at root, cannot go up further.");
         }
     }
   };
 
-   // UPDATED: Use openOrFocusFile for files
+   // Logic for clicking entry remains the same
    const handleEntryClick = useCallback((entry: DirectoryEntry) => {
     if (entry.isDirectory) {
-      // Toggle expansion for directories
       toggleFolderExpansion(entry.path);
     } else {
-      // Open or focus the file using the context function
       openOrFocusFile(entry.path).catch(err => {
-          console.error("Error returned from openOrFocusFile call:", err);
-          // Optionally show an error to the user
+          console.error("Sidebar: Error returned from openOrFocusFile call:", err);
       });
     }
-  }, [toggleFolderExpansion, openOrFocusFile]); // Use context function
+  }, [toggleFolderExpansion, openOrFocusFile]);
 
 
   return (
@@ -119,26 +113,23 @@ const Sidebar: React.FC = () => {
       {/* Header and Open Folder Button */}
       <div className="sidebar-header">
         <h2>Files</h2>
-        {/* MODIFIED BUTTON: Icon only with title */}
+        {/* Button now calls handleOpenFolder which calls the prop */}
         <button
           onClick={handleOpenFolder}
-          title="Open Folder..." // Tooltip
+          title="Open Folder..."
           aria-label="Open Folder"
-          // Use the generic icon-button class for styling
           className="open-folder-button icon-button"
         >
           <FaFolderOpen />
-          {/* Removed the <span>Open...</span> text */}
         </button>
       </div>
 
       {/* Navigation Controls */}
       {currentFolderPath && (
         <div className="navigation-controls">
-           {/* Up button remains the same */}
+           {/* Up button calls handleGoUp which uses the prop setter */}
            <button
              onClick={handleGoUp}
-             // Disable if parent is the same as current (e.g., at root '/')
              disabled={!currentFolderPath || path.dirname(currentFolderPath) === currentFolderPath}
              title="Go Up One Level"
              aria-label="Go Up One Level"
@@ -146,15 +137,15 @@ const Sidebar: React.FC = () => {
            >
              <FaLevelUpAlt />
            </button>
+           {/* Display uses the prop */}
            <div className="current-folder-path" title={currentFolderPath}>
               <small>{currentFolderPath}</small>
            </div>
         </div>
       )}
 
-      {/* File Tree Area */}
+      {/* File Tree Area (Rendering logic remains same) */}
       <div className="file-tree">
-          {/* Loading/Error/Placeholder/List remains the same */}
            {isLoading && <p>Loading...</p>}
            {error && <p className="error-message">Error: {error}</p>}
            {!isLoading && !error && rootDirectoryEntries.length === 0 && !currentFolderPath && (
@@ -166,18 +157,17 @@ const Sidebar: React.FC = () => {
                   key={entry.path}
                   entry={entry}
                   isExpanded={!!expandedFolders[entry.path]}
-                  allExpandedFolders={expandedFolders} // Pass the whole map down
-                  onToggleExpand={toggleFolderExpansion} // Passed down for child nodes
-                  onEntryClick={handleEntryClick} // Passed down for child nodes
+                  allExpandedFolders={expandedFolders}
+                  onToggleExpand={toggleFolderExpansion}
+                  onEntryClick={handleEntryClick}
                   level={0}
                 />
              ))}
            </ul>
       </div>
 
-      {/* Theme Switcher */}
+      {/* Theme Switcher (Remains same) */}
       <div className="theme-switcher">
-        {/* Theme switcher remains the same */}
         <label id="theme-select-label" htmlFor="theme-select">
           Theme:
         </label>
@@ -193,4 +183,3 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
-// --- END FILE: src/renderer/components/Sidebar.tsx ---

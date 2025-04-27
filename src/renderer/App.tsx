@@ -1,15 +1,13 @@
-// --- START FILE: src/renderer/App.tsx ---
 // src/renderer/App.tsx
-import React, { useEffect, useState, useCallback } from 'react'; // <<< Import useState, useCallback
+import React, { useEffect, useState, useCallback } from 'react';
 import { Allotment } from 'allotment';
 import 'allotment/dist/style.css';
 import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
 import StatusBar from './components/StatusBar';
-import CommandPalette from './components/CommandPalette'; // <<< NEW: Import CommandPalette
+import CommandPalette from './components/CommandPalette';
 import './App.css';
 
-// Helper function to get initial sidebar width from CSS variable
 const getSidebarInitialSize = (): number => {
   if (typeof document === 'undefined') return 150;
   try {
@@ -24,7 +22,10 @@ const getSidebarInitialSize = (): number => {
 
 
 function App() {
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false); // <<< NEW: State for palette
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  // --- LIFTED STATE ---
+  const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
+  // --- END LIFTED STATE ---
 
   const toggleCommandPalette = useCallback(() => {
     setIsCommandPaletteOpen(prev => !prev);
@@ -34,40 +35,38 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const ctrlAlt = event.ctrlKey && event.altKey;
-      const ctrlShift = event.ctrlKey && event.shiftKey; // <<< NEW: For palette shortcut
-      const metaShift = event.metaKey && event.shiftKey; // <<< NEW: For Mac palette shortcut
+      const ctrlShift = event.ctrlKey && event.shiftKey;
+      const metaShift = event.metaKey && event.shiftKey;
 
-      if (ctrlAlt && event.key.toLowerCase() === 'q') {
-        console.log("Renderer: Ctrl+Alt+Q detected, requesting app quit.");
-        event.preventDefault();
-        window.electronAPI.app_quit();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'f') {
-        console.log("Renderer: Ctrl+Alt+F detected, requesting fullscreen toggle.");
-        event.preventDefault();
-        window.electronAPI.window_toggleFullscreen();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'i') {
-         console.log("Renderer: Ctrl+Alt+I detected, requesting devtools toggle.");
-         event.preventDefault();
-         window.electronAPI.window_toggleDevTools();
-      } else if ((ctrlShift || metaShift) && event.key.toLowerCase() === 'p') { // <<< NEW: Palette shortcut
-          console.log("Renderer: Ctrl/Cmd+Shift+P detected, toggling command palette.");
-          event.preventDefault();
-          toggleCommandPalette(); // <<< NEW: Call toggle function
-      }
+      if (ctrlAlt && event.key.toLowerCase() === 'q') { event.preventDefault(); window.electronAPI.app_quit(); }
+      else if (ctrlAlt && event.key.toLowerCase() === 'f') { event.preventDefault(); window.electronAPI.window_toggleFullscreen(); }
+      else if (ctrlAlt && event.key.toLowerCase() === 'i') { event.preventDefault(); window.electronAPI.window_toggleDevTools(); }
+      else if ((ctrlShift || metaShift) && event.key.toLowerCase() === 'p') { event.preventDefault(); toggleCommandPalette(); }
     };
-
-    console.log("Adding global keyboard shortcuts listener (including Cmd/Ctrl+Shift+P)."); // Updated log
     window.addEventListener('keydown', handleKeyDown);
+    return () => { window.removeEventListener('keydown', handleKeyDown); };
+  }, [toggleCommandPalette]);
 
-    return () => {
-      console.log("Removing global keyboard shortcuts listener.");
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [toggleCommandPalette]); // <<< NEW: Add toggleCommandPalette dependency
+  // --- Function to handle opening a folder via DIALOG ---
+  const handleOpenFolderRequest = useCallback(async () => {
+      console.log('App: Requesting to open directory dialog...');
+      try {
+        const folderPath = await window.electronAPI.dialog_openDirectory();
+        if (folderPath) {
+          console.log(`App: Folder selected via dialog: ${folderPath}`);
+          setCurrentFolderPath(folderPath); // Update lifted state
+        } else {
+          console.log('App: Folder selection cancelled.');
+        }
+      } catch (err) {
+        console.error('App: Error opening directory dialog:', err);
+        // Optionally show error to user
+      }
+  }, []); // No dependencies needed as it uses window API and setter
 
   return (
     <div className="app-container">
-      {/* Main content area (Allotment for Sidebar/MainPanel split) */}
+      {/* Main content area */}
       <div className="main-content-area">
         <Allotment>
           <Allotment.Pane
@@ -76,19 +75,25 @@ function App() {
             maxSize={500}
             snap
           >
-            <Sidebar />
+            {/* Pass state and handlers down */}
+            <Sidebar
+                currentFolderPath={currentFolderPath}
+                setCurrentFolderPath={setCurrentFolderPath}
+                onOpenFolderRequest={handleOpenFolderRequest} // Pass dialog handler
+            />
           </Allotment.Pane>
 
           <Allotment.Pane minSize={300} >
-            <MainPanel />
+             {/* Pass setter function down for WelcomeScreen */}
+             <MainPanel setCurrentFolderPath={setCurrentFolderPath} />
           </Allotment.Pane>
         </Allotment>
       </div>
 
-      {/* Status Bar rendered below the main content area */}
+      {/* Status Bar */}
       <StatusBar />
 
-      {/* Command Palette rendered conditionally as an overlay */}
+      {/* Command Palette */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
@@ -98,4 +103,3 @@ function App() {
 }
 
 export default App;
-// --- END FILE: src/renderer/App.tsx ---

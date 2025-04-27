@@ -1,4 +1,3 @@
-// --- START FILE: src/preload/index.ts ---
 // src/preload/index.ts
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 // Import the shared types
@@ -35,6 +34,10 @@ export interface ElectronAPI {
   app_quit: () => Promise<void>;
   window_toggleFullscreen: () => Promise<void>;
   window_toggleDevTools: () => Promise<void>;
+
+  // --- NEW: Recent Folders API ---
+  app_getRecentFolders: () => Promise<string[]>;
+  // --- End New API ---
 }
 
 // --- Implementation of the API ---
@@ -88,6 +91,10 @@ const api: ElectronAPI = {
   app_quit: () => ipcRenderer.invoke('app:quit'),
   window_toggleFullscreen: () => ipcRenderer.invoke('window:toggle-fullscreen'),
   window_toggleDevTools: () => ipcRenderer.invoke('window:toggle-devtools'),
+
+  // --- NEW: Recent Folders Implementation ---
+  app_getRecentFolders: () => ipcRenderer.invoke('app:getRecentFolders'),
+  // --- End New Implementation ---
 };
 
 // --- Expose the API to the Renderer process ---
@@ -97,4 +104,3 @@ try {
 } catch (error) {
   console.error('Error exposing context bridge in preload script:', error);
 }
-// --- END FILE: src/preload/index.ts ---

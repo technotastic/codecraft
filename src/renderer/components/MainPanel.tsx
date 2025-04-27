@@ -1,25 +1,24 @@
+// src/renderer/components/MainPanel.tsx
 import React from 'react';
 import { Allotment } from 'allotment';
 import EditorPanel from './EditorPanel';
 import TerminalPanel from './TerminalPanel';
-import TabContainer from './TabContainer'; // Editor tabs
-import TerminalTabContainer from './TerminalTabContainer'; // Terminal tabs
-import { useTerminals } from '../contexts/TerminalContext'; // To get active terminal ID and list
+import TabContainer from './TabContainer';
+import TerminalTabContainer from './TerminalTabContainer';
+import { useTerminals } from '../contexts/TerminalContext';
 
-// Helper function to get initial terminal size hint
+// Helper function (remains same)
 const getTerminalInitialSize = (): number => {
-    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-      try {
-        const heightValue = getComputedStyle(document.documentElement)
-                              .getPropertyValue('--terminal-height')?.trim();
-        if (heightValue) return parseInt(heightValue.replace('px', ''), 10) || 200;
-      } catch (e) { /* ignore */ }
-    }
-    return 200;
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') { try { const heightValue = getComputedStyle(document.documentElement).getPropertyValue('--terminal-height')?.trim(); if (heightValue) return parseInt(heightValue.replace('px', ''), 10) || 200; } catch (e) { /* ignore */ } } return 200;
 };
 
-const MainPanel: React.FC = () => {
-    // Get the full list of terminals and the active ID
+// --- Define Props Interface ---
+interface MainPanelProps {
+    setCurrentFolderPath: (path: string | null) => void; // Expect the setter function
+}
+
+// --- Apply Props Type to the Component ---
+const MainPanel: React.FC<MainPanelProps> = ({ setCurrentFolderPath }) => { // <<< Use React.FC<MainPanelProps>
     const { openTerminals, activeTerminalId } = useTerminals();
 
     return (
@@ -32,36 +31,23 @@ const MainPanel: React.FC = () => {
                 <Allotment vertical>
                     {/* Editor Pane */}
                     <Allotment.Pane minSize={100}>
-                        <EditorPanel />
+                        {/* Pass setter down to EditorPanel */}
+                        <EditorPanel setCurrentFolderPath={setCurrentFolderPath} />
                     </Allotment.Pane>
 
-                    {/* Terminal Pane: Contains tabs AND ALL terminal instances */}
+                    {/* Terminal Pane (Remains same) */}
                     <Allotment.Pane
                         preferredSize={getTerminalInitialSize()}
                         minSize={50}
                         snap
                     >
                         <div className="terminal-area-container">
-                            {/* Render Terminal Tabs */}
                             <TerminalTabContainer />
-
-                            {/* Wrapper for ALL terminal panel instances */}
                             <div className="terminal-panels-wrapper">
-                                {openTerminals.length === 0 && (
-                                     <div className="terminal-placeholder">
-                                         Click the '+' button to open a new terminal.
-                                     </div>
-                                )}
+                                {openTerminals.length === 0 && ( <div className="terminal-placeholder"> Click the '+' button to open a new terminal. </div> )}
                                 {openTerminals.map(terminal => (
-                                    <div
-                                        key={terminal.id} // Key on the wrapper div
-                                        // Apply 'active' class conditionally for CSS visibility
-                                        className={`terminal-panel-instance ${terminal.id === activeTerminalId ? 'active' : ''}`}
-                                    >
-                                        <TerminalPanel
-                                            id={terminal.id}
-                                            isActive={terminal.id === activeTerminalId}
-                                        />
+                                    <div key={terminal.id} className={`terminal-panel-instance ${terminal.id === activeTerminalId ? 'active' : ''}`} >
+                                        <TerminalPanel id={terminal.id} isActive={terminal.id === activeTerminalId} />
                                     </div>
                                 ))}
                             </div>

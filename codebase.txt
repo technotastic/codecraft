@@ -1,54 +1,182 @@
 --- START FILE: tsconfig.node.json ---
 // tsconfig.node.json
 {
-    // No "extends"
-    "compilerOptions": {
-      "composite": true,            // Required by referencing config
-      "module": "CommonJS",         // Correct for Node/Electron main/preload
-      "moduleResolution": "Node",   // Correct module resolution
-      "target": "ESNext",           // Target modern JS for Electron
-      "lib": ["ESNext", "DOM"],     // Include necessary libs
+  // No "extends"
+  "compilerOptions": {
+    "composite": true,            // Required by referencing config
+    "module": "CommonJS",         // Correct for Node/Electron main/preload
+    // --- REVERT THIS LINE ---
+    "moduleResolution": "Node",   // <<< Revert back to "Node"
+    // --- END REVERT ---
+    "target": "ESNext",           // Target modern JS for Electron
+    "lib": ["ESNext", "DOM"],     // Include necessary libs
 
-      "noEmit": false,              // We MUST emit JS files
-      "outDir": "dist-electron",    // Output directory
-      "rootDir": "src",             // Source root directory
+    "noEmit": false,              // We MUST emit JS files
+    "outDir": "dist-electron",    // Output directory
+    "rootDir": "src",             // Source root directory
 
-      /* Base URL and Paths are needed if using aliases within main/preload code */
-      "baseUrl": ".",               // Define baseUrl if using paths
-      "paths": {                    // Keep paths if used within main/preload code
-        "@renderer/*": ["src/renderer/*"],
-        "@main/*": ["src/main/*"],
-        "@preload/*": ["src/preload/*"]
-        //"@shared/*": ["src/shared/*"]
-      },
-
-      "strict": true,                 // Enable strict checks
-      "esModuleInterop": true,        // Recommended for CJS/ESM interop
-      "forceConsistentCasingInFileNames": true, // Good practice
-      "skipLibCheck": false,          // *** Temporarily FALSE to force checks/emission ***
-
-      /* Node/Electron Specific Overrides */
-      "allowImportingTsExtensions": false, // No .ts imports in CJS output
-      "resolveJsonModule": true,          // Allow importing JSON
-      "isolatedModules": false            // Not isolated modules
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": ["src/renderer/*"],
+      "@main/*": ["src/main/*"],
+      "@preload/*": ["src/preload/*"]
     },
-    // Includes - Define what this config compiles
-    "include": [
-      "src/main/**/*.ts",             // Compile main process code
-      "src/preload/**/*.ts",          // Compile preload code
-      "src/shared.types.ts"           // Compile shared types if they exist (remove if not)
-    ],
-    // Excludes - Define what NOT to compile
-    "exclude": [
-      "node_modules",                 // Standard excludes
-      "dist",
-      "dist-electron",                // Exclude output from input
-      "src/renderer"                  // Exclude renderer code
-    ]
-  }
+
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    // --- CHANGE THIS LINE ---
+    "skipLibCheck": true,          // <<< Set back to TRUE (standard practice)
+    // --- END CHANGE ---
+
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": false
+  },
+  "include": [
+    "src/main/**/*.ts",
+    "src/preload/**/*.ts",
+    "src/shared.types.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-electron",
+    "src/renderer"
+  ]
+}
 --- END FILE: tsconfig.node.json ---
 
 --- START FILE: text.txt ---
+--- START FILE: text.txt ---
+
+---
+
+**Project Continuation Prompt: CodeCraft IDE (State after Fixing Recent Folders & Editor Theme)**
+
+**1. Project Goal:**
+To build a functional desktop code editor (CodeCraft IDE) using Electron, React, TypeScript, and Vite, featuring an integrated terminal, file management, and basic customization.
+
+**2. Core Technologies:**
+*   **Framework:** Electron
+*   **UI (Renderer):** React, TypeScript, Vite
+*   **Persistence:** `electron-store` (for recent folders)
+*   **Editor Component:** Monaco Editor (`react-monaco-editor`)
+*   **Terminal Component:** Xterm.js + `node-pty` (via IPC)
+*   **Layout:** `allotment`
+*   **Styling:** CSS Variables, Theme Context
+
+**3. Current State Summary:**
+
+*   **Development Environment:** Manual setup using Vite dev server (`dev:vite`), `tsc --watch` for main/preload (`dev:main`), and `electron .` (`start`) in separate terminals. **Node.js version upgraded to v20+** to support dependencies. `electron-store` downgraded to v8 to resolve ESM/CJS compatibility issues during build/runtime. Installation process stabilized.
+*   **Architecture:**
+    *   **Main Process (`main/index.ts`):** Handles window (starts fullscreen), app menu, IPC (dialogs, multi-PTY, filesystem, recent folders), basic app controls. Uses `electron-store@8` (CommonJS) for persisting recent folders list.
+    *   **Preload Script (`preload/index.ts`):** Securely exposes typed `electronAPI` via `contextBridge` for all renderer-main communication, including fetching recent folders.
+    *   **Renderer Process (`renderer/`):** React app managed by Vite.
+        *   **State Management:** `currentFolderPath` state lifted to `App.tsx` and passed down to `Sidebar`, `MainPanel`, `EditorPanel`, and `WelcomeScreen` via props to enable cross-component updates.
+*   **Key Features Implemented & Stable:**
+    *   **Layout:** Resizable horizontal split (Sidebar/Main Area) and vertical split (Editor/Terminal Area) using `Allotment`.
+    *   **Theming:** `ThemeContext` manages theme name and font size modifier. Applies `.theme-*` class to root/body. Includes a `CustomSelect` dropdown for theme switching. **Editor panel theme now correctly updates and matches the global theme when files are opened.** Base editor/terminal background/foreground colors update correctly. Monaco theme definitions updated to handle CSS variables more robustly.
+    *   **Contexts:** `ThemeContext`, `EditorContext`, `TerminalContext` manage relevant application state.
+    *   **Sidebar:**
+        *   Displays an expandable file tree (`FileTreeNode`) populated via `fs:readDirectory` IPC. Tree root controlled by `currentFolderPath` prop from `App`.
+        *   Supports "Open Folder..." (via button and File menu) which updates the `currentFolderPath` state in `App` via a callback prop.
+        *   Supports navigating up directories.
+        *   Clicking files opens them in the editor via `fs:readFile` IPC and `EditorContext`.
+    *   **Editor Area:**
+        *   Managed by `EditorContext`, supporting multiple file tabs (`TabContainer`, `Tab`).
+        *   Handles opening, closing, and focusing tabs.
+        *   Tracks and displays file dirty status (`*`) on tabs.
+        *   **Saving Confirmed Working:** Saving files via Ctrl+S (`fs:saveFile` IPC) reliably updates the file content and context state.
+        *   Renders Monaco Editor instance (`EditorPanel`) when files are open.
+        *   **Welcome Screen:** Displays (`WelcomeScreen.tsx`) when no files are open in the editor area.
+            *   Fetches and displays a list of recently opened folders from `electron-store` via IPC.
+            *   **Recent folders list is now clickable**, correctly updating the `currentFolderPath` state in `App` and loading the selected folder in the sidebar.
+        *   Basic language detection based on file extension (used for status bar display).
+    *   **Terminal Area:**
+        *   Managed by `TerminalContext`, supports multiple terminal tabs (`TerminalTabContainer`, `TerminalTab`) via '+' button.
+        *   Renders Xterm.js instances (`TerminalPanel`) per tab, managing visibility via CSS.
+        *   Multi-instance PTY communication via IPC (`pty-create`, `pty-input`, etc.) is functional.
+        *   Terminal background/foreground colors update based on the selected app theme.
+        *   Rendering issues (blank screens, color bleeding, cursor offsets) previously fixed remain fixed.
+        *   Clear Terminal Button functional.
+    *   **Status Bar:**
+        *   Implemented (`StatusBar.tsx`, `StatusBar.css`) and displays active file name, dirty status, error status, cursor line/column, basic detected language, live time, and placeholder encoding.
+    *   **Command Palette:** Basic implementation (`CommandPalette.tsx`) exists, toggled via `Ctrl/Cmd+Shift+P`. Includes commands for app/window control, new terminal, opening folders, theme switching, and font size adjustment.
+*   **Development Server Interaction:** Saving `index.html` triggers Vite reload.
+
+**4. Known Issues / Regressions & Failed Attempts:**
+
+*   **Syntax Highlighting (BROKEN):**
+    *   While base Monaco themes (background, foreground, selection, minimap) now apply correctly and respect the global theme, **token-based syntax highlighting does not work.**
+    *   Keywords, strings, comments, etc., do not receive distinct colors for any language. They seem to inherit the default foreground color.
+    *   Switching application themes updates base colors but does *not* affect token colors.
+    *   Previous attempts to fix this by adding `rules` to `defineTheme` have failed. Extreme caution required. The current `defineTheme` calls explicitly leave the `rules: []` array empty.
+*   **"Save As..." Feature Attempt (FAILED & REVERTED):**
+    *   An attempt to implement "Save As..." resulted in a blank screen.
+    *   **These changes remain fully reverted.**
+
+**5. V1 Goals Status (Reflecting Current State):**
+
+*   Functional Monaco Editor (Partially Done - multi-file, saving fixed, base theming fixed. **Highlighting broken.** "Save As..." failed.)
+*   Integrated Terminal (Done - multi-tab, rendering fixed, clear button added)
+*   File Tree/Management (Done - open/read/display/save, up navigation)
+*   Theming (Foundation done, base editor/terminal colors work. **Syntax highlighting broken.** Advanced features deferred.)
+*   Font Size Control (Done - via Command Palette)
+*   Movable/Resizable Panels (Done)
+*   Status Bar (Done)
+*   Welcome Screen (Done - includes clickable recent folders)
+*   Command Palette (Basic implementation Done)
+
+**6. Next Steps / Potential Tasks (Prioritization Needed):**
+
+*   **(CRITICAL BUG) Fix Syntax Highlighting:** This remains the top priority. Needs a *different approach*. Possible next steps:
+    *   Verify Monaco language services/workers are loading correctly in the Vite/Electron environment.
+    *   Try loading a pre-built community theme file (`.json`) for Monaco instead of using `defineTheme` to see if *any* tokenization works.
+    *   Investigate potential conflicts between Vite build process and Monaco's worker loading.
+*   **(HIGH) Implement "Save As..." Functionality:** Re-attempt carefully, starting with isolated main process logic.
+*   **(MED) Editor Polish:**
+    *   Wire up Edit Menu items (Undo/Redo should work via roles, need testing/verification).
+*   **(MED) Welcome Screen Polish:**
+    *   Make "Open Folder" hint button functional (requires passing handler down).
+    *   Add "New File" button/functionality.
+*   **(MED) Terminal Polish:**
+    *   Improve visual feedback for exited terminal processes (beyond tab title, e.g., dim panel).
+*   **(MED) Main Menu / Accelerators:** Review standard menu items and accelerators for correctness and platform consistency (e.g., Ctrl+O added for Open Folder).
+*   **(MED) Error Handling:** Improve user feedback for filesystem/PTY errors beyond current basic messages/console logs.
+*   **(LOW) File Management Extras:** New File/Folder, Delete, Rename.
+*   **(LOW) Theming - VS Code Import:** Parse `.json` themes.
+*   **(LOW) Font Loading:** Robust custom font loading.
+
+**7. Future Ideas Brainstorm:**
+*   Project-wide Search (`ripgrep`)
+*   Git Integration (Status, Basic Commands)
+*   Command Palette Enhancements (fuzzy search, more commands)
+*   Snippets
+*   Debugger Integration (DAP)
+*   Plugin System
+*   Settings UI (`electron-store`)
+*   Remote/SSH Integration
+*   Web Version (`vscode-web`)
+*   AI Code Assistance
+*   Markdown Preview
+*   Advanced Layouts (`react-mosaic`)
+
+**8. Action Requested for Next Session:**
+
+Given the recent fixes (recent folders, editor base theme) but the persistent critical bug (syntax highlighting):
+
+*   **Focus solely on diagnosing and attempting a fix for the BROKEN Syntax Highlighting.**
+*   Propose a **single, specific, and verifiable step** to investigate *why* token colors are not being applied. Avoid complex `defineTheme` modifications initially. Consider focusing on verifying language service/worker loading or trying a standard pre-built Monaco theme JSON file.
+*   Any proposed solution **MUST** prioritize stability and explain why it's unlikely to break the now-working base theming or other features.
+
+---
+
+This updated prompt reflects the successful integration of recent folders, the fix for the editor background theming, the state lifting refactor, and the dependency adjustments, while re-emphasizing the critical need to address syntax highlighting next.
+--- END FILE: text.txt ---
+
+
+****OLDER PROMPTS BELOW *****
 
 ---
 
@@ -482,7 +610,6 @@ Testing testing 123
 --- END FILE: test.txt ---
 
 --- START FILE: tsconfig.json ---
-// tsconfig.json (Base config)
 {
     "compilerOptions": {
       "target": "ESNext",
@@ -1471,18 +1598,16 @@ import React, {
 --- END FILE: src/renderer/contexts/ThemeContext.tsx ---
 
 --- START FILE: src/renderer/App.tsx ---
-// --- START FILE: src/renderer/App.tsx ---
 // src/renderer/App.tsx
-import React, { useEffect, useState, useCallback } from 'react'; // <<< Import useState, useCallback
+import React, { useEffect, useState, useCallback } from 'react';
 import { Allotment } from 'allotment';
 import 'allotment/dist/style.css';
 import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
 import StatusBar from './components/StatusBar';
-import CommandPalette from './components/CommandPalette'; // <<< NEW: Import CommandPalette
+import CommandPalette from './components/CommandPalette';
 import './App.css';
 
-// Helper function to get initial sidebar width from CSS variable
 const getSidebarInitialSize = (): number => {
   if (typeof document === 'undefined') return 150;
   try {
@@ -1497,7 +1622,10 @@ const getSidebarInitialSize = (): number => {
 
 
 function App() {
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false); // <<< NEW: State for palette
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  // --- LIFTED STATE ---
+  const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
+  // --- END LIFTED STATE ---
 
   const toggleCommandPalette = useCallback(() => {
     setIsCommandPaletteOpen(prev => !prev);
@@ -1507,40 +1635,38 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const ctrlAlt = event.ctrlKey && event.altKey;
-      const ctrlShift = event.ctrlKey && event.shiftKey; // <<< NEW: For palette shortcut
-      const metaShift = event.metaKey && event.shiftKey; // <<< NEW: For Mac palette shortcut
+      const ctrlShift = event.ctrlKey && event.shiftKey;
+      const metaShift = event.metaKey && event.shiftKey;
 
-      if (ctrlAlt && event.key.toLowerCase() === 'q') {
-        console.log("Renderer: Ctrl+Alt+Q detected, requesting app quit.");
-        event.preventDefault();
-        window.electronAPI.app_quit();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'f') {
-        console.log("Renderer: Ctrl+Alt+F detected, requesting fullscreen toggle.");
-        event.preventDefault();
-        window.electronAPI.window_toggleFullscreen();
-      } else if (ctrlAlt && event.key.toLowerCase() === 'i') {
-         console.log("Renderer: Ctrl+Alt+I detected, requesting devtools toggle.");
-         event.preventDefault();
-         window.electronAPI.window_toggleDevTools();
-      } else if ((ctrlShift || metaShift) && event.key.toLowerCase() === 'p') { // <<< NEW: Palette shortcut
-          console.log("Renderer: Ctrl/Cmd+Shift+P detected, toggling command palette.");
-          event.preventDefault();
-          toggleCommandPalette(); // <<< NEW: Call toggle function
-      }
+      if (ctrlAlt && event.key.toLowerCase() === 'q') { event.preventDefault(); window.electronAPI.app_quit(); }
+      else if (ctrlAlt && event.key.toLowerCase() === 'f') { event.preventDefault(); window.electronAPI.window_toggleFullscreen(); }
+      else if (ctrlAlt && event.key.toLowerCase() === 'i') { event.preventDefault(); window.electronAPI.window_toggleDevTools(); }
+      else if ((ctrlShift || metaShift) && event.key.toLowerCase() === 'p') { event.preventDefault(); toggleCommandPalette(); }
     };
-
-    console.log("Adding global keyboard shortcuts listener (including Cmd/Ctrl+Shift+P)."); // Updated log
     window.addEventListener('keydown', handleKeyDown);
+    return () => { window.removeEventListener('keydown', handleKeyDown); };
+  }, [toggleCommandPalette]);
 
-    return () => {
-      console.log("Removing global keyboard shortcuts listener.");
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [toggleCommandPalette]); // <<< NEW: Add toggleCommandPalette dependency
+  // --- Function to handle opening a folder via DIALOG ---
+  const handleOpenFolderRequest = useCallback(async () => {
+      console.log('App: Requesting to open directory dialog...');
+      try {
+        const folderPath = await window.electronAPI.dialog_openDirectory();
+        if (folderPath) {
+          console.log(`App: Folder selected via dialog: ${folderPath}`);
+          setCurrentFolderPath(folderPath); // Update lifted state
+        } else {
+          console.log('App: Folder selection cancelled.');
+        }
+      } catch (err) {
+        console.error('App: Error opening directory dialog:', err);
+        // Optionally show error to user
+      }
+  }, []); // No dependencies needed as it uses window API and setter
 
   return (
     <div className="app-container">
-      {/* Main content area (Allotment for Sidebar/MainPanel split) */}
+      {/* Main content area */}
       <div className="main-content-area">
         <Allotment>
           <Allotment.Pane
@@ -1549,19 +1675,25 @@ function App() {
             maxSize={500}
             snap
           >
-            <Sidebar />
+            {/* Pass state and handlers down */}
+            <Sidebar
+                currentFolderPath={currentFolderPath}
+                setCurrentFolderPath={setCurrentFolderPath}
+                onOpenFolderRequest={handleOpenFolderRequest} // Pass dialog handler
+            />
           </Allotment.Pane>
 
           <Allotment.Pane minSize={300} >
-            <MainPanel />
+             {/* Pass setter function down for WelcomeScreen */}
+             <MainPanel setCurrentFolderPath={setCurrentFolderPath} />
           </Allotment.Pane>
         </Allotment>
       </div>
 
-      {/* Status Bar rendered below the main content area */}
+      {/* Status Bar */}
       <StatusBar />
 
-      {/* Command Palette rendered conditionally as an overlay */}
+      {/* Command Palette */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
@@ -1571,7 +1703,6 @@ function App() {
 }
 
 export default App;
-// --- END FILE: src/renderer/App.tsx ---
 --- END FILE: src/renderer/App.tsx ---
 
 --- START FILE: src/renderer/vite-env.d.ts ---
@@ -3428,6 +3559,221 @@ export default StatusBar;
 // --- END FILE: src/renderer/components/StatusBar.tsx ---
 --- END FILE: src/renderer/components/StatusBar.tsx ---
 
+--- START FILE: src/renderer/components/WelcomeScreen.css ---
+/* src/renderer/components/WelcomeScreen.css */
+.welcome-screen-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: var(--color-bg-editor); /* Match editor background */
+    color: var(--color-text-secondary); /* Use secondary text color */
+    padding: var(--spacing-lg);
+    overflow: auto; /* Allow scrolling if content overflows */
+    user-select: none;
+}
+
+.welcome-content {
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl); /* Add gap between sections */
+}
+
+.welcome-content h1 {
+    color: var(--color-text-heading);
+    font-size: var(--font-size-xl);
+    margin-bottom: 0; /* Adjusted margin */
+}
+
+.welcome-content p {
+    font-size: var(--font-size-md);
+    margin-bottom: 0; /* Adjusted margin */
+    line-height: 1.6;
+}
+
+/* --- Section Styling --- */
+.recent-folders-section,
+.welcome-hints {
+    text-align: left; /* Align section content left */
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+}
+
+.recent-folders-section h2,
+.welcome-hints h2 {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.section-icon {
+    font-size: 0.9em; /* Slightly smaller icon */
+    color: var(--color-text-secondary);
+}
+
+/* --- Recent Folders List --- */
+.recent-folders-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs); /* Gap between list items */
+}
+
+.recent-folder-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    background-color: transparent;
+    border: 1px solid transparent; /* For spacing */
+    color: var(--color-text-primary);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    font-size: var(--font-size-sm);
+    overflow: hidden; /* Prevent content overflow */
+}
+
+.recent-folder-button:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-accent);
+}
+
+.recent-folder-button:active {
+    background-color: var(--color-bg-selected);
+    color: var(--color-text-inverse);
+}
+
+/* Style for disabled button (until click is implemented) */
+/* .recent-folder-button:disabled,
+.recent-folder-button:disabled:hover {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--color-text-tertiary);
+}
+.recent-folder-button:disabled .recent-folder-icon,
+.recent-folder-button:disabled .recent-folder-path {
+    color: var(--color-text-tertiary);
+} */
+
+
+.recent-folder-icon {
+    color: var(--color-text-accent);
+    flex-shrink: 0;
+    font-size: 1.1em;
+}
+
+.recent-folder-name {
+    font-weight: 500; /* Medium weight for name */
+    flex-shrink: 0; /* Prevent name from shrinking */
+    margin-right: var(--spacing-sm);
+}
+
+.recent-folder-path {
+    color: var(--color-text-tertiary);
+    font-size: 0.9em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-grow: 1; /* Allow path to take remaining space */
+}
+
+.no-recents-message {
+    font-style: italic;
+    color: var(--color-text-tertiary);
+}
+
+/* --- Hints Section --- */
+.welcome-hints {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    /* Removed top border/padding, handled by section styling */
+}
+
+.hint-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+}
+
+.hint-icon {
+    font-size: 1.2em;
+    color: var(--color-text-accent);
+    flex-shrink: 0;
+}
+
+.icon-inline svg {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+/* Style keyboard keys */
+kbd {
+    background-color: var(--color-bg-sidebar);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    padding: 1px 4px;
+    font-family: var(--font-family-mono);
+    font-size: 0.9em;
+    box-shadow: inset 0 -1px 0 var(--color-border-accent);
+    color: var(--color-text-primary);
+}
+
+/* Win95/mIRC Keyboard Key Overrides */
+.theme-win95 kbd, .theme-mirc kbd {
+    border: none;
+    box-shadow: inset -1px -1px var(--win95-bevel-shadow-darker, transparent),
+                inset 1px 1px var(--win95-bevel-shadow-light, transparent),
+                inset -2px -2px var(--win95-bevel-shadow-dark, transparent),
+                inset 2px 2px var(--win95-bevel-shadow-lighter, transparent);
+    background-color: var(--color-bg-button);
+    color: var(--color-text-button);
+    padding: 2px 4px;
+    text-shadow: none;
+}
+
+/* Pip-Boy Keyboard Key Overrides */
+.theme-pipboy kbd {
+    border: 1px solid var(--pipboy-green-dark);
+    background-color: var(--pipboy-bg-lighter);
+    color: var(--pipboy-green);
+    box-shadow: none;
+}
+
+/* Pip-Boy Recents Override */
+.theme-pipboy .recent-folder-button:hover {
+    border-color: var(--pipboy-green-dark);
+}
+.theme-pipboy .recent-folder-button:active {
+    background-color: var(--pipboy-green-dark);
+    color: var(--pipboy-bg);
+}
+.theme-pipboy .recent-folder-button:active .recent-folder-icon,
+.theme-pipboy .recent-folder-button:active .recent-folder-name,
+.theme-pipboy .recent-folder-button:active .recent-folder-path {
+    color: var(--pipboy-bg);
+}
+.theme-pipboy .recent-folder-path {
+    color: color-mix(in srgb, var(--pipboy-green) 60%, black);
+}
+--- END FILE: src/renderer/components/WelcomeScreen.css ---
+
 --- START FILE: src/renderer/components/TabContainer.tsx ---
 // --- START FILE: src/renderer/components/TabContainer.tsx ---
 import React, { useRef, useEffect } from 'react';
@@ -3486,18 +3832,114 @@ export default TabContainer;
 // --- END FILE: src/renderer/components/TabContainer.tsx ---
 --- END FILE: src/renderer/components/TabContainer.tsx ---
 
+--- START FILE: src/renderer/components/WelcomeScreen.tsx ---
+// src/renderer/components/WelcomeScreen.tsx
+import React, { useState, useEffect } from 'react';
+import { FaFolderOpen, FaKeyboard, FaHistory } from 'react-icons/fa';
+import path from 'path-browserify';
+import './WelcomeScreen.css';
+
+// --- Define Props Interface ---
+interface WelcomeScreenProps {
+    setCurrentFolderPath: (path: string | null) => void; // Expect the setter
+}
+
+// --- Apply Props Type and Use Prop ---
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ setCurrentFolderPath }) => {
+    const [recentFolders, setRecentFolders] = useState<string[]>([]);
+    const [isLoadingRecents, setIsLoadingRecents] = useState<boolean>(true);
+
+    // Fetch recent folders (remains same)
+    useEffect(() => {
+        setIsLoadingRecents(true);
+        window.electronAPI.app_getRecentFolders()
+            .then(folders => {
+                console.log("WelcomeScreen: Received recent folders:", folders);
+                setRecentFolders(folders || []);
+            })
+            .catch(err => {
+                console.error("WelcomeScreen: Error fetching recent folders:", err);
+                setRecentFolders([]); // Set empty on error
+            })
+            .finally(() => {
+                setIsLoadingRecents(false);
+            });
+    }, []); // Empty dependency array means run once on mount
+
+    // --- Implement Click Handler using the Prop ---
+    const handleRecentClick = (folderPath: string) => {
+        console.log(`WelcomeScreen: Clicked recent folder - ${folderPath}. Calling setCurrentFolderPath.`);
+        setCurrentFolderPath(folderPath); // <<< Call the prop function
+        // This will update the state in App.tsx, triggering Sidebar to reload its file tree.
+    };
+    // --- End Implement Click Handler ---
+
+
+    return (
+        <div className="welcome-screen-container">
+            <div className="welcome-content">
+                <h1>Welcome to CodeCraft IDE</h1>
+                <p> No files are currently open. </p>
+
+                {/* Recent Folders Section */}
+                <div className="recent-folders-section">
+                    <h2><FaHistory className="section-icon" /> Recent Folders</h2>
+                    {isLoadingRecents && <p>Loading recent folders...</p>}
+                    {!isLoadingRecents && recentFolders.length === 0 && (
+                        <p className="no-recents-message">No recent folders found.</p>
+                    )}
+                    {!isLoadingRecents && recentFolders.length > 0 && (
+                        <ul className="recent-folders-list">
+                            {recentFolders.map((folderPath) => (
+                                <li key={folderPath}>
+                                    {/* Button is now fully active and calls the handler */}
+                                    <button
+                                        className="recent-folder-button"
+                                        onClick={() => handleRecentClick(folderPath)} // <<< Calls implemented handler
+                                        title={folderPath}
+                                    >
+                                        <FaFolderOpen className="recent-folder-icon" />
+                                        <span className="recent-folder-name">{path.basename(folderPath)}</span>
+                                        <span className="recent-folder-path">{folderPath}</span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
+                {/* Hints Section */}
+                <div className="welcome-hints">
+                   <h2><FaKeyboard className="section-icon" /> Quick Start</h2>
+                   <div className="hint-item">
+                        <FaFolderOpen className="hint-icon" />
+                        <span>Use the <span className="icon-inline"><FaFolderOpen /></span> button or <kbd>Ctrl/Cmd</kbd>+<kbd>O</kbd> to open a folder.</span>
+                    </div>
+                   <div className="hint-item">
+                        <FaKeyboard className="hint-icon" />
+                        <span>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> (or <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>) for the Command Palette.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default WelcomeScreen;
+--- END FILE: src/renderer/components/WelcomeScreen.tsx ---
+
 --- START FILE: src/renderer/components/Sidebar.tsx ---
-// --- START FILE: src/renderer/components/Sidebar.tsx ---
-import React, { useState, useEffect, useCallback } from 'react';
+// src/renderer/components/Sidebar.tsx
+import React, { /* useState, */ useEffect, useCallback } from 'react'; // Remove useState
 import path from 'path-browserify';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
-import { useEditor } from '../contexts/EditorContext'; // Import the hook
+import { useEditor } from '../contexts/EditorContext';
 import CustomSelect from './CustomSelect';
 import FileTreeNode from './FileTreeNode';
 import type { DirectoryEntry } from '../../shared.types';
 import { FaFolderOpen, FaLevelUpAlt } from 'react-icons/fa';
 
-// Theme options
+// Theme options (remain the same)
 const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' },
   { value: 'win95', label: 'Win95' }, { value: 'pipboy', label: 'Pip-Boy' },
@@ -3507,39 +3949,35 @@ const themeOptions: { value: ThemeName; label: string }[] = [
   { value: 'bw_tv', label: 'B&W TV' },
 ];
 
+// --- Define Props Interface ---
+interface SidebarProps {
+    currentFolderPath: string | null;
+    setCurrentFolderPath: (path: string | null) => void;
+    onOpenFolderRequest: () => void; // Expect the handler from App
+}
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({
+    currentFolderPath,    // Use prop
+    setCurrentFolderPath, // Use prop
+    onOpenFolderRequest   // Use prop
+}) => {
   const { theme, setTheme } = useTheme();
-  // Use the new context function
-  const { openOrFocusFile } = useEditor(); // Get openOrFocusFile from context
-  const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
-  const [rootDirectoryEntries, setRootDirectoryEntries] = useState<DirectoryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const { openOrFocusFile } = useEditor();
+  // Removed local state: const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(null);
+  const [rootDirectoryEntries, setRootDirectoryEntries] = React.useState<DirectoryEntry[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [expandedFolders, setExpandedFolders] = React.useState<Record<string, boolean>>({});
 
-  const handleOpenFolder = async () => {
-    console.log('Requesting to open directory...');
-    setError(null);
-    setExpandedFolders({});
-    try {
-      const folderPath = await window.electronAPI.dialog_openDirectory();
-      if (folderPath) {
-        console.log(`Folder selected: ${folderPath}`);
-        setCurrentFolderPath(folderPath);
-      } else {
-        console.log('Folder selection cancelled.');
-      }
-    } catch (err) {
-      console.error('Error opening directory dialog:', err);
-      setError('Failed to open directory dialog.');
-    }
+  // Use the passed-in handler for the button click
+  const handleOpenFolder = () => {
+      onOpenFolderRequest();
   };
 
-  // Effect to read root directory
+  // Effect to read root directory (uses prop currentFolderPath)
    useEffect(() => {
     if (currentFolderPath) {
-      console.log(`Reading ROOT directory: ${currentFolderPath}`);
+      console.log(`Sidebar: Reading ROOT directory: ${currentFolderPath}`);
       setIsLoading(true);
       setError(null);
       setRootDirectoryEntries([]);
@@ -3550,21 +3988,23 @@ const Sidebar: React.FC = () => {
           if (response.success) {
             setRootDirectoryEntries(response.entries);
           } else {
-            console.error('Failed to read directory:', response.error);
+            console.error('Sidebar: Failed to read directory:', response.error);
             setError(`Error reading directory: ${response.error}`);
           }
         })
         .catch(err => {
-          console.error('IPC Error reading directory:', err);
+          console.error('Sidebar: IPC Error reading directory:', err);
           setError(`IPC Error: ${err.message || 'Unknown error'}`);
         })
         .finally(() => {
           setIsLoading(false);
         });
     } else {
-      setRootDirectoryEntries([]);
+      setRootDirectoryEntries([]); // Clear tree if no folder path
+      setError(null); // Clear error when folder is cleared
+      setExpandedFolders({}); // Clear expansion state
     }
-  }, [currentFolderPath]);
+  }, [currentFolderPath]); // Dependency is the prop
 
 
   const toggleFolderExpansion = useCallback((folderPath: string) => {
@@ -3574,33 +4014,29 @@ const Sidebar: React.FC = () => {
     }));
   }, []);
 
+  // Use the passed-in setter for going up
   const handleGoUp = () => {
     if (currentFolderPath) {
         const parentPath = path.dirname(currentFolderPath);
-        // Prevent going up from the root itself (e.g., '/')
         if (parentPath !== currentFolderPath) {
-            console.log(`Navigating up to: ${parentPath}`);
-            setCurrentFolderPath(parentPath);
-            // No need to clear expandedFolders here, keep state if returning
+            console.log(`Sidebar: Navigating up to: ${parentPath}`);
+            setCurrentFolderPath(parentPath); // Use prop setter
         } else {
-             console.log("Already at root, cannot go up further.");
+             console.log("Sidebar: Already at root, cannot go up further.");
         }
     }
   };
 
-   // UPDATED: Use openOrFocusFile for files
+   // Logic for clicking entry remains the same
    const handleEntryClick = useCallback((entry: DirectoryEntry) => {
     if (entry.isDirectory) {
-      // Toggle expansion for directories
       toggleFolderExpansion(entry.path);
     } else {
-      // Open or focus the file using the context function
       openOrFocusFile(entry.path).catch(err => {
-          console.error("Error returned from openOrFocusFile call:", err);
-          // Optionally show an error to the user
+          console.error("Sidebar: Error returned from openOrFocusFile call:", err);
       });
     }
-  }, [toggleFolderExpansion, openOrFocusFile]); // Use context function
+  }, [toggleFolderExpansion, openOrFocusFile]);
 
 
   return (
@@ -3608,26 +4044,23 @@ const Sidebar: React.FC = () => {
       {/* Header and Open Folder Button */}
       <div className="sidebar-header">
         <h2>Files</h2>
-        {/* MODIFIED BUTTON: Icon only with title */}
+        {/* Button now calls handleOpenFolder which calls the prop */}
         <button
           onClick={handleOpenFolder}
-          title="Open Folder..." // Tooltip
+          title="Open Folder..."
           aria-label="Open Folder"
-          // Use the generic icon-button class for styling
           className="open-folder-button icon-button"
         >
           <FaFolderOpen />
-          {/* Removed the <span>Open...</span> text */}
         </button>
       </div>
 
       {/* Navigation Controls */}
       {currentFolderPath && (
         <div className="navigation-controls">
-           {/* Up button remains the same */}
+           {/* Up button calls handleGoUp which uses the prop setter */}
            <button
              onClick={handleGoUp}
-             // Disable if parent is the same as current (e.g., at root '/')
              disabled={!currentFolderPath || path.dirname(currentFolderPath) === currentFolderPath}
              title="Go Up One Level"
              aria-label="Go Up One Level"
@@ -3635,15 +4068,15 @@ const Sidebar: React.FC = () => {
            >
              <FaLevelUpAlt />
            </button>
+           {/* Display uses the prop */}
            <div className="current-folder-path" title={currentFolderPath}>
               <small>{currentFolderPath}</small>
            </div>
         </div>
       )}
 
-      {/* File Tree Area */}
+      {/* File Tree Area (Rendering logic remains same) */}
       <div className="file-tree">
-          {/* Loading/Error/Placeholder/List remains the same */}
            {isLoading && <p>Loading...</p>}
            {error && <p className="error-message">Error: {error}</p>}
            {!isLoading && !error && rootDirectoryEntries.length === 0 && !currentFolderPath && (
@@ -3655,18 +4088,17 @@ const Sidebar: React.FC = () => {
                   key={entry.path}
                   entry={entry}
                   isExpanded={!!expandedFolders[entry.path]}
-                  allExpandedFolders={expandedFolders} // Pass the whole map down
-                  onToggleExpand={toggleFolderExpansion} // Passed down for child nodes
-                  onEntryClick={handleEntryClick} // Passed down for child nodes
+                  allExpandedFolders={expandedFolders}
+                  onToggleExpand={toggleFolderExpansion}
+                  onEntryClick={handleEntryClick}
                   level={0}
                 />
              ))}
            </ul>
       </div>
 
-      {/* Theme Switcher */}
+      {/* Theme Switcher (Remains same) */}
       <div className="theme-switcher">
-        {/* Theme switcher remains the same */}
         <label id="theme-select-label" htmlFor="theme-select">
           Theme:
         </label>
@@ -3682,7 +4114,6 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
-// --- END FILE: src/renderer/components/Sidebar.tsx ---
 --- END FILE: src/renderer/components/Sidebar.tsx ---
 
 --- START FILE: src/renderer/components/TerminalTab.tsx ---
@@ -3765,28 +4196,27 @@ export default TerminalTab;
 --- END FILE: src/renderer/components/TerminalTab.tsx ---
 
 --- START FILE: src/renderer/components/MainPanel.tsx ---
+// src/renderer/components/MainPanel.tsx
 import React from 'react';
 import { Allotment } from 'allotment';
 import EditorPanel from './EditorPanel';
 import TerminalPanel from './TerminalPanel';
-import TabContainer from './TabContainer'; // Editor tabs
-import TerminalTabContainer from './TerminalTabContainer'; // Terminal tabs
-import { useTerminals } from '../contexts/TerminalContext'; // To get active terminal ID and list
+import TabContainer from './TabContainer';
+import TerminalTabContainer from './TerminalTabContainer';
+import { useTerminals } from '../contexts/TerminalContext';
 
-// Helper function to get initial terminal size hint
+// Helper function (remains same)
 const getTerminalInitialSize = (): number => {
-    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-      try {
-        const heightValue = getComputedStyle(document.documentElement)
-                              .getPropertyValue('--terminal-height')?.trim();
-        if (heightValue) return parseInt(heightValue.replace('px', ''), 10) || 200;
-      } catch (e) { /* ignore */ }
-    }
-    return 200;
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') { try { const heightValue = getComputedStyle(document.documentElement).getPropertyValue('--terminal-height')?.trim(); if (heightValue) return parseInt(heightValue.replace('px', ''), 10) || 200; } catch (e) { /* ignore */ } } return 200;
 };
 
-const MainPanel: React.FC = () => {
-    // Get the full list of terminals and the active ID
+// --- Define Props Interface ---
+interface MainPanelProps {
+    setCurrentFolderPath: (path: string | null) => void; // Expect the setter function
+}
+
+// --- Apply Props Type to the Component ---
+const MainPanel: React.FC<MainPanelProps> = ({ setCurrentFolderPath }) => { // <<< Use React.FC<MainPanelProps>
     const { openTerminals, activeTerminalId } = useTerminals();
 
     return (
@@ -3799,36 +4229,23 @@ const MainPanel: React.FC = () => {
                 <Allotment vertical>
                     {/* Editor Pane */}
                     <Allotment.Pane minSize={100}>
-                        <EditorPanel />
+                        {/* Pass setter down to EditorPanel */}
+                        <EditorPanel setCurrentFolderPath={setCurrentFolderPath} />
                     </Allotment.Pane>
 
-                    {/* Terminal Pane: Contains tabs AND ALL terminal instances */}
+                    {/* Terminal Pane (Remains same) */}
                     <Allotment.Pane
                         preferredSize={getTerminalInitialSize()}
                         minSize={50}
                         snap
                     >
                         <div className="terminal-area-container">
-                            {/* Render Terminal Tabs */}
                             <TerminalTabContainer />
-
-                            {/* Wrapper for ALL terminal panel instances */}
                             <div className="terminal-panels-wrapper">
-                                {openTerminals.length === 0 && (
-                                     <div className="terminal-placeholder">
-                                         Click the '+' button to open a new terminal.
-                                     </div>
-                                )}
+                                {openTerminals.length === 0 && ( <div className="terminal-placeholder"> Click the '+' button to open a new terminal. </div> )}
                                 {openTerminals.map(terminal => (
-                                    <div
-                                        key={terminal.id} // Key on the wrapper div
-                                        // Apply 'active' class conditionally for CSS visibility
-                                        className={`terminal-panel-instance ${terminal.id === activeTerminalId ? 'active' : ''}`}
-                                    >
-                                        <TerminalPanel
-                                            id={terminal.id}
-                                            isActive={terminal.id === activeTerminalId}
-                                        />
+                                    <div key={terminal.id} className={`terminal-panel-instance ${terminal.id === activeTerminalId ? 'active' : ''}`} >
+                                        <TerminalPanel id={terminal.id} isActive={terminal.id === activeTerminalId} />
                                     </div>
                                 ))}
                             </div>
@@ -4418,12 +4835,14 @@ export default FileTreeNode;
 --- END FILE: src/renderer/components/CommandPalette.css ---
 
 --- START FILE: src/renderer/components/EditorPanel.tsx ---
-// --- START FILE: src/renderer/components/EditorPanel.tsx ---
+// src/renderer/components/EditorPanel.tsx
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import MonacoEditor from 'react-monaco-editor';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { useTheme, ThemeName } from '../contexts/ThemeContext';
 import { useEditor } from '../contexts/EditorContext';
+import WelcomeScreen from './WelcomeScreen'; // Import the new component
+import './WelcomeScreen.css'; // Import the styles for the welcome screen
 
 // Helper function to safely get and parse font size from CSS variable
 const getEditorFontSize = (): number => {
@@ -4476,16 +4895,24 @@ const getLanguageFromPath = (filePath: string | null): string => {
 };
 
 
-const EditorPanel: React.FC = () => {
-    const { theme } = useTheme();
+// --- Define Props Interface ---
+interface EditorPanelProps {
+    setCurrentFolderPath: (path: string | null) => void;
+}
+
+// --- Apply Props Type to the Component ---
+const EditorPanel: React.FC<EditorPanelProps> = ({ setCurrentFolderPath }) => {
+    const { theme } = useTheme(); // Get the CURRENT theme from context
     const {
+        openFiles,
         activeFilePath,
         getActiveFile,
-        updateActiveFileDirtyState, // <-- Function to call
+        updateActiveFileDirtyState,
         saveActiveFile,
         setCursorPosition,
     } = useEditor();
 
+    // Refs remain the same
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoRef = useRef<typeof monaco | null>(null);
     const lastSetModelPath = useRef<string | null>(null);
@@ -4493,13 +4920,13 @@ const EditorPanel: React.FC = () => {
     const cursorListenerDisposable = useRef<monaco.IDisposable | null>(null);
     const viewStateCache = useRef<Map<string, monaco.editor.ICodeEditorViewState | null>>(new Map());
 
+    // Memoized values and callbacks
     const activeFile = useMemo(() => getActiveFile(), [getActiveFile]);
 
     const getMonacoThemeName = useCallback((currentTheme: ThemeName): string => {
         switch (currentTheme) {
             case 'light': return 'vs';
             case 'dark': return 'vs-dark';
-            // ... other themes
             case 'win95': return 'win95-monaco-theme';
             case 'pipboy': return 'pipboy-monaco-theme';
             case 'mirc': return 'mirc-monaco-theme';
@@ -4509,38 +4936,31 @@ const EditorPanel: React.FC = () => {
             case 'atari': return 'atari-monaco-theme';
             case 'snes': return 'snes-monaco-theme';
             case 'bw_tv': return 'bw-tv-monaco-theme';
-            default: return 'vs-dark';
+            default: return 'vs-dark'; // Default fallback
         }
     }, []);
 
     const editorOptions = useMemo((): monaco.editor.IStandaloneEditorConstructionOptions => ({
         selectOnLineNumbers: true,
-        automaticLayout: true,
+        automaticLayout: true, // Necessary for editor to resize correctly
         fontFamily: 'var(--font-family-mono)',
-        fontSize: getEditorFontSize(),
+        fontSize: getEditorFontSize(), // Gets current font size
         minimap: { enabled: true },
-        wordWrap: 'on',
+        wordWrap: 'on', // Or 'off' based on preference
         scrollBeyondLastLine: false,
-        readOnly: activeFile?.isLoading ?? !activeFile,
-    }), [activeFile]);
+        readOnly: activeFile?.isLoading ?? !activeFile, // Set readOnly based on file state
+    }), [activeFile]); // Recompute if activeFile changes (for readOnly state)
 
-
-    // --- Editor Change Handler ---
-    // MODIFIED: Always call context function, pass current editor value
     const handleInternalChange = useCallback(() => {
         const editor = editorRef.current;
         const currentModelValue = editor?.getValue();
-
         if (editor && currentModelValue !== undefined) {
-            // Pass the current editor value to the context function
-            // Let the context handle the comparison with its latest state
-             console.log(`[EditorPanel -> handleInternalChange] Calling updateActiveFileDirtyState with current editor content (length: ${currentModelValue.length})`);
+            // Delegate dirty check to context
             updateActiveFileDirtyState(currentModelValue);
         }
-    }, [updateActiveFileDirtyState]); // Depends only on the context function
+    }, [updateActiveFileDirtyState]);
 
-
-    // --- Editor Mount Logic ---
+    // --- EDITOR DID MOUNT ---
     const editorDidMount = useCallback((
         editor: monaco.editor.IStandaloneCodeEditor,
         monacoInstance: typeof monaco
@@ -4548,147 +4968,188 @@ const EditorPanel: React.FC = () => {
         console.log('Editor mounted!');
         editorRef.current = editor;
         monacoRef.current = monacoInstance;
-        lastSetModelPath.current = null;
-        viewStateCache.current.clear();
+        lastSetModelPath.current = null; // Reset last path ref
+        viewStateCache.current.clear(); // Clear view state cache
 
+        // Dispose previous listeners if any (important for potential re-mounts)
         changeListenerDisposable.current?.dispose();
         cursorListenerDisposable.current?.dispose();
 
-        // Define custom themes (No changes needed here, keep as is)
+        // --- Define Themes (using getCssVar) ---
+        // This function defines a Monaco theme based on CSS variables
         const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
-             try {
-                 monacoInstance.editor.defineTheme(name, {
-                    base: base,
-                    inherit: true,
-                    rules: [],
-                    colors: {
-                        'editor.background': getCssVar(`--${cssVarPrefix}-bg`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
-                        'editor.foreground': getCssVar(`--${cssVarPrefix}-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
-                        'editorCursor.foreground': getCssVar(`--${cssVarPrefix}-accent`, base === 'vs' ? '#000000' : '#aeafad'),
-                        'editorLineNumber.foreground': getCssVar(`--${cssVarPrefix}-tertiary`, '#858585'),
-                        'editorLineNumber.activeForeground': getCssVar(`--${cssVarPrefix}-secondary`, '#c6c6c6'),
-                        'editor.selectionBackground': getCssVar(`--${cssVarPrefix}-selected-bg`, '#add6ff'),
-                        'editor.selectionForeground': getCssVar(`--${cssVarPrefix}-selected-text`, '#000000'),
-                        'editorWidget.background': getCssVar(`--${cssVarPrefix}-widget-bg`, base === 'vs' ? '#f3f3f3' : '#252526'),
-                        'editorWidget.border': getCssVar(`--${cssVarPrefix}-border`, '#c8c8c8'),
-                        'input.background': getCssVar(`--${cssVarPrefix}-input-bg`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
-                        'input.foreground': getCssVar(`--${cssVarPrefix}-input-text`, base === 'vs' ? '#000000' : '#d4d4d4'),
-                        'input.border': getCssVar(`--${cssVarPrefix}-input-border`, '#bebebe'),
-                        // Theme-specific overrides
-                         ...(name === 'win95-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
-                         ...(name === 'mirc-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
-                         ...(name === 'pipboy-monaco-theme' && { 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f') }),
-                         ...(name === 'qbasic-monaco-theme' && { 'editor.selectionForeground': getCssVar('--qbasic-white', '#FFFFFF') }),
-                         ...(name === 'orange-monaco-theme' && { 'editor.selectionForeground': getCssVar('--orange-dark', '#201500') }),
-                         ...(name === 'cga-monaco-theme' && { 'editor.selectionForeground': getCssVar('--cga-black', '#000000') }),
-                         ...(name === 'atari-monaco-theme' && { 'editor.selectionForeground': getCssVar('--atari-black', '#000000') }),
-                         ...(name === 'snes-monaco-theme' && { 'editor.selectionForeground': getCssVar('--snes-bg', '#2F2F4F') }),
-                         ...(name === 'bw-tv-monaco-theme' && { 'editor.selectionForeground': getCssVar('--bw-black', '#000000') }),
-                        ...colorsOverride
-                    }
-                 });
+            try {
+                // Define base colors using CSS variables with fallbacks
+                const colors: monaco.editor.IStandaloneThemeData['colors'] = {
+                    'editor.background': getCssVar(`--color-bg-editor`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
+                    'editor.foreground': getCssVar(`--color-text-primary`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                    'editorCursor.foreground': getCssVar(`--color-text-accent`, base === 'vs' ? '#000000' : '#aeafad'),
+                    'editorLineNumber.foreground': getCssVar(`--color-text-tertiary`, '#858585'),
+                    'editorLineNumber.activeForeground': getCssVar(`--color-text-secondary`, '#c6c6c6'),
+                    'editor.selectionBackground': getCssVar(`--color-bg-selected`, '#add6ff'),
+                    // Ensure selection foreground contrasts with selection background
+                    'editor.selectionForeground': getCssVar(`--color-text-inverse`, '#000000'),
+                    'editorWidget.background': getCssVar(`--color-bg-sidebar`, base === 'vs' ? '#f3f3f3' : '#252526'), // Use sidebar or another appropriate bg
+                    'editorWidget.border': getCssVar(`--color-border`, '#c8c8c8'),
+                    'input.background': getCssVar(`--color-bg-input`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
+                    'input.foreground': getCssVar(`--color-text-primary`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                    'input.border': getCssVar(`--color-border-input`, '#bebebe'),
+                     // Apply specific overrides for themes where selection needs different text color
+                     ...(name === 'win95-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
+                     ...(name === 'mirc-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
+                     ...(name === 'pipboy-monaco-theme' && { 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), }),
+                     ...(name === 'qbasic-monaco-theme' && { 'editor.selectionForeground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.background': getCssVar('--qbasic-blue', '#0000AA'), 'editor.foreground': getCssVar('--qbasic-yellow', '#FFFF55'), 'editorCursor.foreground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--qbasic-dark-gray', '#555555'), }),
+                     ...(name === 'orange-monaco-theme' && { 'editor.selectionForeground': getCssVar('--orange-dark', '#201500'), 'editor.background': getCssVar('--orange-dark', '#201500'), 'editor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editorCursor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editor.selectionBackground': getCssVar('--orange-medium', '#D98C00'), }),
+                     ...(name === 'cga-monaco-theme' && { 'editor.selectionForeground': getCssVar('--cga-black', '#000000'), 'editor.background': getCssVar('--cga-black', '#000000'), 'editor.foreground': getCssVar('--cga-cyan', '#55FFFF'), 'editorCursor.foreground': getCssVar('--cga-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--cga-cyan', '#55FFFF'), }),
+                     ...(name === 'atari-monaco-theme' && { 'editor.selectionForeground': getCssVar('--atari-black', '#000000'), 'editor.background': getCssVar('--atari-black', '#000000'), 'editor.foreground': getCssVar('--atari-cyan', '#3FFFCF'), 'editorCursor.foreground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionBackground': getCssVar('--atari-orange', '#D87050'), }),
+                     ...(name === 'snes-monaco-theme' && { 'editor.selectionForeground': getCssVar('--snes-bg', '#2F2F4F'), 'editor.background': getCssVar('--snes-bg', '#2F2F4F'), 'editor.foreground': getCssVar('--snes-text', '#E0E0FF'), 'editorCursor.foreground': getCssVar('--snes-accent4', '#E0E040'), 'editor.selectionBackground': getCssVar('--snes-accent1', '#8080FF'), }),
+                     ...(name === 'bw-tv-monaco-theme' && { 'editor.selectionForeground': getCssVar('--bw-black', '#000000'), 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), }),
+                     ...colorsOverride // Apply any passed-in overrides
+                };
+
+                monacoInstance.editor.defineTheme(name, {
+                   base: base,
+                   inherit: true, // Inherit rules (like syntax highlighting) from base
+                   rules: [], // Keep syntax highlighting rules empty (as it's broken)
+                   colors: colors // Apply the computed colors
+                });
+                console.log(`Defined Monaco theme: ${name}`);
              } catch (error) { console.error(`Failed to define Monaco theme '${name}':`, error); }
          };
-        // Define all themes...
-        defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy', { 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), 'editorWidget.background': getCssVar('--pipboy-bg-lighter', '#102a18'), 'editorWidget.border': getCssVar('--pipboy-green-dark', '#10b445'), });
-        defineTheme('win95-monaco-theme', 'vs', 'win95', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), });
-        defineTheme('mirc-monaco-theme', 'vs', 'mirc', { 'editor.background': getCssVar('--color-bg-editor', '#ffffff'), 'editor.foreground': getCssVar('--color-text-primary', '#000000'), 'editorCursor.foreground': '#000000', 'editor.selectionBackground': getCssVar('--color-bg-selected', '#000080'), });
-        defineTheme('qbasic-monaco-theme', 'vs-dark', 'qbasic', { 'editor.background': getCssVar('--qbasic-blue', '#0000AA'), 'editor.foreground': getCssVar('--qbasic-yellow', '#FFFF55'), 'editorCursor.foreground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--qbasic-dark-gray', '#555555'), });
-        defineTheme('orange-monaco-theme', 'vs-dark', 'orange', { 'editor.background': getCssVar('--orange-dark', '#201500'), 'editor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editorCursor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editor.selectionBackground': getCssVar('--orange-medium', '#D98C00'), });
-        defineTheme('cga-monaco-theme', 'vs-dark', 'cga', { 'editor.background': getCssVar('--cga-black', '#000000'), 'editor.foreground': getCssVar('--cga-cyan', '#55FFFF'), 'editorCursor.foreground': getCssVar('--cga-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--cga-cyan', '#55FFFF'), });
-        defineTheme('atari-monaco-theme', 'vs-dark', 'atari', { 'editor.background': getCssVar('--atari-black', '#000000'), 'editor.foreground': getCssVar('--atari-cyan', '#3FFFCF'), 'editorCursor.foreground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionBackground': getCssVar('--atari-orange', '#D87050'), });
-        defineTheme('snes-monaco-theme', 'vs-dark', 'snes', { 'editor.background': getCssVar('--snes-bg', '#2F2F4F'), 'editor.foreground': getCssVar('--snes-text', '#E0E0FF'), 'editorCursor.foreground': getCssVar('--snes-accent4', '#E0E040'), 'editor.selectionBackground': getCssVar('--snes-accent1', '#8080FF'), });
-        defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv', { 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), });
 
-        monacoInstance.editor.setTheme(getMonacoThemeName(theme));
+        // Define all custom themes using current CSS var values at mount time
+        defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy');
+        defineTheme('win95-monaco-theme', 'vs', 'win95');
+        defineTheme('mirc-monaco-theme', 'vs', 'mirc');
+        defineTheme('qbasic-monaco-theme', 'vs-dark', 'qbasic');
+        defineTheme('orange-monaco-theme', 'vs-dark', 'orange');
+        defineTheme('cga-monaco-theme', 'vs-dark', 'cga');
+        defineTheme('atari-monaco-theme', 'vs-dark', 'atari');
+        defineTheme('snes-monaco-theme', 'vs-dark', 'snes');
+        defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv');
+        // Ensure base themes 'vs' and 'vs-dark' are available implicitly
+
+        // --- Set the initial theme based on CURRENT context value ---
+        // Read theme from context *when the editor mounts*
+        const currentGlobalTheme = theme;
+        const monacoThemeToSet = getMonacoThemeName(currentGlobalTheme);
+        console.log(`EditorDidMount: Setting Monaco theme to: ${monacoThemeToSet} (based on global theme: ${currentGlobalTheme})`);
+        monacoInstance.editor.setTheme(monacoThemeToSet);
+        // --- End Initial Theme Set ---
+
+        // Set initial font size
         editor.updateOptions({ fontSize: getEditorFontSize() });
 
+        // Set initial editor value if files are open
         const initialActiveFile = getActiveFile();
-        if (initialActiveFile && initialActiveFile.content !== null) {
+        if (openFiles.length > 0 && initialActiveFile && initialActiveFile.content !== null) {
             console.log(`EditorDidMount: Setting initial model value for ${initialActiveFile.path}`);
             editor.setValue(initialActiveFile.content);
             lastSetModelPath.current = initialActiveFile.path;
             monacoInstance.editor.setModelLanguage(editor.getModel()!, getLanguageFromPath(initialActiveFile.path));
-            const initialPosition = editor.getPosition();
-            if (initialPosition) setCursorPosition(initialPosition);
-        } else {
-            editor.setValue('// Open a file from the sidebar...');
+            // Restore view state or set default position
+            const previousViewState = viewStateCache.current.get(initialActiveFile.path);
+            if (previousViewState) {
+                editor.restoreViewState(previousViewState);
+            } else {
+                editor.setPosition({ lineNumber: 1, column: 1 });
+            }
+            const currentPosition = editor.getPosition();
+            if (currentPosition) setCursorPosition(currentPosition);
+            editor.getModel()?.pushStackElement(); // Set initial undo point
+            editor.focus();
+        } else if (openFiles.length > 0) {
+            // Case where files are open, but initial active file is loading/null
+            editor.setValue('// Loading file...');
             lastSetModelPath.current = null;
             monacoInstance.editor.setModelLanguage(editor.getModel()!, 'plaintext');
             setCursorPosition(null);
         }
-        editor.getModel()?.pushStackElement();
+        // If openFiles is empty, WelcomeScreen is shown, no need to set value
 
-        // Attach the onChange listener - calls the MODIFIED handler
+        // Attach onChange listener
         changeListenerDisposable.current = editor.onDidChangeModelContent(() => {
-            handleInternalChange(); // This now calls the context function
+            if (openFiles.length > 0) { handleInternalChange(); }
         });
         console.log("EditorDidMount: Attached onDidChangeModelContent listener.");
 
+        // Attach onCursor listener
         cursorListenerDisposable.current = editor.onDidChangeCursorPosition((e) => {
-            if (e.position) setCursorPosition(e.position);
-            else setCursorPosition(null);
+            if (openFiles.length > 0) {
+                setCursorPosition(e.position ? e.position : null);
+            } else {
+                setCursorPosition(null);
+            }
         });
         console.log("EditorDidMount: Attached onDidChangeCursorPosition listener.");
 
-        // Add Ctrl+S Command (No change here, relies on context save function)
+        // Add Ctrl+S Command
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-            console.log(`[Ctrl+S Handler] Triggered.`);
-            const currentContent = editorRef.current?.getValue();
-            const activeFileNow = getActiveFile(); // Still useful to check *if* there's an active file
-
-            console.log(`[Ctrl+S Handler] Content to save (length: ${currentContent?.length ?? 'undefined'}):`, currentContent?.substring(0, 50) + '...');
-
-            if (activeFileNow && currentContent !== undefined) {
-                 // We no longer log dirty state here, context handles it
-                 console.log(`[Ctrl+S Handler] Active file: ${activeFileNow.path}. Calling saveActiveFile...`);
-                 saveActiveFile(currentContent)
-                    .then(() => {
-                        console.log(`[Ctrl+S Handler] saveActiveFile promise resolved (may or may not indicate success) for ${activeFileNow.path}.`);
-                    })
-                    .catch(err => {
-                        console.error(`[Ctrl+S Handler] Error during save operation for ${activeFileNow.path}:`, err);
-                    });
+            if (openFiles.length > 0) {
+                console.log(`[Ctrl+S Handler] Triggered.`);
+                const currentContent = editorRef.current?.getValue();
+                const activeFileNow = getActiveFile();
+                if (activeFileNow && currentContent !== undefined) {
+                    console.log(`[Ctrl+S Handler] Calling saveActiveFile for ${activeFileNow.path}.`);
+                    saveActiveFile(currentContent)
+                        .catch(err => { console.error(`[Ctrl+S Handler] Error during save:`, err); });
+                } else {
+                    console.log(`[Ctrl+S Handler] No active file or content unavailable.`);
+                }
             } else {
-                console.log(`[Ctrl+S Handler] No active file or content unavailable. Cannot save.`);
+                console.log(`[Ctrl+S Handler] No files open. Cannot save.`);
             }
          });
+        console.log("EditorDidMount: Added Ctrl+S command.");
 
-        editor.focus();
-
+        // Cleanup function for when the component unmounts
         return () => {
              console.log("Editor unmounting, disposing listeners.");
              changeListenerDisposable.current?.dispose();
              cursorListenerDisposable.current?.dispose();
-             changeListenerDisposable.current = null;
-             cursorListenerDisposable.current = null;
-             editorRef.current = null;
-             monacoRef.current = null;
+             // Don't null out refs here if component can remount,
+             // but ensure listeners are cleaned up.
+             // editorRef.current = null;
+             // monacoRef.current = null;
         };
-    }, [theme, getMonacoThemeName, getActiveFile, handleInternalChange, saveActiveFile, updateActiveFileDirtyState, setCursorPosition]);
+        // Dependencies for useCallback - include everything used inside
+        }, [theme, getMonacoThemeName, getActiveFile, handleInternalChange, saveActiveFile, updateActiveFileDirtyState, setCursorPosition, openFiles]); // Add theme here
 
 
-    // --- Effect to UPDATE editor content when ACTIVE file changes ---
+    // --- Effect to update editor content when ACTIVE file changes ---
     useEffect(() => {
+        // Skip if no files are open (Welcome screen is showing)
+        if (openFiles.length === 0) {
+             if (lastSetModelPath.current !== null) lastSetModelPath.current = null; // Reset ref if needed
+             return;
+        }
+
         const editor = editorRef.current;
         const monaco = monacoRef.current;
 
+        // Save view state of the previous file before switching
         const previousPath = lastSetModelPath.current;
         if (editor && previousPath && previousPath !== activeFile?.path) {
             const currentState = editor.saveViewState();
-            viewStateCache.current.set(previousPath, currentState);
-            console.log(`Saved view state for ${previousPath}`);
+            if (currentState) { // Only save if not null
+                viewStateCache.current.set(previousPath, currentState);
+                console.log(`Saved view state for ${previousPath}`);
+            } else {
+                 console.log(`Could not save view state for ${previousPath}`);
+            }
         }
 
+        // Ensure editor is ready
         if (!editor || !monaco ) {
              console.log("Editor not ready, skipping active file update.");
              return;
         }
 
+        // Handle case where active file becomes null (e.g., closing last tab)
         if (!activeFile) {
             if (lastSetModelPath.current !== null) {
-                console.log("No active file, clearing editor.");
-                editor.setValue('');
+                console.log("Active file is now null. Clearing editor display.");
+                editor.setValue(''); // Clear display
                 lastSetModelPath.current = null;
                 monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
                 editor.updateOptions({ readOnly: true });
@@ -4697,28 +5158,29 @@ const EditorPanel: React.FC = () => {
             return;
         }
 
-        // *** IMPORTANT: Check activeFile.content specifically ***
-        // Check if path changed AND the content in the context is NOT null (meaning load is complete)
-        // AND the file isn't currently marked as loading
+        // Update editor only if path changed AND content is loaded
         if (activeFile.path !== lastSetModelPath.current && activeFile.content !== null && !activeFile.isLoading) {
-            console.log(`Active file changed to ${activeFile.path} AND content/loading state is ready. Updating editor model.`);
+            console.log(`Active file changed to ${activeFile.path}. Updating editor model.`);
 
-            editor.setValue(activeFile.content);
-            lastSetModelPath.current = activeFile.path;
+            editor.setValue(activeFile.content); // Set the new content
+            lastSetModelPath.current = activeFile.path; // Update the ref
 
+             // Restore view state or set default position
              const previousViewState = viewStateCache.current.get(activeFile.path);
              if (previousViewState) {
                  console.log(`Restoring view state for ${activeFile.path}`);
                  editor.restoreViewState(previousViewState);
              } else {
-                  console.log(`No view state found for ${activeFile.path}, using default.`);
+                  console.log(`No view state found for ${activeFile.path}, setting default position.`);
                   editor.setScrollPosition({ scrollTop: 0, scrollLeft: 0 });
                   editor.setPosition({ lineNumber: 1, column: 1 });
              }
 
+             // Update cursor position context
              const currentPosition = editor.getPosition();
-             if (currentPosition) setCursorPosition(currentPosition);
+             setCursorPosition(currentPosition ? currentPosition : null);
 
+             // Update language model
              const newLanguage = getLanguageFromPath(activeFile.path);
              const model = editor.getModel();
              if (model && model.getLanguageId() !== newLanguage) {
@@ -4726,59 +5188,137 @@ const EditorPanel: React.FC = () => {
                  console.log(`Editor language set to: ${newLanguage}`);
              }
 
+             // Ensure editor has focus after switching
              editor.focus();
+
         } else if (activeFile.path === lastSetModelPath.current) {
+             // Path didn't change, do nothing regarding model value
              console.log(`Active file path ${activeFile.path} hasn't changed, skipping model update.`);
         } else {
-             console.log(`Active file changed to ${activeFile.path} BUT content is null or still loading. Deferring editor model update.`);
+             // Path changed, but content isn't ready yet
+             console.log(`Active file changed to ${activeFile.path} BUT content is null or loading. Deferring editor model update.`);
+             // Optionally show a temporary loading state in the editor itself:
+             // if (lastSetModelPath.current !== activeFile.path) { // Avoid flicker if already loading
+             //     editor.setValue(`// Loading ${activeFile.path}...`);
+             //     lastSetModelPath.current = activeFile.path; // Update ref even while loading
+             //     monaco.editor.setModelLanguage(editor.getModel()!, 'plaintext');
+             // }
         }
 
-
         // Always update readOnly state based on latest activeFile status
-        const shouldBeReadOnly = activeFile.isLoading || !activeFile.path; // Consider no path as readonly too
+        const shouldBeReadOnly = activeFile.isLoading || !activeFile.path;
         if (editor.getOption(monaco.editor.EditorOption.readOnly) !== shouldBeReadOnly) {
              console.log(`Updating editor readOnly state to: ${shouldBeReadOnly}`);
              editor.updateOptions({ readOnly: shouldBeReadOnly });
         }
 
-    }, [activeFile, setCursorPosition]);
+    // Dependencies: Run when the active file object changes or when the list of open files changes
+    }, [activeFile, openFiles, setCursorPosition]);
 
 
-    // Effect to update theme and font size
+    // --- Effect to update theme and font size ON CHANGE ---
     useEffect(() => {
         const editor = editorRef.current;
-        const monaco = monacoRef.current;
-        if (editor && monaco) {
-            monaco.editor.setTheme(getMonacoThemeName(theme));
-            editor.updateOptions({ fontSize: getEditorFontSize() });
-        }
-    }, [theme, getMonacoThemeName]);
+        const monacoInstance = monacoRef.current; // Get instance from ref
 
+        // --- ADD NULL CHECK HERE ---
+        // Only proceed if editor AND monaco instance exist AND files are open
+        if (editor && monacoInstance && openFiles.length > 0) {
+        // --- END NULL CHECK ---
+
+            const newMonacoTheme = getMonacoThemeName(theme);
+            console.log(`Theme/Font Effect: Setting Monaco theme to ${newMonacoTheme} and updating font size.`);
+
+            // --- Re-Define Themes When Global Theme Changes ---
+            // Using a local helper function here for clarity
+            const defineTheme = (name: string, base: 'vs' | 'vs-dark', cssVarPrefix: string, colorsOverride?: monaco.editor.IStandaloneThemeData['colors']) => {
+                 try {
+                    // Define base colors using CSS variables with fallbacks
+                    const colors: monaco.editor.IStandaloneThemeData['colors'] = {
+                        'editor.background': getCssVar(`--color-bg-editor`, base === 'vs' ? '#ffffff' : '#1e1e1e'),
+                        'editor.foreground': getCssVar(`--color-text-primary`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                        'editorCursor.foreground': getCssVar(`--color-text-accent`, base === 'vs' ? '#000000' : '#aeafad'),
+                        'editorLineNumber.foreground': getCssVar(`--color-text-tertiary`, '#858585'),
+                        'editorLineNumber.activeForeground': getCssVar(`--color-text-secondary`, '#c6c6c6'),
+                        'editor.selectionBackground': getCssVar(`--color-bg-selected`, '#add6ff'),
+                        'editor.selectionForeground': getCssVar(`--color-text-inverse`, '#000000'),
+                        'editorWidget.background': getCssVar(`--color-bg-sidebar`, base === 'vs' ? '#f3f3f3' : '#252526'),
+                        'editorWidget.border': getCssVar(`--color-border`, '#c8c8c8'),
+                        'input.background': getCssVar(`--color-bg-input`, base === 'vs' ? '#ffffff' : '#3c3c3c'),
+                        'input.foreground': getCssVar(`--color-text-primary`, base === 'vs' ? '#000000' : '#d4d4d4'),
+                        'input.border': getCssVar(`--color-border-input`, '#bebebe'),
+                         // Apply specific overrides
+                         ...(name === 'win95-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
+                         ...(name === 'mirc-monaco-theme' && { 'editor.selectionForeground': getCssVar('--color-text-inverse', '#ffffff') }),
+                         ...(name === 'pipboy-monaco-theme' && { 'editor.selectionForeground': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.background': getCssVar('--pipboy-bg', '#0a1a0f'), 'editor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editorCursor.foreground': getCssVar('--pipboy-green', '#15ff60'), 'editor.selectionBackground': getCssVar('--pipboy-green-dark', '#10b445'), }),
+                         ...(name === 'qbasic-monaco-theme' && { 'editor.selectionForeground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.background': getCssVar('--qbasic-blue', '#0000AA'), 'editor.foreground': getCssVar('--qbasic-yellow', '#FFFF55'), 'editorCursor.foreground': getCssVar('--qbasic-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--qbasic-dark-gray', '#555555'), }),
+                         ...(name === 'orange-monaco-theme' && { 'editor.selectionForeground': getCssVar('--orange-dark', '#201500'), 'editor.background': getCssVar('--orange-dark', '#201500'), 'editor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editorCursor.foreground': getCssVar('--orange-bright', '#FFA500'), 'editor.selectionBackground': getCssVar('--orange-medium', '#D98C00'), }),
+                         ...(name === 'cga-monaco-theme' && { 'editor.selectionForeground': getCssVar('--cga-black', '#000000'), 'editor.background': getCssVar('--cga-black', '#000000'), 'editor.foreground': getCssVar('--cga-cyan', '#55FFFF'), 'editorCursor.foreground': getCssVar('--cga-white', '#FFFFFF'), 'editor.selectionBackground': getCssVar('--cga-cyan', '#55FFFF'), }),
+                         ...(name === 'atari-monaco-theme' && { 'editor.selectionForeground': getCssVar('--atari-black', '#000000'), 'editor.background': getCssVar('--atari-black', '#000000'), 'editor.foreground': getCssVar('--atari-cyan', '#3FFFCF'), 'editorCursor.foreground': getCssVar('--atari-orange', '#D87050'), 'editor.selectionBackground': getCssVar('--atari-orange', '#D87050'), }),
+                         ...(name === 'snes-monaco-theme' && { 'editor.selectionForeground': getCssVar('--snes-bg', '#2F2F4F'), 'editor.background': getCssVar('--snes-bg', '#2F2F4F'), 'editor.foreground': getCssVar('--snes-text', '#E0E0FF'), 'editorCursor.foreground': getCssVar('--snes-accent4', '#E0E040'), 'editor.selectionBackground': getCssVar('--snes-accent1', '#8080FF'), }),
+                         ...(name === 'bw-tv-monaco-theme' && { 'editor.selectionForeground': getCssVar('--bw-black', '#000000'), 'editor.background': getCssVar('--bw-black', '#000000'), 'editor.foreground': getCssVar('--bw-light-gray', '#cccccc'), 'editorCursor.foreground': getCssVar('--bw-white', '#ffffff'), 'editor.selectionBackground': getCssVar('--bw-light-gray', '#cccccc'), }),
+                         ...colorsOverride
+                    };
+                    monacoInstance.editor.defineTheme(name, { base, inherit: true, rules: [], colors });
+                 } catch (error) { console.error(`Failed to re-define Monaco theme '${name}':`, error); }
+            };
+
+            // Re-define all themes to pick up potentially changed CSS vars
+            defineTheme('pipboy-monaco-theme', 'vs-dark', 'pipboy');
+            defineTheme('win95-monaco-theme', 'vs', 'win95');
+            defineTheme('mirc-monaco-theme', 'vs', 'mirc');
+            defineTheme('qbasic-monaco-theme', 'vs-dark', 'qbasic');
+            defineTheme('orange-monaco-theme', 'vs-dark', 'orange');
+            defineTheme('cga-monaco-theme', 'vs-dark', 'cga');
+            defineTheme('atari-monaco-theme', 'vs-dark', 'atari');
+            defineTheme('snes-monaco-theme', 'vs-dark', 'snes');
+            defineTheme('bw-tv-monaco-theme', 'vs-dark', 'bw-tv');
+            // --- End Re-Define ---
+
+            // Set the currently selected theme name
+            monacoInstance.editor.setTheme(newMonacoTheme);
+
+            // Update font size
+            editor.updateOptions({ fontSize: getEditorFontSize() });
+        } else {
+            // Optional: Log if the effect runs but skips due to null refs or no open files
+            // console.log("Theme/Font Effect: Skipped (editor/monaco null or no files open)");
+        }
+    // Dependencies: React to changes in the global theme or the open files list
+    }, [theme, getMonacoThemeName, openFiles]); // Dependencies remain the same
 
     return (
         <div className="editor-panel" id="editor-panel-main">
-            {activeFile?.error && <div className="editor-context-error">Error: {activeFile.error}</div>}
-            {activeFile?.isLoading && <div className="editor-loading-indicator">Loading...</div>}
+            {openFiles.length === 0 ? (
+                // Pass the setter down to WelcomeScreen
+                <WelcomeScreen setCurrentFolderPath={setCurrentFolderPath} />
+            ) : (
+                <>
+                    {/* Indicators shown only when editor is active */}
+                    {activeFile?.error && <div className="editor-context-error">Error: {activeFile.error}</div>}
+                    {activeFile?.isLoading && <div className="editor-loading-indicator">Loading...</div>}
 
-            <MonacoEditor
-                key={activeFilePath || 'no-file'}
-                width="100%"
-                height="100%"
-                language={getLanguageFromPath(activeFilePath)}
-                theme={getMonacoThemeName(theme)}
-                options={editorOptions}
-                // Value is primarily controlled by the useEffect hook reacting to activeFile
-                value={activeFile?.content ?? ''} // Provide default empty string
-                // onChange is technically optional now as we use the internal listener
-                // onChange={handleInternalChange} // This would call the *new* handleInternalChange
-                editorDidMount={editorDidMount}
-            />
+                    <MonacoEditor
+                        key={activeFilePath || 'editor-active'} // Change key to force remount if needed? Maybe not necessary.
+                        width="100%"
+                        height="100%"
+                        language={getLanguageFromPath(activeFilePath)}
+                        // Theme prop is less critical now, but keep it consistent
+                        theme={getMonacoThemeName(theme)}
+                        options={editorOptions}
+                        // Value is controlled by the useEffect hook reacting to activeFile
+                        value={activeFile?.content ?? ''} // Default to empty string if content is null
+                        editorDidMount={editorDidMount}
+                        // onChange prop is redundant due to internal listener, can be removed
+                        // onChange={handleInternalChange}
+                    />
+                </>
+            )}
         </div>
     );
 };
 
 export default EditorPanel;
-// --- END FILE: src/renderer/components/EditorPanel.tsx ---
 --- END FILE: src/renderer/components/EditorPanel.tsx ---
 
 --- START FILE: src/renderer/components/CustomSelect.css ---
@@ -5672,522 +6212,130 @@ interface ImportMetaEnv {
 --- END FILE: src/main/env.d.ts ---
 
 --- START FILE: src/main/index.ts ---
-// --- START FILE: src/main/index.ts ---
 // src/main/index.ts
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu, MenuItemConstructorOptions } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
 import * as pty from 'node-pty';
-import fs from 'node:fs/promises'; // Import fs promises
+import fs from 'node:fs/promises';
+import Store from 'electron-store'; // Static import restored
 
-// Import shared types (ensure paths are correct in your tsconfig for build)
+// Import shared types
 import type {
     DirectoryEntry, ReadDirectoryResponse, ReadFileResponse, SaveFileResponse,
-    PtyCreateOptions, PtyResizeOptions, PtyCreateResponse // Import terminal types
+    PtyCreateOptions, PtyResizeOptions, PtyCreateResponse
 } from '../shared.types';
 
-// --- Global Variables ---
+// Define Store Schema Type
+interface StoreSchema {
+    recentFolders: string[];
+}
+
+// Global Variables
 app.disableHardwareAcceleration();
 const shellPath = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-// --- Terminal Management ---
-// Use a Map to store multiple PTY processes, keyed by their unique ID
 const ptyInstances = new Map<string, pty.IPty>();
 let mainWindow: BrowserWindow | null = null;
+const MAX_RECENT_FOLDERS = 10;
 
-
-// --- Squirrel Startup Handler (Windows Installer) ---
-if (app.isPackaged && process.platform === 'win32') {
-    if (require('electron-squirrel-startup')) {
-      app.quit();
-    }
-}
-
-// Function to create the application menu
-function createApplicationMenu() {
-    const isMac = process.platform === 'darwin';
-
-    const template: MenuItemConstructorOptions[] = [
-        // { role: 'appMenu' } // Mac-specific File menu items
-        ...(isMac ? [{
-            label: app.name,
-            submenu: [
-                { role: 'about' },
-                { type: 'separator' },
-                { role: 'services' },
-                { type: 'separator' },
-                { role: 'hide' },
-                { role: 'hideOthers' },
-                { role: 'unhide' },
-                { type: 'separator' },
-                { role: 'quit' } // Cmd+Q
-            ]
-        }] : []) as MenuItemConstructorOptions[],
-        // { role: 'fileMenu' } // Standard File menu
-        {
-            label: 'File',
-            submenu: [
-                isMac ? { role: 'close' } : { role: 'quit' } // Alt+F4 (Win/Linux), Cmd+W (Mac) vs Cmd+Q
-            ]
-        },
-        // { role: 'editMenu' }
-        {
-            label: 'Edit',
-            submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
-                { type: 'separator' },
-                { role: 'cut' },
-                { role: 'copy' },
-                { role: 'paste' },
-                ...(isMac ? [
-                    { role: 'pasteAndMatchStyle' },
-                    { role: 'delete' },
-                    { role: 'selectAll' },
-                    { type: 'separator' },
-                    {
-                        label: 'Speech',
-                        submenu: [
-                            { role: 'startSpeaking' },
-                            { role: 'stopSpeaking' }
-                        ]
-                    }
-                ] : [
-                    { role: 'delete' },
-                    { type: 'separator' },
-                    { role: 'selectAll' }
-                ]) as MenuItemConstructorOptions[]
-            ]
-        },
-        // { role: 'viewMenu' }
-        {
-            label: 'View',
-            submenu: [
-                { role: 'reload' }, // Ctrl+R / Cmd+R
-                { role: 'forceReload' }, // Ctrl+Shift+R / Cmd+Shift+R
-                { role: 'toggleDevTools' }, // F12 / Ctrl+Shift+I / Cmd+Option+I
-                { type: 'separator' },
-                { role: 'resetZoom' },
-                { role: 'zoomIn' },
-                { role: 'zoomOut' },
-                { type: 'separator' },
-                { role: 'togglefullscreen' } // F11 / Ctrl+Cmd+F
-            ]
-        },
-        // { role: 'windowMenu' } // Standard Window menu (Minimize, Zoom, etc.)
-         {
-             label: 'Window',
-             submenu: [
-                 { role: 'minimize' },
-                 { role: 'zoom' },
-                 ...(isMac ? [
-                     { type: 'separator' },
-                     { role: 'front' },
-                     { type: 'separator' },
-                     { role: 'window' }
-                 ] : [
-                     { role: 'close' } // Closes the window, not quit app
-                 ]) as MenuItemConstructorOptions[]
-             ]
-         },
-         // { role: 'help' } // Optional Help menu
-         {
-            role: 'help',
-            submenu: [
-                {
-                    label: 'Learn More (Electron)',
-                    click: async () => {
-                        await shell.openExternal('https://electronjs.org')
-                    }
-                }
-            ]
-         }
-    ];
-
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
-    console.log("Application menu created and set.");
-}
-
-
-// --- Main Window Creation Function ---
-function createWindow() {
-  console.log('Creating main window...');
-  mainWindow = new BrowserWindow({
-    width: 1200, // Initial width (will be overridden by fullscreen)
-    height: 800, // Initial height (will be overridden by fullscreen)
-    fullscreen: true,
-    webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
-      nodeIntegration: false,
-      contextIsolation: true,
+// Initialize store directly
+const store = new Store<StoreSchema>({
+    schema: {
+        recentFolders: { type: 'array', items: { type: 'string' }, default: [], maximum: MAX_RECENT_FOLDERS }
     },
-  });
+    defaults: { recentFolders: [] }
+});
+console.log("Electron-store initialized directly.");
 
-  const isDev = !app.isPackaged;
-  const VITE_DEV_SERVER_URL = 'http://localhost:5173';
-
-  console.log(`>>> DEBUG: app.isPackaged = ${app.isPackaged}, therefore isDev = ${isDev}`);
-
-  if (isDev && VITE_DEV_SERVER_URL) {
-    console.log(`Loading DEV URL: ${VITE_DEV_SERVER_URL}`);
-    mainWindow.loadURL(VITE_DEV_SERVER_URL)
-      .catch(err => console.error('Failed to load DEV URL:', err));
-  } else {
-    console.log('Loading PROD build file');
-    const prodPath = path.join(__dirname, '..', 'renderer', 'index.html');
-    console.log(`Attempting to load production file: ${prodPath}`);
-    mainWindow.loadFile(prodPath)
-       .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
-  }
-
-  // --- Window Event Handlers ---
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http:') || url.startsWith('https:')) {
-        shell.openExternal(url);
-    }
-    return { action: 'deny' };
-  });
-
-  mainWindow.webContents.on('render-process-gone', (_event, details) => {
-    console.error('Renderer process gone:', details);
-  });
-
-  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
-    console.error(`Failed to load URL: ${validatedURL}, ErrorCode: ${errorCode}, Description: ${errorDescription}`);
-   });
-
-  mainWindow.on('closed', () => {
-    console.log('Main window closed.');
-    console.log(`Main window closed. Killing ${ptyInstances.size} PTY process(es).`);
-    ptyInstances.forEach((pty, id) => {
-        console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
-        try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); }
-    });
-    ptyInstances.clear();
-    mainWindow = null;
-  });
-
+// Squirrel Startup Handler
+if (app.isPackaged && process.platform === 'win32') {
+    if (require('electron-squirrel-startup')) { app.quit(); }
 }
 
-// --- Function to Kill a Specific PTY Process ---
+// Create Application Menu
+function createApplicationMenu() {
+    // ... (Menu logic remains exactly as it was in the stable state) ...
+    const isMac = process.platform === 'darwin';
+    const template: MenuItemConstructorOptions[] = [
+        ...(isMac ? [{ label: app.name, submenu: [ { role: 'about' }, { type: 'separator' }, { role: 'services' }, { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, { type: 'separator' }, { role: 'quit' } ] }] : []) as MenuItemConstructorOptions[],
+        { label: 'File', submenu: [ { label: 'Open Folder...', accelerator: 'CmdOrCtrl+O', click: async () => { if (mainWindow) { try { const folderPath = await handleOpenDirectoryDialog(); if (folderPath) { console.log(`Menu: Folder opened - ${folderPath}`); } } catch(err) { console.error("Menu: Error opening directory dialog:", err); } } } }, { type: 'separator' }, isMac ? { role: 'close' } : { role: 'quit' } ] },
+        { label: 'Edit', submenu: [ { role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, ...(isMac ? [ { role: 'pasteAndMatchStyle' }, { role: 'delete' }, { role: 'selectAll' }, { type: 'separator' }, { label: 'Speech', submenu: [ { role: 'startSpeaking' }, { role: 'stopSpeaking' } ] } ] : [ { role: 'delete' }, { type: 'separator' }, { role: 'selectAll' } ]) as MenuItemConstructorOptions[] ] },
+        { label: 'View', submenu: [ { role: 'reload' }, { role: 'forceReload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' }, { role: 'togglefullscreen' } ] },
+        { label: 'Window', submenu: [ { role: 'minimize' }, { role: 'zoom' }, ...(isMac ? [ { type: 'separator' }, { role: 'front' }, { type: 'separator' }, { role: 'window' } ] : [ { role: 'close' } ]) as MenuItemConstructorOptions[] ] },
+        { role: 'help', submenu: [ { label: 'Learn More (Electron)', click: async () => { await shell.openExternal('https://electronjs.org') } } ] }
+    ];
+    const menu = Menu.buildFromTemplate(template); Menu.setApplicationMenu(menu); console.log("Application menu created and set.");
+}
+
+// Create Main Window
+function createWindow() {
+    // ... (Window creation logic remains exactly as it was in the stable state) ...
+    console.log('Creating main window...'); mainWindow = new BrowserWindow({ width: 1200, height: 800, fullscreen: true, webPreferences: { preload: path.join(__dirname, '../preload/index.js'), nodeIntegration: false, contextIsolation: true, }, }); const isDev = !app.isPackaged; const VITE_DEV_SERVER_URL = 'http://localhost:5173'; if (isDev && VITE_DEV_SERVER_URL) { mainWindow.loadURL(VITE_DEV_SERVER_URL).catch(err => console.error('Failed to load DEV URL:', err)); } else { const prodPath = path.join(__dirname, '..', 'renderer', 'index.html'); mainWindow.loadFile(prodPath).catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err)); } mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (url.startsWith('http:') || url.startsWith('https:')) { shell.openExternal(url); } return { action: 'deny' }; }); mainWindow.webContents.on('render-process-gone', (_event, details) => { console.error('Renderer process gone:', details); }); mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => { console.error(`Failed to load URL: ${validatedURL}, ErrorCode: ${errorCode}, Description: ${errorDescription}`); }); mainWindow.on('closed', () => { console.log('Main window closed.'); ptyInstances.forEach((pty, id) => { try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); } }); ptyInstances.clear(); mainWindow = null; });
+}
+
+// Kill Specific PTY Process
 function killPtyProcess(id: string) {
-    const ptyProcess = ptyInstances.get(id);
-    if (ptyProcess) {
-        console.log(`Killing PTY process ID: ${id} (PID: ${ptyProcess.pid})`);
-        try {
-            ptyProcess.kill();
-        } catch (e) {
-             console.warn(`Error killing PTY ID ${id}:`, e);
-        } finally {
-             ptyInstances.delete(id);
-             console.log(`PTY process ID: ${id} removed from map.`);
-        }
-    } else {
-        console.warn(`Attempted to kill PTY process ID: ${id}, but it was not found in the map.`);
-    }
+    // ... (Kill PTY logic remains exactly as it was in the stable state) ...
+    const ptyProcess = ptyInstances.get(id); if (ptyProcess) { console.log(`Killing PTY process ID: ${id} (PID: ${ptyProcess.pid})`); try { ptyProcess.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); } finally { ptyInstances.delete(id); console.log(`PTY process ID: ${id} removed from map.`); } } else { console.warn(`Attempted to kill PTY process ID: ${id}, but it was not found in the map.`); }
 }
 
+// --- Add Path to Recent Folders with Logging ---
+function addPathToRecentFolders(folderPath: string) {
+    try {
+        console.log(`[Recents] Attempting to add: ${folderPath}`); // Log input
+        const currentRecents = store.get('recentFolders', []);
+        console.log(`[Recents] Current list BEFORE add:`, currentRecents); // Log current state
 
-// --- Function to Setup IPC Handlers ---
+        const filteredRecents = currentRecents.filter((p: string) => p !== folderPath);
+        console.log(`[Recents] List AFTER filtering out '${folderPath}':`, filteredRecents); // Log after filter
+
+        const newRecents = [folderPath, ...filteredRecents].slice(0, MAX_RECENT_FOLDERS);
+        console.log(`[Recents] New list BEFORE saving (limit ${MAX_RECENT_FOLDERS}):`, newRecents); // Log final list
+
+        store.set('recentFolders', newRecents);
+        console.log('[Recents] Store updated. New list in store should be:', store.get('recentFolders')); // Verify store content
+    } catch (error) { console.error('[Recents] Failed to update recent folders:', error); }
+}
+// --- End Logging Modification ---
+
+// Handle Open Directory Dialog
+async function handleOpenDirectoryDialog(): Promise<string | null> {
+    // ... (Dialog logic remains same, calls addPathToRecentFolders) ...
+    if (!mainWindow) return null; const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }); if (canceled || filePaths.length === 0) { return null; } else { const selectedPath = filePaths[0]; addPathToRecentFolders(selectedPath); return selectedPath; }
+}
+
+// Setup IPC Handlers
 function setupIpcHandlers() {
+    // ... (IPC setup logic remains exactly as it was in the stable state, including app:getRecentFolders) ...
     console.log('Setting up IPC Handlers...');
-
-    // Basic Ping Example
     ipcMain.handle('ping', () => 'pong from main!');
+    ipcMain.handle('pty-create', async (_event, options: PtyCreateOptions): Promise<PtyCreateResponse> => { if (!mainWindow) { return { success: false, error: "Main window not available." }; } const targetWebContents = mainWindow.webContents; const { id, cols, rows } = options; if (!id) { return { success: false, error: "Missing terminal ID." }; } if (ptyInstances.has(id)) { killPtyProcess(id); } try { const cwd = process.env.HOME || process.env.USERPROFILE || process.cwd(); const newPtyProcess = pty.spawn(shellPath, [], { name: 'xterm-color', cols: cols || 80, rows: rows || 24, cwd: cwd, env: { ...process.env }, }); ptyInstances.set(id, newPtyProcess); newPtyProcess.onData(data => { if (targetWebContents && !targetWebContents.isDestroyed()) { targetWebContents.send('pty-data', id, data); } }); newPtyProcess.onExit(({ exitCode, signal }) => { if (targetWebContents && !targetWebContents.isDestroyed()) { targetWebContents.send('pty-exit', id, exitCode); if (exitCode !== 0 || signal) { targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`); } } ptyInstances.delete(id); console.log(`PTY process ID: ${id} removed from map due to exit.`); }); return { success: true }; } catch (error) { const errorMsg = error instanceof Error ? error.message : String(error); if (targetWebContents && !targetWebContents.isDestroyed()) { targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`); } if (ptyInstances.has(id)) { ptyInstances.delete(id); } return { success: false, error: errorMsg }; } });
+    ipcMain.on('pty-input', (_event, id: string, data: string) => { const ptyProcess = ptyInstances.get(id); if (ptyProcess) { try { ptyProcess.write(data); } catch (error) { const errorMsg = error instanceof Error ? error.message : String(error); console.error(`Error writing to PTY ID ${id}:`, error); mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`); } } else { console.warn(`pty-input: PTY process with ID ${id} not found.`); } });
+    ipcMain.on('pty-resize', (_event, id: string, options: PtyResizeOptions) => { const ptyProcess = ptyInstances.get(id); if (ptyProcess) { if (options.cols > 0 && options.rows > 0) { try { ptyProcess.resize(options.cols, options.rows); } catch (error) { const errorMsg = error instanceof Error ? error.message : String(error); console.error(`Failed to resize PTY ID ${id}:`, error); mainWindow?.webContents.send('pty-error', id, `Resize Error: ${errorMsg}`); } } else { console.warn(`Invalid resize for PTY ID ${id}: ${options.cols}x${options.rows}`); } } else { console.warn(`pty-resize: PTY process with ID ${id} not found.`); } });
+    ipcMain.handle('pty-kill', async (_event, id: string) => { if (!id) { return { success: false, error: "Missing terminal ID." }; } try { killPtyProcess(id); return { success: true }; } catch(error) { const errorMsg = error instanceof Error ? error.message : String(error); console.error(`Error processing kill request for PTY ID ${id}:`, error); return { success: false, error: errorMsg }; } });
+    ipcMain.handle('dialog:openDirectory', async () => { return handleOpenDirectoryDialog(); });
+    ipcMain.handle('fs:readDirectory', async (_event, folderPath: string): Promise<ReadDirectoryResponse> => { try { if (!folderPath || typeof folderPath !== 'string') { throw new Error("Invalid folder path."); } const stats = await fs.stat(folderPath); if (!stats.isDirectory()) { throw new Error("Not a directory."); } const dirents = await fs.readdir(folderPath, { withFileTypes: true }); const entries: DirectoryEntry[] = dirents.map(d => ({ name: d.name, path: path.join(folderPath, d.name), isDirectory: d.isDirectory() })); entries.sort((a, b) => { if (a.isDirectory !== b.isDirectory) { return a.isDirectory ? -1 : 1; } return a.name.localeCompare(b.name); }); return { success: true, entries: entries }; } catch (error) { const errorMsg = error instanceof Error ? error.message : String(error); if (error instanceof Error && 'code' in error) { if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${folderPath}` }; if (error.code === 'ENOENT') return { success: false, error: `Not found: ${folderPath}` }; } return { success: false, error: errorMsg }; } });
+    ipcMain.handle('fs:readFile', async (_event, filePath: string): Promise<ReadFileResponse> => { try { if (!filePath || typeof filePath !== 'string') { throw new Error("Invalid file path."); } const stats = await fs.stat(filePath); if (!stats.isFile()) { throw new Error("Not a file."); } const content = await fs.readFile(filePath, { encoding: 'utf-8' }); return { success: true, content: content }; } catch (error) { const errorMsg = error instanceof Error ? error.message : String(error); if (error instanceof Error && 'code' in error) { if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` }; if (error.code === 'ENOENT') return { success: false, error: `Not found: ${filePath}` }; } return { success: false, error: errorMsg }; } });
+    ipcMain.handle('fs:saveFile', async (_event, filePath: string, content: string): Promise<SaveFileResponse> => { try { if (!filePath || typeof filePath !== 'string') { throw new Error("Invalid file path."); } if (content === undefined || content === null) { throw new Error("Invalid content."); } await fs.writeFile(filePath, content, { encoding: 'utf-8' }); return { success: true }; } catch (error) { const errorMsg = error instanceof Error ? error.message : String(error); if (error instanceof Error && 'code' in error) { if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` }; if (error.code === 'ENOENT') return { success: false, error: `Directory not found for: ${filePath}` }; } return { success: false, error: errorMsg }; } });
+    ipcMain.handle('app:quit', () => { app.quit(); });
+    ipcMain.handle('window:toggle-fullscreen', () => { if (mainWindow) { mainWindow.setFullScreen(!mainWindow.isFullScreen()); } });
+    ipcMain.handle('window:toggle-devtools', () => { if (mainWindow) { mainWindow.webContents.toggleDevTools(); } });
+    ipcMain.handle('app:getRecentFolders', async (): Promise<string[]> => { try { const recents = store.get('recentFolders', []); return Array.isArray(recents) ? recents : []; } catch (error) { console.error("IPC Error: Failed to get recent folders:", error); return []; } });
 
-    // --- PTY Handlers ---
-    ipcMain.handle('pty-create', async (_event, options: PtyCreateOptions): Promise<PtyCreateResponse> => {
-        if (!mainWindow) {
-            console.error("Cannot create PTY: mainWindow is not available.");
-            return { success: false, error: "Main window not available." };
-        }
-        const targetWebContents = mainWindow.webContents;
-        const { id, cols, rows } = options;
-
-        if (!id) {
-            console.error("Cannot create PTY: Missing required 'id'.");
-            return { success: false, error: "Missing terminal ID." };
-        }
-
-        if (ptyInstances.has(id)) {
-            console.warn(`PTY process with ID ${id} already exists. Killing old one.`);
-            killPtyProcess(id);
-        }
-
-        console.log(`Creating PTY process for ID: ${id}, shell: ${shellPath}, cols: ${cols}, rows: ${rows}`);
-        try {
-            const cwd = process.env.HOME || process.env.USERPROFILE || process.cwd();
-            console.log(`PTY (ID: ${id}) current working directory: ${cwd}`);
-            const newPtyProcess = pty.spawn(shellPath, [], {
-                name: 'xterm-color',
-                cols: cols || 80,
-                rows: rows || 24,
-                cwd: cwd,
-                env: { ...process.env },
-            });
-
-            console.log(`PTY process created successfully for ID: ${id} (PID: ${newPtyProcess.pid}). Storing in map.`);
-            ptyInstances.set(id, newPtyProcess);
-
-            newPtyProcess.onData(data => {
-                 if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    targetWebContents.send('pty-data', id, data);
-                 }
-            });
-
-            newPtyProcess.onExit(({ exitCode, signal }) => {
-                console.log(`PTY process ID: ${id} (PID: ${newPtyProcess.pid}) exited with code: ${exitCode}, signal: ${signal}`);
-                 if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    targetWebContents.send('pty-exit', id, exitCode);
-                    if (exitCode !== 0 || signal) {
-                         targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
-                    }
-                 }
-                 ptyInstances.delete(id);
-                 console.log(`PTY process ID: ${id} removed from map due to exit.`);
-            });
-
-            return { success: true };
-
-        } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`Failed to create PTY process for ID ${id}:`, error);
-            if (targetWebContents && !targetWebContents.isDestroyed()) {
-                targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`);
-            }
-            if (ptyInstances.has(id)) {
-                ptyInstances.delete(id);
-            }
-            return { success: false, error: errorMsg };
-        }
-    });
-
-    ipcMain.on('pty-input', (_event, id: string, data: string) => {
-        const ptyProcess = ptyInstances.get(id);
-        if (ptyProcess) {
-             try {
-                 ptyProcess.write(data);
-             } catch (error) {
-                 const errorMsg = error instanceof Error ? error.message : String(error);
-                 console.error(`Error writing to PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
-                 mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`);
-             }
-        }
-    });
-
-    ipcMain.on('pty-resize', (_event, id: string, options: PtyResizeOptions) => {
-        const ptyProcess = ptyInstances.get(id);
-        if (ptyProcess) {
-            if (options.cols > 0 && options.rows > 0) {
-                try {
-                    ptyProcess.resize(options.cols, options.rows);
-                } catch (error) {
-                     const errorMsg = error instanceof Error ? error.message : String(error);
-                     console.error(`Failed to resize PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
-                     mainWindow?.webContents.send('pty-error', id, `Resize Error: ${errorMsg}`);
-                }
-            } else {
-                console.warn(`Received invalid resize dimensions for PTY ID ${id}: cols=${options.cols}, rows=${options.rows}`);
-            }
-        }
-    });
-
-    ipcMain.handle('pty-kill', async (_event, id: string) => {
-         console.log(`IPC Request: Kill PTY ID: ${id}`);
-         if (!id) {
-            console.error("Cannot kill PTY: Missing required 'id'.");
-            return { success: false, error: "Missing terminal ID." };
-         }
-         try {
-             killPtyProcess(id);
-             return { success: true };
-         } catch(error) {
-             const errorMsg = error instanceof Error ? error.message : String(error);
-             console.error(`Error processing kill request for PTY ID ${id}:`, error);
-             return { success: false, error: errorMsg };
-         }
-     });
-
-
-    // --- Dialog Handler ---
-    ipcMain.handle('dialog:openDirectory', async () => {
-        if (!mainWindow) return null;
-        const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
-            properties: ['openDirectory']
-        });
-        if (canceled || filePaths.length === 0) {
-            return null;
-        } else {
-            console.log(`Directory selected: ${filePaths[0]}`);
-            return filePaths[0];
-        }
-    });
-
-    // --- File System Handlers ---
-
-    // Read Directory Handler
-    ipcMain.handle('fs:readDirectory', async (_event, folderPath: string): Promise<ReadDirectoryResponse> => {
-        console.log(`IPC Request: Reading directory - ${folderPath}`);
-        try {
-            if (!folderPath || typeof folderPath !== 'string') {
-                 throw new Error("Invalid folder path provided.");
-            }
-            const stats = await fs.stat(folderPath);
-            if (!stats.isDirectory()) {
-                throw new Error(`Path is not a directory: ${folderPath}`);
-            }
-
-            const dirents = await fs.readdir(folderPath, { withFileTypes: true });
-            const entries: DirectoryEntry[] = dirents.map(dirent => ({
-                name: dirent.name,
-                path: path.join(folderPath, dirent.name),
-                isDirectory: dirent.isDirectory(),
-            }));
-            entries.sort((a, b) => {
-                if (a.isDirectory && !b.isDirectory) return -1;
-                if (!a.isDirectory && b.isDirectory) return 1;
-                return a.name.localeCompare(b.name);
-            });
-
-            console.log(`IPC Success: Read ${entries.length} entries from ${folderPath}`);
-            return { success: true, entries: entries };
-        } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`IPC Error: Failed to read directory ${folderPath}:`, errorMsg);
-            if (error instanceof Error && 'code' in error) {
-                if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${folderPath}` };
-                if (error.code === 'ENOENT') return { success: false, error: `Directory not found: ${folderPath}` };
-            }
-            return { success: false, error: errorMsg };
-        }
-    });
-
-    // Read File Handler
-    ipcMain.handle('fs:readFile', async (_event, filePath: string): Promise<ReadFileResponse> => {
-        console.log(`IPC Request: Reading file - ${filePath}`);
-        try {
-            if (!filePath || typeof filePath !== 'string') {
-                 throw new Error("Invalid file path provided.");
-            }
-            const stats = await fs.stat(filePath);
-            if (!stats.isFile()) {
-                throw new Error(`Path is not a file: ${filePath}`);
-            }
-            const content = await fs.readFile(filePath, { encoding: 'utf-8' });
-            console.log(`IPC Success: Read file ${filePath}`);
-            return { success: true, content: content };
-        } catch (error) {
-             const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`IPC Error: Failed to read file ${filePath}:`, errorMsg);
-             if (error instanceof Error && 'code' in error) {
-                if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` };
-                if (error.code === 'ENOENT') return { success: false, error: `File not found: ${filePath}` };
-             }
-            return { success: false, error: errorMsg };
-        }
-    });
-
-    // Save File Handler
-    ipcMain.handle('fs:saveFile', async (_event, filePath: string, content: string): Promise<SaveFileResponse> => {
-         // *** ADDED LOGS ***
-         console.log(`[Main IPC -> fs:saveFile] Received save request for: ${filePath}`);
-         console.log(`[Main IPC -> fs:saveFile] Received content length: ${content?.length ?? 'undefined'}`);
-         console.log(`[Main IPC -> fs:saveFile] Received content start:`, content?.substring(0, 50) + '...');
-
-         try {
-             if (!filePath || typeof filePath !== 'string') {
-                  throw new Error("Invalid file path provided.");
-             }
-              if (content === undefined || content === null) {
-                   throw new Error("Invalid content provided for saving.");
-             }
-             await fs.writeFile(filePath, content, { encoding: 'utf-8' });
-             // *** MODIFIED LOG ***
-             console.log(`[Main IPC -> fs:saveFile] fs.writeFile SUCCEEDED for ${filePath}. Returning { success: true }`);
-             return { success: true };
-         } catch (error) {
-             const errorMsg = error instanceof Error ? error.message : String(error);
-             // *** MODIFIED LOG ***
-             console.error(`[Main IPC -> fs:saveFile] fs.writeFile FAILED for ${filePath}:`, errorMsg);
-             if (error instanceof Error && 'code' in error) {
-                if (error.code === 'EACCES') return { success: false, error: `Permission denied: ${filePath}` };
-                if (error.code === 'ENOENT') return { success: false, error: `Directory not found for file: ${filePath}` }; // Or similar
-             }
-              // *** ADDED LOG ***
-             console.log(`[Main IPC -> fs:saveFile] Returning { success: false, error: ${errorMsg} }`);
-             return { success: false, error: errorMsg };
-         }
-     });
-
-    // --- App/Window Control Handlers ---
-    ipcMain.handle('app:quit', () => {
-        console.log("IPC: Received app:quit request.");
-        app.quit();
-    });
-
-    ipcMain.handle('window:toggle-fullscreen', () => {
-        if (mainWindow) {
-            const isFullScreen = mainWindow.isFullScreen();
-            console.log(`IPC: Toggling fullscreen (currently ${isFullScreen}).`);
-            mainWindow.setFullScreen(!isFullScreen);
-        } else {
-            console.warn("IPC: Cannot toggle fullscreen, mainWindow not found.");
-        }
-    });
-
-    ipcMain.handle('window:toggle-devtools', () => {
-        if (mainWindow) {
-            console.log("IPC: Toggling DevTools.");
-            mainWindow.webContents.toggleDevTools();
-        } else {
-            console.warn("IPC: Cannot toggle DevTools, mainWindow not found.");
-        }
-    });
-
-
-    console.log('IPC Handlers registered (including multi-PTY support and app/window controls).');
+    console.log('IPC Handlers registered.');
 }
 
-// --- App Lifecycle Events ---
+// App Lifecycle Events
 app.whenReady().then(() => {
   console.log('App is ready.');
-  setupIpcHandlers();
+  setupIpcHandlers(); // Called directly now
   createApplicationMenu();
   createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        console.log('App activated, creating window.');
-        createWindow();
-    }
-  });
+  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) { createWindow(); } });
 });
-
-app.on('window-all-closed', () => {
-  console.log('All windows closed.');
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-app.on('will-quit', () => {
-    console.log(`App will quit. Killing ${ptyInstances.size} PTY process(es).`);
-    ptyInstances.forEach((pty, id) => {
-        console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
-         try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); }
-    });
-    ptyInstances.clear();
-});
-
-process.on('uncaughtException', (error: Error) => {
-    console.error('Uncaught Main Process Exception:', error);
-    if (error.message.includes('EPIPE')) {
-        console.warn("Ignoring EPIPE error in main process.");
-        return;
-    }
-    dialog.showErrorBox('Unhandled Main Process Error', `${error.name}: ${error.message}\n${error.stack ?? ''}`);
-});
-// --- END FILE: src/main/index.ts ---
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') { app.quit(); } });
+app.on('will-quit', () => { ptyInstances.forEach((pty, id) => { try { pty.kill(); } catch (e) { console.warn(`Error killing PTY ID ${id}:`, e); } }); ptyInstances.clear(); });
+process.on('uncaughtException', (error: Error) => { console.error('Uncaught Main Process Exception:', error); if (error.message.includes('EPIPE')) { console.warn("Ignoring EPIPE error."); return; } dialog.showErrorBox('Unhandled Main Process Error', `${error.name}: ${error.message}\n${error.stack ?? ''}`); });
 --- END FILE: src/main/index.ts ---
 
 --- START FILE: src/shared.types.ts ---
@@ -6255,7 +6403,6 @@ export type PtyCreateResponse = {
 --- END FILE: src/shared.types.ts ---
 
 --- START FILE: src/preload/index.ts ---
-// --- START FILE: src/preload/index.ts ---
 // src/preload/index.ts
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 // Import the shared types
@@ -6292,6 +6439,10 @@ export interface ElectronAPI {
   app_quit: () => Promise<void>;
   window_toggleFullscreen: () => Promise<void>;
   window_toggleDevTools: () => Promise<void>;
+
+  // --- NEW: Recent Folders API ---
+  app_getRecentFolders: () => Promise<string[]>;
+  // --- End New API ---
 }
 
 // --- Implementation of the API ---
@@ -6345,6 +6496,10 @@ const api: ElectronAPI = {
   app_quit: () => ipcRenderer.invoke('app:quit'),
   window_toggleFullscreen: () => ipcRenderer.invoke('window:toggle-fullscreen'),
   window_toggleDevTools: () => ipcRenderer.invoke('window:toggle-devtools'),
+
+  // --- NEW: Recent Folders Implementation ---
+  app_getRecentFolders: () => ipcRenderer.invoke('app:getRecentFolders'),
+  // --- End New Implementation ---
 };
 
 // --- Expose the API to the Renderer process ---
@@ -6354,7 +6509,6 @@ try {
 } catch (error) {
   console.error('Error exposing context bridge in preload script:', error);
 }
-// --- END FILE: src/preload/index.ts ---
 --- END FILE: src/preload/index.ts ---
 
 --- START FILE: codebase.txt ---
@@ -6385,28 +6539,32 @@ try {
   "dependencies": {
     "allotment": "^1.20.3",
     "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^8.2.0",
     "node-pty": "^1.0.0",
     "path-browserify": "^1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.5.0",
     "react-monaco-editor": "^0.58.0",
-    "uuid": "^9.0.1", 
+    "uuid": "^9.0.1",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0"
   },
   "devDependencies": {
+    "@types/ms": "^2.1.0",
     "@types/node": "^20.14.2",
     "@types/path-browserify": "^1.0.3",
+    "@types/prop-types": "^15.7.14",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@types/uuid": "^9.0.8", 
+    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^7.12.0",
     "@typescript-eslint/parser": "^7.12.0",
     "@vitejs/plugin-react": "^4.3.1",
     "electron": "^30.0.9",
     "electron-builder": "^24.13.3",
     "electron-rebuild": "^3.2.9",
+    "esbuild": "^0.25.3",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.2",
     "eslint-plugin-react-hooks": "^4.6.2",
@@ -6526,188 +6684,88 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// --- START FILE: src/main/index.ts ---
 // src/main/index.ts
 const electron_1 = require("electron");
 const node_path_1 = __importDefault(require("node:path"));
 const node_os_1 = __importDefault(require("node:os"));
 const pty = __importStar(require("node-pty"));
-const promises_1 = __importDefault(require("node:fs/promises")); // Import fs promises
-// --- Global Variables ---
+const promises_1 = __importDefault(require("node:fs/promises"));
+const electron_store_1 = __importDefault(require("electron-store")); // Static import restored
+// Global Variables
 electron_1.app.disableHardwareAcceleration();
 const shellPath = node_os_1.default.platform() === 'win32' ? 'powershell.exe' : 'bash';
-// --- Terminal Management ---
-// Use a Map to store multiple PTY processes, keyed by their unique ID
 const ptyInstances = new Map();
 let mainWindow = null;
-// --- Squirrel Startup Handler (Windows Installer) ---
+const MAX_RECENT_FOLDERS = 10;
+// Initialize store directly
+const store = new electron_store_1.default({
+    schema: {
+        recentFolders: { type: 'array', items: { type: 'string' }, default: [], maximum: MAX_RECENT_FOLDERS }
+    },
+    defaults: { recentFolders: [] }
+});
+console.log("Electron-store initialized directly.");
+// Squirrel Startup Handler
 if (electron_1.app.isPackaged && process.platform === 'win32') {
     if (require('electron-squirrel-startup')) {
         electron_1.app.quit();
     }
 }
-// Function to create the application menu
+// Create Application Menu
 function createApplicationMenu() {
+    // ... (Menu logic remains exactly as it was in the stable state) ...
     const isMac = process.platform === 'darwin';
     const template = [
-        // { role: 'appMenu' } // Mac-specific File menu items
-        ...(isMac ? [{
-                label: electron_1.app.name,
-                submenu: [
-                    { role: 'about' },
-                    { type: 'separator' },
-                    { role: 'services' },
-                    { type: 'separator' },
-                    { role: 'hide' },
-                    { role: 'hideOthers' },
-                    { role: 'unhide' },
-                    { type: 'separator' },
-                    { role: 'quit' } // Cmd+Q
-                ]
-            }] : []),
-        // { role: 'fileMenu' } // Standard File menu
-        {
-            label: 'File',
-            submenu: [
-                isMac ? { role: 'close' } : { role: 'quit' } // Alt+F4 (Win/Linux), Cmd+W (Mac) vs Cmd+Q
-            ]
-        },
-        // { role: 'editMenu' }
-        {
-            label: 'Edit',
-            submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
-                { type: 'separator' },
-                { role: 'cut' },
-                { role: 'copy' },
-                { role: 'paste' },
-                ...(isMac ? [
-                    { role: 'pasteAndMatchStyle' },
-                    { role: 'delete' },
-                    { role: 'selectAll' },
-                    { type: 'separator' },
-                    {
-                        label: 'Speech',
-                        submenu: [
-                            { role: 'startSpeaking' },
-                            { role: 'stopSpeaking' }
-                        ]
-                    }
-                ] : [
-                    { role: 'delete' },
-                    { type: 'separator' },
-                    { role: 'selectAll' }
-                ])
-            ]
-        },
-        // { role: 'viewMenu' }
-        {
-            label: 'View',
-            submenu: [
-                { role: 'reload' }, // Ctrl+R / Cmd+R
-                { role: 'forceReload' }, // Ctrl+Shift+R / Cmd+Shift+R
-                { role: 'toggleDevTools' }, // F12 / Ctrl+Shift+I / Cmd+Option+I
-                { type: 'separator' },
-                { role: 'resetZoom' },
-                { role: 'zoomIn' },
-                { role: 'zoomOut' },
-                { type: 'separator' },
-                { role: 'togglefullscreen' } // F11 / Ctrl+Cmd+F
-            ]
-        },
-        // { role: 'windowMenu' } // Standard Window menu (Minimize, Zoom, etc.)
-        {
-            label: 'Window',
-            submenu: [
-                { role: 'minimize' },
-                { role: 'zoom' },
-                ...(isMac ? [
-                    { type: 'separator' },
-                    { role: 'front' },
-                    { type: 'separator' },
-                    { role: 'window' }
-                ] : [
-                    { role: 'close' } // Closes the window, not quit app
-                ])
-            ]
-        },
-        // { role: 'help' } // Optional Help menu
-        {
-            role: 'help',
-            submenu: [
-                {
-                    label: 'Learn More (Electron)',
-                    click: async () => {
-                        await electron_1.shell.openExternal('https://electronjs.org');
-                    }
-                }
-            ]
-        }
+        ...(isMac ? [{ label: electron_1.app.name, submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'services' }, { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, { type: 'separator' }, { role: 'quit' }] }] : []),
+        { label: 'File', submenu: [{ label: 'Open Folder...', accelerator: 'CmdOrCtrl+O', click: async () => { if (mainWindow) {
+                        try {
+                            const folderPath = await handleOpenDirectoryDialog();
+                            if (folderPath) {
+                                console.log(`Menu: Folder opened - ${folderPath}`);
+                            }
+                        }
+                        catch (err) {
+                            console.error("Menu: Error opening directory dialog:", err);
+                        }
+                    } } }, { type: 'separator' }, isMac ? { role: 'close' } : { role: 'quit' }] },
+        { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, ...(isMac ? [{ role: 'pasteAndMatchStyle' }, { role: 'delete' }, { role: 'selectAll' }, { type: 'separator' }, { label: 'Speech', submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }] }] : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }])] },
+        { label: 'View', submenu: [{ role: 'reload' }, { role: 'forceReload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' }, { role: 'togglefullscreen' }] },
+        { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, ...(isMac ? [{ type: 'separator' }, { role: 'front' }, { type: 'separator' }, { role: 'window' }] : [{ role: 'close' }])] },
+        { role: 'help', submenu: [{ label: 'Learn More (Electron)', click: async () => { await electron_1.shell.openExternal('https://electronjs.org'); } }] }
     ];
     const menu = electron_1.Menu.buildFromTemplate(template);
     electron_1.Menu.setApplicationMenu(menu);
     console.log("Application menu created and set.");
 }
-// --- Main Window Creation Function ---
+// Create Main Window
 function createWindow() {
+    // ... (Window creation logic remains exactly as it was in the stable state) ...
     console.log('Creating main window...');
-    mainWindow = new electron_1.BrowserWindow({
-        width: 1200, // Initial width (will be overridden by fullscreen)
-        height: 800, // Initial height (will be overridden by fullscreen)
-        fullscreen: true,
-        webPreferences: {
-            preload: node_path_1.default.join(__dirname, '../preload/index.js'),
-            nodeIntegration: false,
-            contextIsolation: true,
-        },
-    });
+    mainWindow = new electron_1.BrowserWindow({ width: 1200, height: 800, fullscreen: true, webPreferences: { preload: node_path_1.default.join(__dirname, '../preload/index.js'), nodeIntegration: false, contextIsolation: true, }, });
     const isDev = !electron_1.app.isPackaged;
     const VITE_DEV_SERVER_URL = 'http://localhost:5173';
-    console.log(`>>> DEBUG: app.isPackaged = ${electron_1.app.isPackaged}, therefore isDev = ${isDev}`);
     if (isDev && VITE_DEV_SERVER_URL) {
-        console.log(`Loading DEV URL: ${VITE_DEV_SERVER_URL}`);
-        mainWindow.loadURL(VITE_DEV_SERVER_URL)
-            .catch(err => console.error('Failed to load DEV URL:', err));
+        mainWindow.loadURL(VITE_DEV_SERVER_URL).catch(err => console.error('Failed to load DEV URL:', err));
     }
     else {
-        console.log('Loading PROD build file');
         const prodPath = node_path_1.default.join(__dirname, '..', 'renderer', 'index.html');
-        console.log(`Attempting to load production file: ${prodPath}`);
-        mainWindow.loadFile(prodPath)
-            .catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
+        mainWindow.loadFile(prodPath).catch(err => console.error(`Failed to load PROD file: ${prodPath}`, err));
     }
-    // --- Window Event Handlers ---
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        if (url.startsWith('http:') || url.startsWith('https:')) {
-            electron_1.shell.openExternal(url);
-        }
-        return { action: 'deny' };
-    });
-    mainWindow.webContents.on('render-process-gone', (_event, details) => {
-        console.error('Renderer process gone:', details);
-    });
-    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
-        console.error(`Failed to load URL: ${validatedURL}, ErrorCode: ${errorCode}, Description: ${errorDescription}`);
-    });
-    mainWindow.on('closed', () => {
-        console.log('Main window closed.');
-        console.log(`Main window closed. Killing ${ptyInstances.size} PTY process(es).`);
-        ptyInstances.forEach((pty, id) => {
-            console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
-            try {
-                pty.kill();
-            }
-            catch (e) {
-                console.warn(`Error killing PTY ID ${id}:`, e);
-            }
-        });
-        ptyInstances.clear();
-        mainWindow = null;
-    });
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (url.startsWith('http:') || url.startsWith('https:')) {
+        electron_1.shell.openExternal(url);
+    } return { action: 'deny' }; });
+    mainWindow.webContents.on('render-process-gone', (_event, details) => { console.error('Renderer process gone:', details); });
+    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => { console.error(`Failed to load URL: ${validatedURL}, ErrorCode: ${errorCode}, Description: ${errorDescription}`); });
+    mainWindow.on('closed', () => { console.log('Main window closed.'); ptyInstances.forEach((pty, id) => { try {
+        pty.kill();
+    }
+    catch (e) {
+        console.warn(`Error killing PTY ID ${id}:`, e);
+    } }); ptyInstances.clear(); mainWindow = null; });
 }
-// --- Function to Kill a Specific PTY Process ---
+// Kill Specific PTY Process
 function killPtyProcess(id) {
+    // ... (Kill PTY logic remains exactly as it was in the stable state) ...
     const ptyProcess = ptyInstances.get(id);
     if (ptyProcess) {
         console.log(`Killing PTY process ID: ${id} (PID: ${ptyProcess.pid})`);
@@ -6726,299 +6784,224 @@ function killPtyProcess(id) {
         console.warn(`Attempted to kill PTY process ID: ${id}, but it was not found in the map.`);
     }
 }
-// --- Function to Setup IPC Handlers ---
+// --- Add Path to Recent Folders with Logging ---
+function addPathToRecentFolders(folderPath) {
+    try {
+        console.log(`[Recents] Attempting to add: ${folderPath}`); // Log input
+        const currentRecents = store.get('recentFolders', []);
+        console.log(`[Recents] Current list BEFORE add:`, currentRecents); // Log current state
+        const filteredRecents = currentRecents.filter((p) => p !== folderPath);
+        console.log(`[Recents] List AFTER filtering out '${folderPath}':`, filteredRecents); // Log after filter
+        const newRecents = [folderPath, ...filteredRecents].slice(0, MAX_RECENT_FOLDERS);
+        console.log(`[Recents] New list BEFORE saving (limit ${MAX_RECENT_FOLDERS}):`, newRecents); // Log final list
+        store.set('recentFolders', newRecents);
+        console.log('[Recents] Store updated. New list in store should be:', store.get('recentFolders')); // Verify store content
+    }
+    catch (error) {
+        console.error('[Recents] Failed to update recent folders:', error);
+    }
+}
+// --- End Logging Modification ---
+// Handle Open Directory Dialog
+async function handleOpenDirectoryDialog() {
+    // ... (Dialog logic remains same, calls addPathToRecentFolders) ...
+    if (!mainWindow)
+        return null;
+    const { canceled, filePaths } = await electron_1.dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
+    if (canceled || filePaths.length === 0) {
+        return null;
+    }
+    else {
+        const selectedPath = filePaths[0];
+        addPathToRecentFolders(selectedPath);
+        return selectedPath;
+    }
+}
+// Setup IPC Handlers
 function setupIpcHandlers() {
+    // ... (IPC setup logic remains exactly as it was in the stable state, including app:getRecentFolders) ...
     console.log('Setting up IPC Handlers...');
-    // Basic Ping Example
     electron_1.ipcMain.handle('ping', () => 'pong from main!');
-    // --- PTY Handlers ---
-    electron_1.ipcMain.handle('pty-create', async (_event, options) => {
-        if (!mainWindow) {
-            console.error("Cannot create PTY: mainWindow is not available.");
-            return { success: false, error: "Main window not available." };
-        }
-        const targetWebContents = mainWindow.webContents;
-        const { id, cols, rows } = options;
-        if (!id) {
-            console.error("Cannot create PTY: Missing required 'id'.");
-            return { success: false, error: "Missing terminal ID." };
+    electron_1.ipcMain.handle('pty-create', async (_event, options) => { if (!mainWindow) {
+        return { success: false, error: "Main window not available." };
+    } const targetWebContents = mainWindow.webContents; const { id, cols, rows } = options; if (!id) {
+        return { success: false, error: "Missing terminal ID." };
+    } if (ptyInstances.has(id)) {
+        killPtyProcess(id);
+    } try {
+        const cwd = process.env.HOME || process.env.USERPROFILE || process.cwd();
+        const newPtyProcess = pty.spawn(shellPath, [], { name: 'xterm-color', cols: cols || 80, rows: rows || 24, cwd: cwd, env: { ...process.env }, });
+        ptyInstances.set(id, newPtyProcess);
+        newPtyProcess.onData(data => { if (targetWebContents && !targetWebContents.isDestroyed()) {
+            targetWebContents.send('pty-data', id, data);
+        } });
+        newPtyProcess.onExit(({ exitCode, signal }) => { if (targetWebContents && !targetWebContents.isDestroyed()) {
+            targetWebContents.send('pty-exit', id, exitCode);
+            if (exitCode !== 0 || signal) {
+                targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
+            }
+        } ptyInstances.delete(id); console.log(`PTY process ID: ${id} removed from map due to exit.`); });
+        return { success: true };
+    }
+    catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (targetWebContents && !targetWebContents.isDestroyed()) {
+            targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`);
         }
         if (ptyInstances.has(id)) {
-            console.warn(`PTY process with ID ${id} already exists. Killing old one.`);
-            killPtyProcess(id);
+            ptyInstances.delete(id);
         }
-        console.log(`Creating PTY process for ID: ${id}, shell: ${shellPath}, cols: ${cols}, rows: ${rows}`);
+        return { success: false, error: errorMsg };
+    } });
+    electron_1.ipcMain.on('pty-input', (_event, id, data) => { const ptyProcess = ptyInstances.get(id); if (ptyProcess) {
         try {
-            const cwd = process.env.HOME || process.env.USERPROFILE || process.cwd();
-            console.log(`PTY (ID: ${id}) current working directory: ${cwd}`);
-            const newPtyProcess = pty.spawn(shellPath, [], {
-                name: 'xterm-color',
-                cols: cols || 80,
-                rows: rows || 24,
-                cwd: cwd,
-                env: { ...process.env },
-            });
-            console.log(`PTY process created successfully for ID: ${id} (PID: ${newPtyProcess.pid}). Storing in map.`);
-            ptyInstances.set(id, newPtyProcess);
-            newPtyProcess.onData(data => {
-                if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    targetWebContents.send('pty-data', id, data);
-                }
-            });
-            newPtyProcess.onExit(({ exitCode, signal }) => {
-                console.log(`PTY process ID: ${id} (PID: ${newPtyProcess.pid}) exited with code: ${exitCode}, signal: ${signal}`);
-                if (targetWebContents && !targetWebContents.isDestroyed()) {
-                    targetWebContents.send('pty-exit', id, exitCode);
-                    if (exitCode !== 0 || signal) {
-                        targetWebContents.send('pty-error', id, `Process exited abnormally (Code: ${exitCode}, Signal: ${signal})`);
-                    }
-                }
-                ptyInstances.delete(id);
-                console.log(`PTY process ID: ${id} removed from map due to exit.`);
-            });
-            return { success: true };
+            ptyProcess.write(data);
         }
         catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`Failed to create PTY process for ID ${id}:`, error);
-            if (targetWebContents && !targetWebContents.isDestroyed()) {
-                targetWebContents.send('pty-error', id, `Failed to spawn PTY: ${errorMsg}`);
-            }
-            if (ptyInstances.has(id)) {
-                ptyInstances.delete(id);
-            }
-            return { success: false, error: errorMsg };
+            console.error(`Error writing to PTY ID ${id}:`, error);
+            mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`);
         }
-    });
-    electron_1.ipcMain.on('pty-input', (_event, id, data) => {
-        const ptyProcess = ptyInstances.get(id);
-        if (ptyProcess) {
+    }
+    else {
+        console.warn(`pty-input: PTY process with ID ${id} not found.`);
+    } });
+    electron_1.ipcMain.on('pty-resize', (_event, id, options) => { const ptyProcess = ptyInstances.get(id); if (ptyProcess) {
+        if (options.cols > 0 && options.rows > 0) {
             try {
-                ptyProcess.write(data);
+                ptyProcess.resize(options.cols, options.rows);
             }
             catch (error) {
                 const errorMsg = error instanceof Error ? error.message : String(error);
-                console.error(`Error writing to PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
-                mainWindow?.webContents.send('pty-error', id, `Write Error: ${errorMsg}`);
+                console.error(`Failed to resize PTY ID ${id}:`, error);
+                mainWindow?.webContents.send('pty-error', id, `Resize Error: ${errorMsg}`);
             }
-        }
-    });
-    electron_1.ipcMain.on('pty-resize', (_event, id, options) => {
-        const ptyProcess = ptyInstances.get(id);
-        if (ptyProcess) {
-            if (options.cols > 0 && options.rows > 0) {
-                try {
-                    ptyProcess.resize(options.cols, options.rows);
-                }
-                catch (error) {
-                    const errorMsg = error instanceof Error ? error.message : String(error);
-                    console.error(`Failed to resize PTY ID ${id} (PID: ${ptyProcess.pid}):`, error);
-                    mainWindow?.webContents.send('pty-error', id, `Resize Error: ${errorMsg}`);
-                }
-            }
-            else {
-                console.warn(`Received invalid resize dimensions for PTY ID ${id}: cols=${options.cols}, rows=${options.rows}`);
-            }
-        }
-    });
-    electron_1.ipcMain.handle('pty-kill', async (_event, id) => {
-        console.log(`IPC Request: Kill PTY ID: ${id}`);
-        if (!id) {
-            console.error("Cannot kill PTY: Missing required 'id'.");
-            return { success: false, error: "Missing terminal ID." };
-        }
-        try {
-            killPtyProcess(id);
-            return { success: true };
-        }
-        catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`Error processing kill request for PTY ID ${id}:`, error);
-            return { success: false, error: errorMsg };
-        }
-    });
-    // --- Dialog Handler ---
-    electron_1.ipcMain.handle('dialog:openDirectory', async () => {
-        if (!mainWindow)
-            return null;
-        const { canceled, filePaths } = await electron_1.dialog.showOpenDialog(mainWindow, {
-            properties: ['openDirectory']
-        });
-        if (canceled || filePaths.length === 0) {
-            return null;
         }
         else {
-            console.log(`Directory selected: ${filePaths[0]}`);
-            return filePaths[0];
+            console.warn(`Invalid resize for PTY ID ${id}: ${options.cols}x${options.rows}`);
         }
-    });
-    // --- File System Handlers ---
-    // Read Directory Handler
-    electron_1.ipcMain.handle('fs:readDirectory', async (_event, folderPath) => {
-        console.log(`IPC Request: Reading directory - ${folderPath}`);
-        try {
-            if (!folderPath || typeof folderPath !== 'string') {
-                throw new Error("Invalid folder path provided.");
-            }
-            const stats = await promises_1.default.stat(folderPath);
-            if (!stats.isDirectory()) {
-                throw new Error(`Path is not a directory: ${folderPath}`);
-            }
-            const dirents = await promises_1.default.readdir(folderPath, { withFileTypes: true });
-            const entries = dirents.map(dirent => ({
-                name: dirent.name,
-                path: node_path_1.default.join(folderPath, dirent.name),
-                isDirectory: dirent.isDirectory(),
-            }));
-            entries.sort((a, b) => {
-                if (a.isDirectory && !b.isDirectory)
-                    return -1;
-                if (!a.isDirectory && b.isDirectory)
-                    return 1;
-                return a.name.localeCompare(b.name);
-            });
-            console.log(`IPC Success: Read ${entries.length} entries from ${folderPath}`);
-            return { success: true, entries: entries };
+    }
+    else {
+        console.warn(`pty-resize: PTY process with ID ${id} not found.`);
+    } });
+    electron_1.ipcMain.handle('pty-kill', async (_event, id) => { if (!id) {
+        return { success: false, error: "Missing terminal ID." };
+    } try {
+        killPtyProcess(id);
+        return { success: true };
+    }
+    catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`Error processing kill request for PTY ID ${id}:`, error);
+        return { success: false, error: errorMsg };
+    } });
+    electron_1.ipcMain.handle('dialog:openDirectory', async () => { return handleOpenDirectoryDialog(); });
+    electron_1.ipcMain.handle('fs:readDirectory', async (_event, folderPath) => { try {
+        if (!folderPath || typeof folderPath !== 'string') {
+            throw new Error("Invalid folder path.");
         }
-        catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`IPC Error: Failed to read directory ${folderPath}:`, errorMsg);
-            if (error instanceof Error && 'code' in error) {
-                if (error.code === 'EACCES')
-                    return { success: false, error: `Permission denied: ${folderPath}` };
-                if (error.code === 'ENOENT')
-                    return { success: false, error: `Directory not found: ${folderPath}` };
-            }
-            return { success: false, error: errorMsg };
+        const stats = await promises_1.default.stat(folderPath);
+        if (!stats.isDirectory()) {
+            throw new Error("Not a directory.");
         }
-    });
-    // Read File Handler
-    electron_1.ipcMain.handle('fs:readFile', async (_event, filePath) => {
-        console.log(`IPC Request: Reading file - ${filePath}`);
-        try {
-            if (!filePath || typeof filePath !== 'string') {
-                throw new Error("Invalid file path provided.");
-            }
-            const stats = await promises_1.default.stat(filePath);
-            if (!stats.isFile()) {
-                throw new Error(`Path is not a file: ${filePath}`);
-            }
-            const content = await promises_1.default.readFile(filePath, { encoding: 'utf-8' });
-            console.log(`IPC Success: Read file ${filePath}`);
-            return { success: true, content: content };
+        const dirents = await promises_1.default.readdir(folderPath, { withFileTypes: true });
+        const entries = dirents.map(d => ({ name: d.name, path: node_path_1.default.join(folderPath, d.name), isDirectory: d.isDirectory() }));
+        entries.sort((a, b) => { if (a.isDirectory !== b.isDirectory) {
+            return a.isDirectory ? -1 : 1;
+        } return a.name.localeCompare(b.name); });
+        return { success: true, entries: entries };
+    }
+    catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (error instanceof Error && 'code' in error) {
+            if (error.code === 'EACCES')
+                return { success: false, error: `Permission denied: ${folderPath}` };
+            if (error.code === 'ENOENT')
+                return { success: false, error: `Not found: ${folderPath}` };
         }
-        catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`IPC Error: Failed to read file ${filePath}:`, errorMsg);
-            if (error instanceof Error && 'code' in error) {
-                if (error.code === 'EACCES')
-                    return { success: false, error: `Permission denied: ${filePath}` };
-                if (error.code === 'ENOENT')
-                    return { success: false, error: `File not found: ${filePath}` };
-            }
-            return { success: false, error: errorMsg };
+        return { success: false, error: errorMsg };
+    } });
+    electron_1.ipcMain.handle('fs:readFile', async (_event, filePath) => { try {
+        if (!filePath || typeof filePath !== 'string') {
+            throw new Error("Invalid file path.");
         }
-    });
-    // Save File Handler
-    electron_1.ipcMain.handle('fs:saveFile', async (_event, filePath, content) => {
-        // *** ADDED LOGS ***
-        console.log(`[Main IPC -> fs:saveFile] Received save request for: ${filePath}`);
-        console.log(`[Main IPC -> fs:saveFile] Received content length: ${content?.length ?? 'undefined'}`);
-        console.log(`[Main IPC -> fs:saveFile] Received content start:`, content?.substring(0, 50) + '...');
-        try {
-            if (!filePath || typeof filePath !== 'string') {
-                throw new Error("Invalid file path provided.");
-            }
-            if (content === undefined || content === null) {
-                throw new Error("Invalid content provided for saving.");
-            }
-            await promises_1.default.writeFile(filePath, content, { encoding: 'utf-8' });
-            // *** MODIFIED LOG ***
-            console.log(`[Main IPC -> fs:saveFile] fs.writeFile SUCCEEDED for ${filePath}. Returning { success: true }`);
-            return { success: true };
+        const stats = await promises_1.default.stat(filePath);
+        if (!stats.isFile()) {
+            throw new Error("Not a file.");
         }
-        catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            // *** MODIFIED LOG ***
-            console.error(`[Main IPC -> fs:saveFile] fs.writeFile FAILED for ${filePath}:`, errorMsg);
-            if (error instanceof Error && 'code' in error) {
-                if (error.code === 'EACCES')
-                    return { success: false, error: `Permission denied: ${filePath}` };
-                if (error.code === 'ENOENT')
-                    return { success: false, error: `Directory not found for file: ${filePath}` }; // Or similar
-            }
-            // *** ADDED LOG ***
-            console.log(`[Main IPC -> fs:saveFile] Returning { success: false, error: ${errorMsg} }`);
-            return { success: false, error: errorMsg };
+        const content = await promises_1.default.readFile(filePath, { encoding: 'utf-8' });
+        return { success: true, content: content };
+    }
+    catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (error instanceof Error && 'code' in error) {
+            if (error.code === 'EACCES')
+                return { success: false, error: `Permission denied: ${filePath}` };
+            if (error.code === 'ENOENT')
+                return { success: false, error: `Not found: ${filePath}` };
         }
-    });
-    // --- App/Window Control Handlers ---
-    electron_1.ipcMain.handle('app:quit', () => {
-        console.log("IPC: Received app:quit request.");
-        electron_1.app.quit();
-    });
-    electron_1.ipcMain.handle('window:toggle-fullscreen', () => {
-        if (mainWindow) {
-            const isFullScreen = mainWindow.isFullScreen();
-            console.log(`IPC: Toggling fullscreen (currently ${isFullScreen}).`);
-            mainWindow.setFullScreen(!isFullScreen);
+        return { success: false, error: errorMsg };
+    } });
+    electron_1.ipcMain.handle('fs:saveFile', async (_event, filePath, content) => { try {
+        if (!filePath || typeof filePath !== 'string') {
+            throw new Error("Invalid file path.");
         }
-        else {
-            console.warn("IPC: Cannot toggle fullscreen, mainWindow not found.");
+        if (content === undefined || content === null) {
+            throw new Error("Invalid content.");
         }
-    });
-    electron_1.ipcMain.handle('window:toggle-devtools', () => {
-        if (mainWindow) {
-            console.log("IPC: Toggling DevTools.");
-            mainWindow.webContents.toggleDevTools();
+        await promises_1.default.writeFile(filePath, content, { encoding: 'utf-8' });
+        return { success: true };
+    }
+    catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (error instanceof Error && 'code' in error) {
+            if (error.code === 'EACCES')
+                return { success: false, error: `Permission denied: ${filePath}` };
+            if (error.code === 'ENOENT')
+                return { success: false, error: `Directory not found for: ${filePath}` };
         }
-        else {
-            console.warn("IPC: Cannot toggle DevTools, mainWindow not found.");
-        }
-    });
-    console.log('IPC Handlers registered (including multi-PTY support and app/window controls).');
+        return { success: false, error: errorMsg };
+    } });
+    electron_1.ipcMain.handle('app:quit', () => { electron_1.app.quit(); });
+    electron_1.ipcMain.handle('window:toggle-fullscreen', () => { if (mainWindow) {
+        mainWindow.setFullScreen(!mainWindow.isFullScreen());
+    } });
+    electron_1.ipcMain.handle('window:toggle-devtools', () => { if (mainWindow) {
+        mainWindow.webContents.toggleDevTools();
+    } });
+    electron_1.ipcMain.handle('app:getRecentFolders', async () => { try {
+        const recents = store.get('recentFolders', []);
+        return Array.isArray(recents) ? recents : [];
+    }
+    catch (error) {
+        console.error("IPC Error: Failed to get recent folders:", error);
+        return [];
+    } });
+    console.log('IPC Handlers registered.');
 }
-// --- App Lifecycle Events ---
+// App Lifecycle Events
 electron_1.app.whenReady().then(() => {
     console.log('App is ready.');
-    setupIpcHandlers();
+    setupIpcHandlers(); // Called directly now
     createApplicationMenu();
     createWindow();
-    electron_1.app.on('activate', () => {
-        if (electron_1.BrowserWindow.getAllWindows().length === 0) {
-            console.log('App activated, creating window.');
-            createWindow();
-        }
-    });
+    electron_1.app.on('activate', () => { if (electron_1.BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+    } });
 });
-electron_1.app.on('window-all-closed', () => {
-    console.log('All windows closed.');
-    if (process.platform !== 'darwin') {
-        electron_1.app.quit();
-    }
-});
-electron_1.app.on('will-quit', () => {
-    console.log(`App will quit. Killing ${ptyInstances.size} PTY process(es).`);
-    ptyInstances.forEach((pty, id) => {
-        console.log(`Killing PTY process ID: ${id} (PID: ${pty.pid})`);
-        try {
-            pty.kill();
-        }
-        catch (e) {
-            console.warn(`Error killing PTY ID ${id}:`, e);
-        }
-    });
-    ptyInstances.clear();
-});
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Main Process Exception:', error);
-    if (error.message.includes('EPIPE')) {
-        console.warn("Ignoring EPIPE error in main process.");
-        return;
-    }
-    electron_1.dialog.showErrorBox('Unhandled Main Process Error', `${error.name}: ${error.message}\n${error.stack ?? ''}`);
-});
-// --- END FILE: src/main/index.ts ---
+electron_1.app.on('window-all-closed', () => { if (process.platform !== 'darwin') {
+    electron_1.app.quit();
+} });
+electron_1.app.on('will-quit', () => { ptyInstances.forEach((pty, id) => { try {
+    pty.kill();
+}
+catch (e) {
+    console.warn(`Error killing PTY ID ${id}:`, e);
+} }); ptyInstances.clear(); });
+process.on('uncaughtException', (error) => { console.error('Uncaught Main Process Exception:', error); if (error.message.includes('EPIPE')) {
+    console.warn("Ignoring EPIPE error.");
+    return;
+} electron_1.dialog.showErrorBox('Unhandled Main Process Error', `${error.name}: ${error.message}\n${error.stack ?? ''}`); });
 --- END FILE: dist-electron/main/index.js ---
 
 --- START FILE: dist-electron/main/index.d.ts ---
@@ -7041,7 +7024,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 --- START FILE: dist-electron/preload/index.js ---
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// --- START FILE: src/preload/index.ts ---
 // src/preload/index.ts
 const electron_1 = require("electron");
 // --- Implementation of the API ---
@@ -7090,6 +7072,9 @@ const api = {
     app_quit: () => electron_1.ipcRenderer.invoke('app:quit'),
     window_toggleFullscreen: () => electron_1.ipcRenderer.invoke('window:toggle-fullscreen'),
     window_toggleDevTools: () => electron_1.ipcRenderer.invoke('window:toggle-devtools'),
+    // --- NEW: Recent Folders Implementation ---
+    app_getRecentFolders: () => electron_1.ipcRenderer.invoke('app:getRecentFolders'),
+    // --- End New Implementation ---
 };
 // --- Expose the API to the Renderer process ---
 try {
@@ -7099,7 +7084,6 @@ try {
 catch (error) {
     console.error('Error exposing context bridge in preload script:', error);
 }
-// --- END FILE: src/preload/index.ts ---
 --- END FILE: dist-electron/preload/index.js ---
 
 --- START FILE: dist-electron/preload/index.d.ts ---
@@ -7123,6 +7107,7 @@ export interface ElectronAPI {
     app_quit: () => Promise<void>;
     window_toggleFullscreen: () => Promise<void>;
     window_toggleDevTools: () => Promise<void>;
+    app_getRecentFolders: () => Promise<string[]>;
 }
 --- END FILE: dist-electron/preload/index.d.ts ---
 
